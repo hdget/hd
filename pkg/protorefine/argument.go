@@ -18,11 +18,11 @@ type Argument struct {
 func (arg *Argument) validate() error {
 	// check proto dir is readable or not
 	if err := dirExistsAndReadable(arg.ProtoDir); err != nil {
-		return err
+		return errors.Wrap(err, "invalid proto dir")
 	}
 
 	if err := isValidDirName(arg.OutputDir); err != nil {
-		return err
+		return errors.Wrap(err, "invalid output dir")
 	}
 
 	if arg.OutputPackage == "" {
@@ -30,13 +30,17 @@ func (arg *Argument) validate() error {
 	}
 
 	if arg.ProtoDir == "" && len(arg.ProtoDirMatchFiles) == 0 {
-		return errors.New("proto_dir match files must be specified")
+		return errors.New("proto dir match files must be specified")
 	}
 
 	return nil
 }
 
 func dirExistsAndReadable(dirPath string) error {
+	if err := isValidDirName(dirPath); err != nil {
+		return err
+	}
+
 	// 获取绝对路径
 	absPath, err := filepath.Abs(dirPath)
 	if err != nil {
@@ -70,6 +74,10 @@ func isValidDirName(name string) error {
 	// 检查空值或空白
 	if strings.TrimSpace(name) == "" {
 		return errors.New("dir is empty")
+	}
+
+	if name == "." || name == ".." {
+		return nil
 	}
 
 	// 检查是否包含路径分隔符（如 `/` 或 `\`）

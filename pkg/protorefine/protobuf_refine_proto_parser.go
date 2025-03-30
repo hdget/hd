@@ -47,6 +47,10 @@ func (p *protoParser) findProtoDeclares(protoDir string, golangPkgName string, g
 		return nil, err
 	}
 
+	if len(file2parseResult) == 0 {
+		return nil, fmt.Errorf("no proto descriptors found, protoDir: %s", protoDir)
+	}
+
 	// filter duplicate pbTypeName corresponding descriptors
 	descriptorName2protoDeclare := make(map[string]*protoDeclare)
 	for _, golangTypeName := range golangTypeNames {
@@ -58,7 +62,7 @@ func (p *protoParser) findProtoDeclares(protoDir string, golangPkgName string, g
 			// we should check this case, pb.TheWord ==> message theWord {}
 			declares, found = p.match(file2parseResult, golangPkgName, p.lowerCaseFirstLetter(golangTypeName))
 			if !found {
-				return nil, fmt.Errorf("golang type: %s.%s not found", golangPkgName, golangTypeName)
+				return nil, fmt.Errorf("%s.%s not found", golangPkgName, golangTypeName)
 			}
 		}
 
@@ -129,7 +133,6 @@ func (p *protoParser) parse(protoDir string) (map[string]*protoParseResult, erro
 	//	return nil, err
 	//}
 
-	var totalTypes int
 	results := make(map[string]*protoParseResult)
 	for _, fd := range fds {
 		r := &protoParseResult{
@@ -140,12 +143,10 @@ func (p *protoParser) parse(protoDir string) (map[string]*protoParseResult, erro
 
 		for _, t := range fd.GetMessageTypes() {
 			r.typeName2protoMessage[t.GetName()] = t
-			totalTypes += 1
 		}
 
 		for _, t := range fd.GetEnumTypes() {
 			r.typeName2protoEnum[t.GetName()] = t
-			totalTypes += 1
 		}
 
 		for _, dep := range fd.GetDependencies() {
@@ -159,10 +160,6 @@ func (p *protoParser) parse(protoDir string) (map[string]*protoParseResult, erro
 		}
 
 		results[fd.GetName()] = r
-	}
-
-	if totalTypes == 0 {
-		return nil, fmt.Errorf("no protobuf descriptors found")
 	}
 
 	return results, nil

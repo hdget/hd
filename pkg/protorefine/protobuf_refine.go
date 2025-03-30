@@ -43,8 +43,6 @@ func (impl *protoRefineImpl) Refine(arg *Argument) error {
 
 	pbImportPath := path.Join(project, arg.OutputDir, arg.OutputPackage)
 
-	fmt.Println(1)
-
 	// 从golang源代码中找到protobuf类型的变量类型
 	golangPkgName, golangTypeNames, err := newGolangParser().parse(impl.srcDir, pbImportPath, arg.OutputDir)
 	if err != nil {
@@ -52,15 +50,19 @@ func (impl *protoRefineImpl) Refine(arg *Argument) error {
 	}
 
 	if len(golangTypeNames) == 0 {
-		return errors.New("golang protobuf type not found")
+		return fmt.Errorf("protobuf type not found, srcDir: %s", impl.srcDir)
 	}
-
-	fmt.Println(2, len(golangTypeNames))
 
 	// 去匹配proto文件中和源文件中匹配的类型的声明
 	protoDeclares, err := newProtoParser().findProtoDeclares(arg.ProtoDir, golangPkgName, golangTypeNames)
 	if err != nil {
 		return err
+	}
+
+	fmt.Printf("%+v\n", arg)
+
+	if len(protoDeclares) == 0 {
+		return fmt.Errorf("no matched protobuf types in proto dir, protoDir: %s", arg.ProtoDir)
 	}
 
 	fmt.Println(3)

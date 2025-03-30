@@ -27,7 +27,7 @@ func init() {
 	// 输出的包名
 	cmdProtoRefine.PersistentFlags().StringVarP(&arg.OutputPackage, "output-package", "", "pb", "")
 	// 原始的proto文件所在的目录
-	cmdProtoRefine.PersistentFlags().StringVarP(&arg.ProtoDir, "proto-dir", "", "", "")
+	cmdProtoRefine.PersistentFlags().StringVarP(&arg.ProtoDir, "proto-dir", "", "..", "")
 	// 该参数用来智能查找proto-dir
 	cmdProtoRefine.PersistentFlags().StringSliceVarP(&arg.ProtoDirMatchFiles, "proto-dir-match-files", "", []string{"gateway.proto"}, "")
 }
