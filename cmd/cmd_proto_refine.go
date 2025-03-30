@@ -3,17 +3,12 @@ package cmd
 import (
 	"fmt"
 	"github.com/hdget/hd/pkg/protorefine"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"os"
-	"path"
 )
 
 var (
-	//protoDir      string   // 指定的proto所在的目录
-	//outputDir     string   // 输出目录
-	//protoDirFiles []string // 在没有指定protoDir的时候去通过matchFiles去找proto所在的文件目录
-
+	arg            = &protorefine.Argument{}
 	cmdProtoRefine = &cobra.Command{
 		Use:   "refine",
 		Short: "refine proto files",
@@ -26,14 +21,15 @@ var (
 	}
 )
 
-const (
-	envHdNamespace = "HD_NAMESPACE"
-)
-
 func init() {
-	cmdProtoRefine.PersistentFlags().StringVarP(&outputDir, "output-dir", "", "autogen", "")
-	cmdProtoRefine.PersistentFlags().StringSliceVarP(&protoDirFiles, "proto-dir-files", "", []string{"gateway.proto"}, "")
-	cmdProtoRefine.PersistentFlags().StringVarP(&protoDir, "proto-dir", "", "", "")
+	// 输出的目录
+	cmdProtoRefine.PersistentFlags().StringVarP(&arg.OutputDir, "output-dir", "", "autogen", "")
+	// 输出的包名
+	cmdProtoRefine.PersistentFlags().StringVarP(&arg.OutputPackage, "output-package", "", "pb", "")
+	// 原始的proto文件所在的目录
+	cmdProtoRefine.PersistentFlags().StringVarP(&arg.ProtoDir, "proto-dir", "", "", "")
+	// 该参数用来智能查找proto-dir
+	cmdProtoRefine.PersistentFlags().StringSliceVarP(&arg.ProtoDirMatchFiles, "proto-dir-match-files", "", []string{"gateway.proto"}, "")
 }
 
 func refineProtoFiles() error {
@@ -42,14 +38,7 @@ func refineProtoFiles() error {
 		return err
 	}
 
-	project, exists := os.LookupEnv(envHdNamespace)
-	if !exists {
-		return errors.New("project name not found")
-	}
-
-	pbImportPath := path.Join(project, "autogen", "pb")
-
-	err = protorefine.New(srcDir).Refine(pbImportPath, protoDir, outputDir, "autogen")
+	err = protorefine.New(srcDir).Refine(arg)
 	if err != nil {
 		return err
 	}

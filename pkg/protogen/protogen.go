@@ -119,34 +119,3 @@ func (*protobufGenImpl) isRoot(path string) bool {
 	// Unix-like系统根目录是 "/"
 	return path == "/"
 }
-
-//
-//func (*protobufGenImpl) dirExistsAndReadable(dirPath string) error {
-//	// 获取绝对路径
-//	absPath, err := filepath.Abs(dirPath)
-//	if err != nil {
-//		return errors.Wrapf(err, "get abs dir, dir: %s", dirPath)
-//	}
-//
-//	// 检查是否为目录
-//	fileInfo, err := os.Stat(absPath)
-//	if err != nil {
-//		if os.IsNotExist(err) {
-//			return errors.Wrapf(err, "path doesn't exist, path: %s", dirPath) // 目录不存在
-//		}
-//		return errors.Wrapf(err, "path is not accessable, path: %s", dirPath)
-//	}
-//
-//	if !fileInfo.IsDir() {
-//		return fmt.Errorf("path is not a directory, path: %s", dirPath)
-//	}
-//
-//	// 检查目录是否可读
-//	d, err := os.Open(absPath)
-//	if err != nil {
-//		return errors.Wrapf(err, "path is not readable, path: %s", dirPath)
-//	}
-//	defer d.Close()
-//
-//	return nil
-//}
