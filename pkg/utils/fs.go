@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"github.com/elliotchance/pie/v2"
 	"github.com/pkg/errors"
 	"io/fs"
 	"os"
@@ -98,7 +99,10 @@ func IsDirWritable(path string) error {
 }
 
 // FindDirContainingFiles 查找包含指定文件的目录, 返回目录名
-func FindDirContainingFiles(srcDir, skipDir string, files ...string) (string, error) {
+func FindDirContainingFiles(srcDir string, matchFiles []string, skipDirs ...string) (string, error) {
+	// 记录所有已检查过的目录，防止二次检查
+	visitedDirs := map[string]struct{}{}
+
 	var foundDir string
 	for currentDir := srcDir; !isRoot(currentDir); currentDir = filepath.Dir(currentDir) {
 		err := filepath.WalkDir(currentDir, func(path string, d fs.DirEntry, err error) error {
@@ -108,19 +112,27 @@ func FindDirContainingFiles(srcDir, skipDir string, files ...string) (string, er
 
 			if d.IsDir() {
 				// 忽略.开头的目录和输出目录
-				if strings.HasPrefix(d.Name(), ".") || path == skipDir {
+				if strings.HasPrefix(d.Name(), ".") || pie.Contains(skipDirs, path) {
 					return fs.SkipDir
 				}
 
+				// 过滤掉大于2级深度的目录
 				if getDirDepth(currentDir, path) > 2 {
 					return fs.SkipDir
 				}
 
+				// 已经访问过，跳过
+				if _, visited := visitedDirs[path]; visited {
+					return fs.SkipDir
+				}
+
 				// 检查当前目录是否包含所有指定文件
-				if containsAllFiles(path, files) {
+				if containsAllFiles(path, matchFiles) {
 					foundDir = path
 					return fs.SkipAll
 				}
+
+				visitedDirs[path] = struct{}{}
 			}
 			return nil
 		})
@@ -135,7 +147,7 @@ func FindDirContainingFiles(srcDir, skipDir string, files ...string) (string, er
 	}
 
 	if foundDir == "" {
-		return "", fmt.Errorf("no matched dir found, files: %+v", files)
+		return "", fmt.Errorf("no matched dir found, files: %+v", matchFiles)
 	}
 	return foundDir, nil
 }

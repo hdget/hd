@@ -7,11 +7,15 @@ import (
 	"runtime/debug"
 )
 
-var rootCmd = &cobra.Command{}
+var (
+	argDebug bool
+	rootCmd  = &cobra.Command{}
+)
 
 func init() {
-	rootCmd.AddCommand(cmdProtoGen)
-	rootCmd.AddCommand(cmdProtoRefine)
+	rootCmd.PersistentFlags().BoolVarP(&argDebug, "debug", "", false, "--debug")
+
+	rootCmd.AddCommand(cmdProtobufGen)
 	rootCmd.AddCommand(cmdWindowsCommand)
 }
 
