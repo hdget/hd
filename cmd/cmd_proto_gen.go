@@ -8,10 +8,7 @@ import (
 )
 
 var (
-	protoDir      string   // 指定的proto所在的目录
-	outputDir     string   // 输出目录
-	protoDirFiles []string // 在没有指定protoDir的时候去通过matchFiles去找proto所在的文件目录
-
+	argProtoGen = protogen.Argument{}
 	cmdProtoGen = &cobra.Command{
 		Use:   "gen",
 		Short: "compile protobuf",
@@ -25,9 +22,8 @@ var (
 )
 
 func init() {
-	cmdProtoGen.PersistentFlags().StringVarP(&outputDir, "output-dir", "", "autogen", "")
-	cmdProtoGen.PersistentFlags().StringSliceVarP(&protoDirFiles, "proto-dir-files", "", []string{"gateway.proto"}, "")
-	cmdProtoGen.PersistentFlags().StringVarP(&protoDir, "proto-dir", "", "", "")
+	cmdProtoGen.PersistentFlags().StringVarP(&argProtoGen.OutputDir, "output-dir", "", "autogen", "--output-dir <sub_dir>")
+	cmdProtoGen.PersistentFlags().BoolVarP(&argProtoGen.Debug, "debug", "", false, "--debug")
 }
 
 func runProtocGen() error {
@@ -36,7 +32,7 @@ func runProtocGen() error {
 		return err
 	}
 
-	err = protogen.New(srcDir).Generate(protoDir, outputDir)
+	err = protogen.New(srcDir).Generate(argProtoGen)
 	if err != nil {
 		return err
 	}

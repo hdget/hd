@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	arg            = &protorefine.Argument{}
+	argProtoRefine = &protorefine.Argument{}
 	cmdProtoRefine = &cobra.Command{
 		Use:   "refine",
 		Short: "refine proto files",
@@ -23,13 +23,9 @@ var (
 
 func init() {
 	// 输出的目录
-	cmdProtoRefine.PersistentFlags().StringVarP(&arg.OutputDir, "output-dir", "", "autogen", "")
-	// 输出的包名
-	cmdProtoRefine.PersistentFlags().StringVarP(&arg.OutputPackage, "output-package", "", "pb", "")
+	cmdProtoRefine.PersistentFlags().StringVarP(&argProtoRefine.OutputDir, "output-dir", "", "autogen", "")
 	// 原始的proto文件所在的目录
-	cmdProtoRefine.PersistentFlags().StringVarP(&arg.ProtoDir, "proto-dir", "", "..", "")
-	// 该参数用来智能查找proto-dir
-	cmdProtoRefine.PersistentFlags().StringSliceVarP(&arg.ProtoDirMatchFiles, "proto-dir-match-files", "", []string{"gateway.proto"}, "")
+	cmdProtoRefine.PersistentFlags().StringVarP(&argProtoRefine.ProtoDir, "proto-dir", "", "", "")
 }
 
 func refineProtoFiles() error {
@@ -38,7 +34,7 @@ func refineProtoFiles() error {
 		return err
 	}
 
-	err = protorefine.New(srcDir).Refine(arg)
+	_, _, err = protorefine.New(srcDir).Refine(argProtoRefine)
 	if err != nil {
 		return err
 	}

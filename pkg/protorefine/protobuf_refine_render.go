@@ -30,7 +30,7 @@ import "{{.}}";
 `
 )
 
-type protoFile struct {
+type protoFileOutput struct {
 	Package string
 	Imports []string
 	Types   []string
@@ -86,7 +86,7 @@ func (r *protoRender) renderFile(outputDir, outputFileName string, golangPkgName
 
 	imports := pie.Keys(importMap)
 
-	output := &protoFile{
+	output := &protoFileOutput{
 		Package: golangPkgName,
 		Imports: imports,
 		Types:   types,
@@ -98,7 +98,7 @@ func (r *protoRender) renderFile(outputDir, outputFileName string, golangPkgName
 		return nil, err
 	}
 
-	outputPath := filepath.Join(outputDir, outputFileName+".proto")
+	outputPath := filepath.Join(outputDir, outputFileName)
 	err := os.WriteFile(outputPath, buf.Bytes(), 0644)
 	if err != nil {
 		return nil, errors.Wrapf(err, "write proto file, path: %s", outputPath)

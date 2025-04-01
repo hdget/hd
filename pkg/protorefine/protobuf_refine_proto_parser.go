@@ -5,6 +5,7 @@ import (
 	"github.com/elliotchance/pie/v2"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/protoparse"
+	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -198,6 +199,60 @@ func (p *protoParser) createProtoDeclares(kind protoDeclareKind, dependents []st
 		}
 	}
 	return declares
+}
+
+func (p *protoParser) getGolangPackageName(protoDir string) (string, error) {
+	// 获取第一个proto文件
+	firstProtoFile, err := p.getFirstProtoFile(protoDir)
+	if err != nil {
+		return "", err
+	}
+
+	pbParser := &protoparse.Parser{
+		ImportPaths: []string{protoDir},
+	}
+
+	fds, err := pbParser.ParseFiles(firstProtoFile)
+	if err != nil {
+		return "", err
+	}
+
+	if len(fds) == 0 {
+		return "", fmt.Errorf("empty proto file parsed result, file: %s", firstProtoFile)
+	}
+
+	// 1. 首先尝试获取go_package选项
+	if opts := fds[0].GetFileOptions(); opts != nil {
+		if goPkg := opts.GetGoPackage(); goPkg != "" {
+			return goPkg, nil
+		}
+	}
+
+	// 2. 如果没有go_package，则使用package声明
+	if pkg := fds[0].GetPackage(); pkg != "" {
+		// 将proto包名转换为有效的Go包名
+		return strings.ReplaceAll(pkg, ".", "_"), nil
+	}
+
+	// 3. 如果都没有，则使用文件名（不带扩展名）作为包名
+	base := filepath.Base(firstProtoFile)
+	return strings.TrimSuffix(base, filepath.Ext(base)), nil
+}
+
+// getFirstProtoFile 获取目录下第一个.proto文件
+func (p *protoParser) getFirstProtoFile(dir string) (string, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return "", errors.Wrap(err, "read proto dir")
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".proto") {
+			return entry.Name(), nil
+		}
+	}
+
+	return "", fmt.Errorf("no proto files under: %s", dir)
 }
 
 func (p *protoParser) splitWords(input string) []string {

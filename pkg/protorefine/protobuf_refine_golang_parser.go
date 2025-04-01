@@ -26,14 +26,14 @@ func newGolangParser() *golangParser {
 // pb.ProductKind
 // golang protobuf package name: pb
 // golang type name: ProductKind
-func (golangParser) parse(srcDir, pbImportPath string, skipDirs ...string) (string, []string, error) {
+func (golangParser) parse(srcDir, pbImportPath string, skipDirs ...string) ([]string, error) {
 	st, err := os.Stat(srcDir)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
 	if !st.IsDir() {
-		return "", nil, fmt.Errorf("invalid source code dir, dir: %s", srcDir)
+		return nil, fmt.Errorf("invalid source code dir, dir: %s", srcDir)
 	}
 
 	results := make(map[string]struct{})
@@ -82,7 +82,7 @@ func (golangParser) parse(srcDir, pbImportPath string, skipDirs ...string) (stri
 		return nil
 	})
 
-	return filepath.Base(pbImportPath), pie.Keys(results), nil
+	return pie.Keys(results), nil
 }
 
 // astGetImportPaths 获取导入路径
