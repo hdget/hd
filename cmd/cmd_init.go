@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	cmdWindowsCommand = &cobra.Command{
-		Use:   "ddd",
-		Short: "compile protobuf",
+	cmdInit = &cobra.Command{
+		Use:   "init",
+		Short: "initialize running environment",
 		Run: func(cmd *cobra.Command, args []string) {
 			runWindowsCommand(args[0])
 		},
