@@ -39,7 +39,7 @@ func (impl *protoRefineImpl) Refine(arg Argument) (string, error) {
 
 	absProtoRepository, _ := filepath.Abs(arg.ProtoRepository)
 	absOutputDir, _ := filepath.Abs(arg.OutputDir)
-	pbImportPath := path.Join(arg.GolangModule, arg.OutputDir, arg.GolangProtobufPackage)
+	pbImportPath := path.Join(arg.GolangModule, arg.OutputDir, arg.OutputPackage)
 	outputDir := filepath.Join(absOutputDir, filepath.Base(arg.ProtoRepository))
 
 	if impl.debug {
@@ -61,7 +61,7 @@ func (impl *protoRefineImpl) Refine(arg Argument) (string, error) {
 	}
 
 	// 去匹配proto文件中和源文件中匹配的类型的声明
-	protoDeclares, err := newProtoParser().findProtoDeclares(absProtoRepository, arg.GolangProtobufPackage, golangTypeNames)
+	protoDeclares, err := newProtoParser().findProtoDeclares(absProtoRepository, arg.OutputPackage, golangTypeNames)
 	if err != nil {
 		return "", err
 	}
@@ -72,7 +72,7 @@ func (impl *protoRefineImpl) Refine(arg Argument) (string, error) {
 
 	// 生成新的proto文件以及其依赖文件
 	outputFilename := fmt.Sprintf("%s.proto", filepath.Base(arg.GolangModule))
-	err = newProtoRender().Render(absProtoRepository, outputDir, outputFilename, arg.GolangProtobufPackage, protoDeclares)
+	err = newProtoRender().Render(absProtoRepository, outputDir, outputFilename, arg.OutputPackage, protoDeclares)
 	if err != nil {
 		return "", err
 	}

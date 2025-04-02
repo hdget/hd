@@ -3,6 +3,7 @@ package tools
 import (
 	"fmt"
 	"github.com/bitfield/script"
+	"github.com/pkg/errors"
 	"runtime"
 )
 
@@ -18,23 +19,23 @@ type toolImpl struct {
 	version string
 }
 
-func (t *toolImpl) GetName() string {
-	return t.name
+func (impl *toolImpl) GetName() string {
+	return impl.name
 }
 
-func (t *toolImpl) IsInstalled() bool {
+func (impl *toolImpl) IsInstalled() bool {
 	var cmd string
 	if runtime.GOOS == "windows" {
-		cmd = fmt.Sprintf("where %s", t.GetName())
+		cmd = fmt.Sprintf("where %s", impl.GetName())
 	} else {
-		cmd = fmt.Sprintf("which %s", t.GetName())
+		cmd = fmt.Sprintf("which %s", impl.GetName())
 	}
 
 	_, err := script.Exec(cmd).String()
 	return err == nil
 }
 
-func Check(tools []Tool, debug bool) error {
+func Check(debug bool, tools ...Tool) error {
 	for _, t := range tools {
 		if t.IsInstalled() {
 			if debug {
@@ -49,6 +50,18 @@ func Check(tools []Tool, debug bool) error {
 		}
 	}
 	return nil
+}
+
+func (impl *toolImpl) run(cmd string) error {
+	output, err := script.Exec(cmd).String()
+	if err != nil {
+		return errors.Wrapf(err, "%s安装失败, 输出:%s", impl.name, output)
+	}
+	return nil
+}
+
+func (impl *toolImpl) success(cmd string) bool {
+	return script.Exec(cmd).Wait() == nil
 }
 
 func installTool(t Tool) error {

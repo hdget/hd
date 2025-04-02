@@ -62,13 +62,12 @@ func protobufGenerate() error {
 		if argDebug {
 			prOptions = append(prOptions, protorefine.WithDebug(true))
 		}
-
 		protoDir, err = protorefine.New(prOptions...).Refine(protorefine.Argument{
-			GolangModule:          rootGolangModule,
-			GolangSourceCodeDir:   srcDir,
-			GolangProtobufPackage: argProtobufGen.outputPackage,
-			OutputDir:             argProtobufGen.outputDir,
-			ProtoRepository:       protoRepository,
+			GolangModule:        rootGolangModule,
+			GolangSourceCodeDir: srcDir,
+			ProtoRepository:     protoRepository,
+			OutputPackage:       argProtobufGen.outputPackage,
+			OutputDir:           argProtobufGen.outputDir,
 		})
 		if err != nil {
 			return err

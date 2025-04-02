@@ -6,32 +6,31 @@ import (
 )
 
 type Argument struct {
-	GolangModule          string // 源代码的模块名
-	GolangSourceCodeDir   string // 源代码的路径
-	GolangProtobufPackage string // protobuf包名
-	ProtoRepository       string // 原始proto文件所在的目录
-	OutputDir             string // 必须是相对路径
-
+	GolangModule        string // 源代码的模块名
+	GolangSourceCodeDir string // 源代码的路径
+	ProtoRepository     string // 原始proto文件所在的目录
+	OutputDir           string
+	OutputPackage       string
 }
 
-func (a *Argument) validate() error {
-	if a.GolangModule == "" {
-		return fmt.Errorf("golang module not found")
+func (arg Argument) validate() error {
+	if arg.GolangModule == "" {
+		return fmt.Errorf("empty golang module")
 	}
 
-	if a.GolangSourceCodeDir == "" {
-		return fmt.Errorf("golang source code dir not found")
+	if arg.GolangSourceCodeDir == "" {
+		return fmt.Errorf("empty golang source code dir")
 	}
 
-	if a.GolangProtobufPackage == "" {
-		return fmt.Errorf("golang protobuf package not found")
+	if arg.OutputPackage == "" {
+		return fmt.Errorf("empty output package")
 	}
 
-	if !utils.IsValidRelativePath(a.OutputDir) {
-		return fmt.Errorf("outputDir must be relative dir, outputDir: %s", a.OutputDir)
+	if !utils.IsValidRelativePath(arg.OutputDir) {
+		return fmt.Errorf("outputDir must be relative dir, outputDir: %s", arg.OutputDir)
 	}
 
-	if err := utils.IsDirReadableAndWithFiles(a.ProtoRepository, ".proto"); err != nil {
+	if err := utils.IsDirReadableAndWithFiles(arg.ProtoRepository, ".proto"); err != nil {
 		return err
 	}
 

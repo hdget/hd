@@ -22,7 +22,7 @@ func (t *protocGogofasterTool) WindowsInstall() error {
 
 // installProtocGenGogofaster 尝试安装 protoc-gen-gogofaster
 func (t *protocGogofasterTool) installFromSourceCode() error {
-	return NoArch().GoInstall("github.com/gogo/protobuf/protoc-gen-gogofaster")
+	return AllPlatform().GoInstall("github.com/gogo/protobuf/protoc-gen-gogofaster")
 	//
 	//cmd := "go install github.com/gogo/protobuf/protoc-gen-gogofaster@latest"
 	//output, err := script.Exec(cmd).String()

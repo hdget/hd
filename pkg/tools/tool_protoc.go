@@ -42,23 +42,22 @@ func (t *protocTool) LinuxInstall() error {
 }
 
 func (t *protocTool) WindowsInstall() error {
-	fmt.Printf("正在下载protoc v%s...\n", t.version)
-
+	fmt.Printf("正在下载%s v%s...\n", t.name, t.version)
 	url := fmt.Sprintf(urlProtocWindowsBinary, t.version, t.version)
-	tempDir, zipFile, err := NoArch().DownloadFile(url, "protoc.zip")
+	tempDir, zipFile, err := AllPlatform().Download(url)
 	if err != nil {
 		return err
 	}
 	defer os.RemoveAll(tempDir)
 
 	// 获取GOPATH
-	installDir, err := NoArch().GetGoBinDir()
+	installDir, err := AllPlatform().GetGoBinDir()
 	if err != nil {
 		return err
 	}
 
 	// 解压zip文件
-	if err = NoArch().UnzipSpecific(zipFile, "bin/protoc.exe", installDir); err != nil {
+	if err = AllPlatform().UnzipSpecific(zipFile, "bin/protoc.exe", installDir); err != nil {
 		return err
 	}
 

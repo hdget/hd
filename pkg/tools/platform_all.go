@@ -11,14 +11,14 @@ import (
 	"strings"
 )
 
-type noArchImpl struct {
+type platformAll struct {
 }
 
-func NoArch() *noArchImpl {
-	return &noArchImpl{}
+func AllPlatform() *platformAll {
+	return &platformAll{}
 }
 
-func (noArchImpl) GoInstall(pkg string) error {
+func (platformAll) GoInstall(pkg string) error {
 	envs := append(os.Environ(), []string{
 		"GOPROXY=https://goproxy.cn,direct",
 	}...)
@@ -32,14 +32,14 @@ func (noArchImpl) GoInstall(pkg string) error {
 	return nil
 }
 
-func (noArchImpl) DownloadFile(url, filename string) (string, string, error) {
+func (platformAll) Download(url string) (string, string, error) {
 	// 创建临时目录
 	tempDir, err := os.MkdirTemp(os.TempDir(), "download-*")
 	if err != nil {
 		return "", "", errors.Wrap(err, "创建临时目录失败")
 	}
 
-	downloadFile := filepath.Join(tempDir, filename)
+	downloadFile := filepath.Join(tempDir, filepath.Base(url))
 	_, err = script.Get(url).WriteFile(downloadFile)
 	if err != nil {
 		fmt.Println("Windows系统请手动下载安装protoc: https://github.com/protocolbuffers/protobuf/releases")
@@ -49,7 +49,7 @@ func (noArchImpl) DownloadFile(url, filename string) (string, string, error) {
 	return tempDir, downloadFile, nil
 }
 
-func (noArchImpl) GetGoBinDir() (string, error) {
+func (platformAll) GetGoBinDir() (string, error) {
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return "", errors.New("GOPATH未设置")
@@ -57,7 +57,7 @@ func (noArchImpl) GetGoBinDir() (string, error) {
 	return filepath.Join(gopath, "bin"), nil
 }
 
-func (noArchImpl) UnzipSpecific(zipFile, sourcePath, targetDir string) error {
+func (platformAll) UnzipSpecific(zipFile, sourcePath, targetDir string) error {
 	// 打开ZIP文件
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
@@ -95,7 +95,7 @@ func (noArchImpl) UnzipSpecific(zipFile, sourcePath, targetDir string) error {
 				// 如果是目录则创建，是文件则解压
 				if f.FileInfo().IsDir() {
 					destPath := filepath.Join(targetDir, relPath)
-					if err := os.MkdirAll(destPath, 0755); err != nil {
+					if err = os.MkdirAll(destPath, 0755); err != nil {
 						return fmt.Errorf("创建目录失败: %v", err)
 					}
 				} else {

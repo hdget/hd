@@ -1,8 +1,11 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
+	"fmt"
 	"github.com/pkg/errors"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -21,4 +24,23 @@ func GetRootGolangModule() (string, error) {
 	}
 
 	return strings.TrimSpace(string(lines[0])), nil
+}
+
+func Fatal(prompt string, err error) {
+	fmt.Printf("%s: %s\n", prompt, err.Error())
+	os.Exit(1)
+}
+
+// GetInput 获取字符串输入
+func GetInput(prompt string) string {
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Print(prompt)
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSpace(input)
+		if input != "" {
+			return input
+		}
+		fmt.Println("输入不能为空，请重新输入")
+	}
 }

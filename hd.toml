@@ -1,0 +1,6 @@
+config_repo="https://git.hdget.com/hdmall/common/config.git"
+proto_repo="https://git.hdget.com/hdmall/common/proto.git"
+
+[[apps]]
+    name = "product"
+    repo = "https://git.hdget.com/hdmall/backend/product.git"

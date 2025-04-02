@@ -6,14 +6,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-type windowsImpl struct {
+type windowsPlatformImpl struct {
 }
 
-func Windows() *windowsImpl {
-	return &windowsImpl{}
+func WindowsPlatform() *windowsPlatformImpl {
+	return &windowsPlatformImpl{}
 }
 
-func (*windowsImpl) MoveFile(src, dst string) error {
+func (*windowsPlatformImpl) MoveFile(src, dst string) error {
 	cmd := fmt.Sprintf(`powershell -Command Get-ChildItem "%s" | Move-Item -Destination "%s"" -Force`, src, dst)
 	_, err := script.Exec(cmd).Stdout()
 	if err != nil {
@@ -22,7 +22,7 @@ func (*windowsImpl) MoveFile(src, dst string) error {
 	return nil
 }
 
-func (*windowsImpl) Unzip(zipFile, dst string) error {
+func (*windowsPlatformImpl) Unzip(zipFile, dst string) error {
 	cmd := fmt.Sprintf(`powershell -Command Expand-Archive -Path "%s" -DestinationPath "%s" -Force`, zipFile, dst)
 	err := script.Exec(cmd).Wait()
 	if err != nil {
@@ -31,7 +31,7 @@ func (*windowsImpl) Unzip(zipFile, dst string) error {
 	return err
 }
 
-func (*windowsImpl) UnzipFile(zipFile, sourceDir, targetDir string) error {
+func (*windowsPlatformImpl) UnzipFile(zipFile, sourceDir, targetDir string) error {
 	cmd := fmt.Sprintf(`$tempDir = Join-Path $env:TEMP (New-Guid).Guid
 		New-Item -ItemType Directory -Path $tempDir | Out-Null
 		Expand-Archive -Path "%s" -DestinationPath $tempDir -Force
