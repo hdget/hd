@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 func (a appControlImpl) Build(refName string, apps ...string) error {
@@ -90,7 +91,11 @@ func (a appControlImpl) golangBuild(appSrcDir, app string) error {
 	}
 
 	// go build
-	cmd := fmt.Sprintf("go build -o %s", app)
+	binFile := app
+	if runtime.GOOS == "windows" {
+		binFile = fmt.Sprintf("%s.exe", app)
+	}
+	cmd := fmt.Sprintf("go build -o %s", binFile)
 	output, err = script.Exec(cmd).String()
 	if err != nil {
 		return errors.Wrapf(err, "go build, err: %s", output)
@@ -100,7 +105,7 @@ func (a appControlImpl) golangBuild(appSrcDir, app string) error {
 	if err = os.MkdirAll(a.binDir, 0755); err != nil {
 		return errors.Wrapf(err, "make bin dir, binDir: %s", a.binDir)
 	}
-	if _, err = script.File(app).WriteFile(filepath.Join(a.binDir, app)); err != nil {
+	if _, err = script.File(binFile).WriteFile(filepath.Join(a.binDir, binFile)); err != nil {
 		return err
 	}
 
