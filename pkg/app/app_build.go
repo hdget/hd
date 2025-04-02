@@ -57,26 +57,28 @@ func (a appControlImpl) buildApp(tempDir, app, refName string) error {
 	}
 
 	// 拷贝sqlboiler.toml
-	if err := a.copySqlboilerFile(app, appSrcDir, refName); err != nil {
+	if err := a.copySqlboilerFile(appSrcDir, app, refName); err != nil {
 		return err
 	}
 
 	// go build
-	if err := a.golangBuild(app); err != nil {
-		return err
-	}
-
-	// move binary to saveDir
-	sourceBinFile := filepath.Join(appSrcDir, app)
-	destBindFile := filepath.Join(a.binDir, app)
-	if _, err := script.File(sourceBinFile).WriteFile(destBindFile); err != nil {
+	if err := a.golangBuild(appSrcDir, app); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (a appControlImpl) golangBuild(app string) error {
+func (a appControlImpl) golangBuild(appSrcDir, app string) error {
+	// 切换到app源代码目录
+	err := os.Chdir(appSrcDir)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = os.Chdir(a.baseDir)
+	}()
+
 	envs := append(os.Environ(), []string{
 		fmt.Sprintf("HD_WORK_DIR=%s", a.baseDir),
 	}...)
@@ -94,10 +96,18 @@ func (a appControlImpl) golangBuild(app string) error {
 		return errors.Wrapf(err, "go build, err: %s", output)
 	}
 
+	// move binary to binDir
+	if err = os.MkdirAll(a.binDir, 0755); err != nil {
+		return errors.Wrapf(err, "make bin dir, binDir: %s", a.binDir)
+	}
+	if _, err = script.File(app).WriteFile(filepath.Join(a.binDir, app)); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (a appControlImpl) copySqlboilerFile(app, appSrcDir, refName string) error {
+func (a appControlImpl) copySqlboilerFile(appSrcDir, app, refName string) error {
 	destConfigDir := filepath.Join(a.baseDir, "config")
 	if err := newGit(a.baseDir).Clone(g.Config.ConfigRepo, destConfigDir).Switch(refName, "main"); err != nil {
 		return err
