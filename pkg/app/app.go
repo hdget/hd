@@ -4,6 +4,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/hdget/hd/g"
 	"log"
+	"path/filepath"
 )
 
 type Controller interface {
@@ -16,6 +17,7 @@ type Controller interface {
 
 type appControlImpl struct {
 	baseDir         string
+	binDir          string
 	debug           bool
 	pbOutputDir     string
 	pbOutputPackage string
@@ -24,6 +26,7 @@ type appControlImpl struct {
 func New(baseDir string, options ...Option) Controller {
 	impl := &appControlImpl{
 		baseDir:         baseDir,
+		binDir:          filepath.Join(baseDir, "bin"),
 		pbOutputDir:     "autogen",
 		pbOutputPackage: "pb",
 	}

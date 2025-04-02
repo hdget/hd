@@ -47,7 +47,7 @@ func (a appControlImpl) buildApp(tempDir, app, refName string) error {
 	appSrcDir := filepath.Join(tempDir, app)
 
 	// 拷贝源代码并切换到指定分支
-	if err := newGit().Clone(appConfig.Repo, appSrcDir).Switch(refName); err != nil {
+	if err := newGit(a.baseDir).Clone(appConfig.Repo, appSrcDir).Switch(refName); err != nil {
 		return err
 	}
 
@@ -61,12 +61,45 @@ func (a appControlImpl) buildApp(tempDir, app, refName string) error {
 		return err
 	}
 
+	// go build
+	if err := a.golangBuild(app); err != nil {
+		return err
+	}
+
+	// move binary to saveDir
+	sourceBinFile := filepath.Join(appSrcDir, app)
+	destBindFile := filepath.Join(a.binDir, app)
+	if _, err := script.File(sourceBinFile).WriteFile(destBindFile); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a appControlImpl) golangBuild(app string) error {
+	envs := append(os.Environ(), []string{
+		fmt.Sprintf("HD_WORK_DIR=%s", a.baseDir),
+	}...)
+
+	// go generate
+	output, err := script.NewPipe().WithEnv(envs).Exec(`go generate`).String()
+	if err != nil {
+		return errors.Wrapf(err, "go generate, err: %s", output)
+	}
+
+	// go build
+	cmd := fmt.Sprintf("go build -o %s", app)
+	output, err = script.Exec(cmd).String()
+	if err != nil {
+		return errors.Wrapf(err, "go build, err: %s", output)
+	}
+
 	return nil
 }
 
 func (a appControlImpl) copySqlboilerFile(app, appSrcDir, refName string) error {
 	destConfigDir := filepath.Join(a.baseDir, "config")
-	if err := newGit().Clone(g.Config.ConfigRepo, destConfigDir).Switch(refName, "main"); err != nil {
+	if err := newGit(a.baseDir).Clone(g.Config.ConfigRepo, destConfigDir).Switch(refName, "main"); err != nil {
 		return err
 	}
 
@@ -83,7 +116,7 @@ func (a appControlImpl) generateProtobuf(srcDir, refName string) error {
 	protoRepository := filepath.Join(srcDir, "proto")
 
 	// 拷贝protod repostory
-	if err := newGit().Clone(g.Config.ProtoRepo, protoRepository).Switch(refName, "main"); err != nil {
+	if err := newGit(a.baseDir).Clone(g.Config.ProtoRepo, protoRepository).Switch(refName, "main"); err != nil {
 		return err
 	}
 

@@ -7,13 +7,16 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/hdget/hd/pkg/utils"
+	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	"os"
+	"path/filepath"
 	"sync"
 )
 
 type gitImpl struct {
-	repo *git.Repository
+	repo    *git.Repository
+	baseDir string
 }
 
 var (
@@ -22,10 +25,12 @@ var (
 	cachedAuth     *http.BasicAuth
 )
 
-func newGit() *gitImpl {
+func newGit(baseDir string) *gitImpl {
 	// _ = script.Exec(`git config --global credential.helper store`).Wait()
 	_ = script.Exec(`git config --global advice.detachedHead false`).Wait()
-	return &gitImpl{}
+	return &gitImpl{
+		baseDir: baseDir,
+	}
 }
 
 func (impl *gitImpl) Clone(url, destDir string) *gitImpl {
@@ -39,7 +44,7 @@ func (impl *gitImpl) Clone(url, destDir string) *gitImpl {
 	impl.repo, err = git.PlainClone(destDir, false, &git.CloneOptions{
 		URL:      url,
 		Progress: os.Stdout,
-		Auth:     getGitAuth(),
+		Auth:     impl.getAuth(),
 	})
 	if err != nil {
 		utils.Fatal("clone repository", err)
@@ -101,10 +106,22 @@ func (impl *gitImpl) checkout(refName string) error {
 	return errRefNotFound
 }
 
-func getGitAuth() *http.BasicAuth {
+func (impl *gitImpl) getAuth() *http.BasicAuth {
 	once.Do(func() {
-		gitUser := utils.GetInput(">>> GIT用户: ")
-		gitPassword := utils.GetInput(">>> GIT密码: ")
+		gitUser, _ := os.LookupEnv("GIT_USER")
+		if gitUser == "" {
+			gitUser = utils.GetInput(">>> GIT用户: ")
+		}
+
+		gitPassword, _ := os.LookupEnv("GIT_PASSWORD")
+		if gitPassword == "" {
+			gitPassword = utils.GetInput(">>> GIT密码: ")
+		}
+
+		_ = impl.writeEnvFile(filepath.Join(impl.baseDir, ".env"), map[string]string{
+			"GIT_USER":     gitUser,
+			"GIT_PASSWORD": gitPassword,
+		})
 
 		cachedAuth = &http.BasicAuth{
 			Username: gitUser,     // 对于GitHub，可以是任意非空字符串
@@ -112,4 +129,20 @@ func getGitAuth() *http.BasicAuth {
 		}
 	})
 	return cachedAuth
+}
+
+func (impl *gitImpl) writeEnvFile(filename string, data map[string]string) error {
+	/// 读取现有内容（如果文件存在）
+	existing, err := godotenv.Read(filename)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("读取现有.env文件失败: %w", err)
+	}
+
+	// 合并新旧值
+	for k, v := range data {
+		existing[k] = v
+	}
+
+	// 写入文件
+	return godotenv.Write(existing, filename)
 }
