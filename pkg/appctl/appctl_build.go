@@ -117,7 +117,7 @@ func (b *appBuilder) golangBuild(appSrcDir, app string) error {
 
 	// go build
 	binFile := b.getExecutable(app)
-	cmd := fmt.Sprintf("go build -o %s", binFile)
+	cmd := fmt.Sprintf("go build -ldflags='-w -s' -o %s", binFile)
 	output, err = script.Exec(cmd).String()
 	if err != nil {
 		return errors.Wrapf(err, "go build, err: %s", output)
