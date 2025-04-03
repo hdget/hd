@@ -3,6 +3,7 @@ package g
 type RootConfig struct {
 	Project ProjectConfig `toml:"project"`
 	Repos   []RepoConfig  `toml:"repos"`
+	Tools   []ToolConfig  `toml:"tools"`
 }
 
 type ProjectConfig struct {
@@ -16,6 +17,15 @@ type RepoConfig struct {
 	Url  string `toml:"url"`
 }
 
+type ToolConfig struct {
+	Name            string `toml:"name"`
+	Version         string `toml:"version"`
+	UrlWinRelease   string `toml:"url_win_release"`
+	UrlLinuxRelease string `toml:"url_linux_release"`
+}
+
 var (
-	Config = &RootConfig{}
+	Config      = &RootConfig{}
+	ToolConfigs = map[string]ToolConfig{}
+	RepoConfigs = map[string]RepoConfig{}
 )

@@ -1,5 +1,6 @@
 package g
 
 const (
-	App = "hd"
+	App        = "hd"
+	ConfigFile = "hd.toml"
 )

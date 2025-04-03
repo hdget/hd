@@ -3,6 +3,7 @@ package appctl
 import (
 	"fmt"
 	"github.com/bitfield/script"
+	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/protocompile"
 	"github.com/hdget/hd/pkg/protorefine"
 	"github.com/hdget/hd/pkg/tools"
@@ -40,7 +41,7 @@ func newAppBuilder(appCtl *appCtlImpl) (*appBuilder, error) {
 	}, nil
 }
 
-func (b *appBuilder) Build(refName string, apps ...string) error {
+func (b *appBuilder) build(refName string, apps ...string) error {
 
 	// 创建临时目录
 	tempDir, err := os.MkdirTemp(os.TempDir(), "hd-build-*")
@@ -64,7 +65,7 @@ func (b *appBuilder) Build(refName string, apps ...string) error {
 }
 
 func (b *appBuilder) buildApp(tempDir, app, refName string) error {
-	appRepoConfig, exist := repoName2repoConfig[app]
+	appRepoConfig, exist := g.RepoConfigs[app]
 	if !exist {
 		return fmt.Errorf("app config not found, app: %s", app)
 	}
@@ -135,7 +136,7 @@ func (b *appBuilder) golangBuild(appSrcDir, app string) error {
 }
 
 func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) error {
-	gitConfigRepo, exists := repoName2repoConfig[gitConfigRepoName]
+	gitConfigRepo, exists := g.RepoConfigs[gitConfigRepoName]
 	if !exists {
 		return fmt.Errorf("repo config not found, name: %s", gitConfigRepoName)
 	}
@@ -155,7 +156,7 @@ func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) err
 }
 
 func (b *appBuilder) generateProtobuf(srcDir, refName string) error {
-	gitProtoRepo, exists := repoName2repoConfig[gitProtoRepoName]
+	gitProtoRepo, exists := g.RepoConfigs[gitProtoRepoName]
 	if !exists {
 		return fmt.Errorf("repo config not found, name: %s", gitProtoRepoName)
 	}

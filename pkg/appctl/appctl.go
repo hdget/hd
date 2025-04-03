@@ -2,8 +2,6 @@ package appctl
 
 import (
 	"fmt"
-	"github.com/BurntSushi/toml"
-	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/utils"
 	"os"
 	"path/filepath"
@@ -12,7 +10,7 @@ import (
 
 type AppController interface {
 	Start(app string) error
-	Stop() error
+	Stop(app string) error
 	Run() error
 	Build(refName string, apps ...string) error
 	Deploy() error
@@ -24,44 +22,13 @@ type appCtlImpl struct {
 	debug   bool
 }
 
-var (
-	repoName2repoConfig = map[string]g.RepoConfig{}
-	configFile          = "hd.toml"
-)
-
 func init() {
-	// 读取 TOML 文件
-	if _, err := toml.DecodeFile(configFile, &g.Config); err != nil {
-		utils.Fatal(fmt.Sprintf("read config file, file: %s", configFile), err)
-	}
-
-	for _, repo := range g.Config.Repos {
-		repoName2repoConfig[repo.Name] = repo
-	}
-
 	// 初始化导出环境变量
 	for k, v := range getExportedEnvs() {
 		if err := os.Setenv(k, v); err != nil {
 			utils.Fatal("export HD environment variable", err)
 		}
 	}
-}
-
-func (a *appCtlImpl) Start(app string) error {
-	instance, err := newAppStarter(a)
-	if err != nil {
-		return err
-	}
-	return instance.Start(app)
-}
-
-func (a *appCtlImpl) Build(refName string, apps ...string) error {
-	instance, err := newAppBuilder(a)
-	if err != nil {
-		return err
-	}
-
-	return instance.Build(refName, apps...)
 }
 
 func New(baseDir string, options ...Option) AppController {
@@ -77,8 +44,30 @@ func New(baseDir string, options ...Option) AppController {
 	return impl
 }
 
-func (a *appCtlImpl) Stop() error {
-	return nil
+func (a *appCtlImpl) Start(app string) error {
+	instance, err := newAppStarter(a)
+	if err != nil {
+		return err
+	}
+	return instance.start(app)
+}
+
+func (a *appCtlImpl) Build(refName string, apps ...string) error {
+	instance, err := newAppBuilder(a)
+	if err != nil {
+		return err
+	}
+
+	return instance.build(refName, apps...)
+}
+
+func (a *appCtlImpl) Stop(app string) error {
+	instance, err := newAppStopper(a)
+	if err != nil {
+		return err
+	}
+
+	return instance.stop(app)
 }
 
 func (a *appCtlImpl) Run() error {

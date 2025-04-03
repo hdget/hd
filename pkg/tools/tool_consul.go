@@ -2,6 +2,7 @@ package tools
 
 import (
 	"fmt"
+	"github.com/hdget/hd/g"
 	"os"
 )
 
@@ -10,16 +11,35 @@ type consulTool struct {
 }
 
 func Consul() Tool {
-	return &consulTool{
+	impl := &consulTool{
 		toolImpl: &toolImpl{
-			name:    "consul",
-			version: "1.17.0",
+			name:            "consul",
+			version:         defaultConsulVersion,
+			urlLinuxRelease: fmt.Sprintf(defaultUrlConsulUnixRelease, defaultConsulVersion, defaultConsulVersion),
+			urlWinRelease:   fmt.Sprintf(defaultUrlConsulWinRelease, defaultConsulVersion, defaultConsulVersion),
 		},
 	}
+
+	if c, exist := g.ToolConfigs["consul"]; exist {
+		if c.UrlLinuxRelease != "" {
+			impl.urlLinuxRelease = c.UrlLinuxRelease
+		}
+
+		if c.UrlWinRelease != "" {
+			impl.urlWinRelease = c.UrlWinRelease
+		}
+		if impl.version != "" {
+			impl.version = c.Version
+		}
+	}
+
+	return impl
 }
 
 const (
-	urlConsulWindowsBinary = "https://releases.hashicorp.com/consul/%s/consul_%s_windows_amd64.zip"
+	defaultConsulVersion        = "1.20.5"
+	defaultUrlConsulWinRelease  = "https://releases.hashicorp.com/consul/%s/consul_%s_windows_amd64.zip"
+	defaultUrlConsulUnixRelease = "https://releases.hashicorp.com/consul/%s/consul_%s_linux_amd64.zip"
 )
 
 func (t *consulTool) IsInstalled() bool {
@@ -31,22 +51,16 @@ func (t *consulTool) LinuxInstall() error {
 }
 
 func (t *consulTool) WindowsInstall() error {
-	fmt.Printf("正在下载%s v%s...\n", t.name, t.version)
-	url := fmt.Sprintf(urlConsulWindowsBinary, t.version, t.version)
-	tempDir, zipFile, err := AllPlatform().Download(url)
+	fmt.Printf("正在下载%s...\n", t.name)
+
+	tempDir, zipFile, err := AllPlatform().Download(t.urlWinRelease)
 	if err != nil {
 		return err
 	}
 	defer os.RemoveAll(tempDir)
 
-	// 获取GOPATH
-	installDir, err := AllPlatform().GetGoBinDir()
-	if err != nil {
-		return err
-	}
-
 	// 解压zip文件
-	if err = AllPlatform().UnzipSpecific(zipFile, "consul.exe", installDir); err != nil {
+	if err = AllPlatform().UnzipSpecific(zipFile, "consul.exe", t.GetSystemBinDir()); err != nil {
 		return err
 	}
 

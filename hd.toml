@@ -14,3 +14,9 @@
 [[repos]]
     name = "product"
     url = "https://git.hdget.com/hdmall/backend/product.git"
+#
+#[[tools]]
+#    name = "consul"
+#    version = "1.20.5"
+#    url_win_release = "https://releases.hashicorp.com/consul/%s/consul_%s_windows_amd64.zip"
+#    url_unix_release = "https://releases.hashicorp.com/consul/%s/consul_%s_linux_amd64.zip"

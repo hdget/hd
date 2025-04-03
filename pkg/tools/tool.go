@@ -17,8 +17,10 @@ type Tool interface {
 }
 
 type toolImpl struct {
-	name    string
-	version string
+	name            string
+	version         string
+	urlWinRelease   string
+	urlLinuxRelease string
 }
 
 func (impl *toolImpl) GetName() string {

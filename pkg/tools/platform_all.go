@@ -41,7 +41,6 @@ func (platformAll) Download(url string) (string, string, error) {
 	downloadFile := filepath.Join(tempDir, filepath.Base(url))
 	_, err = script.Get(url).WriteFile(downloadFile)
 	if err != nil {
-		fmt.Println("Windows系统请手动下载安装protoc: https://github.com/protocolbuffers/protobuf/releases")
 		return "", "", errors.Wrap(err, "下载失败")
 	}
 

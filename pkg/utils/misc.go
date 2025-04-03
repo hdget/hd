@@ -26,8 +26,12 @@ func GetRootGolangModule() (string, error) {
 	return strings.TrimSpace(string(lines[0])), nil
 }
 
-func Fatal(prompt string, err error) {
-	fmt.Printf("%s: %s\n", prompt, err.Error())
+func Fatal(prompt string, errs ...error) {
+	if len(errs) > 0 {
+		fmt.Printf("%s: %s\n", prompt, errs[0].Error())
+	} else {
+		fmt.Println(prompt)
+	}
 	os.Exit(1)
 }
 

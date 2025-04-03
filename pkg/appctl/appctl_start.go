@@ -44,6 +44,7 @@ var (
 func newAppStarter(appCtl *appCtlImpl) (*appStartImpl, error) {
 	// 检查依赖的工具是否安装
 	if err := tools.Check(appCtl.debug,
+		tools.Consul(),
 		tools.Dapr(),
 	); err != nil {
 		return nil, err
@@ -60,7 +61,7 @@ func newAppStarter(appCtl *appCtlImpl) (*appStartImpl, error) {
 	}, nil
 }
 
-func (a *appStartImpl) Start(app string) error {
+func (a *appStartImpl) start(app string) error {
 	cmd, err := a.getStartCommand(app)
 	if err != nil {
 		return err

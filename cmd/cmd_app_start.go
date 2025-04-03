@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	"github.com/hdget/hd/pkg/appctl"
+	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var (
@@ -9,22 +12,23 @@ var (
 		Use:   "start",
 		Short: "start app",
 		Run: func(cmd *cobra.Command, args []string) {
+			startApp(args)
 		},
 	}
 )
 
-func init() {
+func startApp(args []string) {
+	if len(args) != 1 {
+		utils.Fatal("Usage: start <app>")
+	}
 
+	baseDir, err := os.Getwd()
+	if err != nil {
+		utils.Fatal("get current dir", err)
+	}
+
+	err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Start(args[0])
+	if err != nil {
+		utils.Fatal("start app", err)
+	}
 }
-
-//
-//func runWindowsCommand(dir string) {
-//	decoder := simplifiedchinese.GBK.NewDecoder()
-//
-//	n, err := script.Exec(fmt.Sprintf(`cmd /c dir %s`, filepath.Dir(dir))).WithStdout(transform.NewWriter(os.Stdout, decoder)).Stdout()
-//	if err != nil {
-//		fmt.Println(err)
-//		os.Exit(1)
-//	}
-//	fmt.Println(n)
-//}
