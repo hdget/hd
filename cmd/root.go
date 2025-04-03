@@ -16,7 +16,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&argDebug, "debug", "", false, "--debug")
 
 	rootCmd.AddCommand(cmdProtobufGen)
-	rootCmd.AddCommand(cmdApp)
+	rootCmd.AddCommand(cmdAppBuild)
+	rootCmd.AddCommand(cmdAppStart)
 }
 
 func Execute() {

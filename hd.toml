@@ -1,6 +1,16 @@
-config_repo="https://git.hdget.com/hdmall/common/config.git"
-proto_repo="https://git.hdget.com/hdmall/common/proto.git"
+[project]
+    name = "hdmall"
+    env = "test"
+    gateway_port = 52000
 
-[[apps]]
+[[repos]]
+    name = "config"
+    url="https://git.hdget.com/hdmall/common/config.git"
+
+[[repos]]
+    name = "proto"
+    url="https://git.hdget.com/hdmall/common/proto.git"
+
+[[repos]]
     name = "product"
-    repo = "https://git.hdget.com/hdmall/backend/product.git"
+    url = "https://git.hdget.com/hdmall/backend/product.git"

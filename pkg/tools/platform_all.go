@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 type platformAll struct {
@@ -57,7 +56,7 @@ func (platformAll) GetGoBinDir() (string, error) {
 	return filepath.Join(gopath, "bin"), nil
 }
 
-func (platformAll) UnzipSpecific(zipFile, sourcePath, targetDir string) error {
+func (platformAll) UnzipSpecific(zipFile, matchPattern, destDir string) error {
 	// 打开ZIP文件
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
@@ -65,82 +64,61 @@ func (platformAll) UnzipSpecific(zipFile, sourcePath, targetDir string) error {
 	}
 	defer r.Close()
 
-	// 标准化路径（确保使用正斜杠）
-	sourcePath = filepath.ToSlash(sourcePath)
-
-	// 判断是文件还是目录
-	isFile := !strings.HasSuffix(sourcePath, "/") &&
-		!strings.HasSuffix(sourcePath, "\\") &&
-		filepath.Ext(sourcePath) != ""
-
 	// 遍历ZIP文件
 	found := false
 	for _, f := range r.File {
-		zipPath := filepath.ToSlash(f.Name)
+		matched, err := filepath.Match(matchPattern, f.Name)
+		if err != nil {
+			return err
+		}
 
 		// 检查是否匹配指定路径
-		if isFile {
-			// 精确匹配文件
-			if zipPath == sourcePath {
-				return extractFile(f, targetDir)
+		if matched {
+			// 4. 处理匹配的文件
+			if err = extractFile(f, destDir); err != nil {
+				return fmt.Errorf("解压文件%s失败: %v", f.Name, err)
 			}
-		} else {
-			// 匹配目录下的所有文件
-			if strings.HasPrefix(zipPath, sourcePath) {
-				relPath := zipPath[len(sourcePath):]
-				if relPath == "" {
-					continue // 跳过目录本身
-				}
-
-				// 如果是目录则创建，是文件则解压
-				if f.FileInfo().IsDir() {
-					destPath := filepath.Join(targetDir, relPath)
-					if err = os.MkdirAll(destPath, 0755); err != nil {
-						return fmt.Errorf("创建目录失败: %v", err)
-					}
-				} else {
-					if err := extractFile(f, filepath.Join(targetDir, filepath.Dir(relPath))); err != nil {
-						return err
-					}
-				}
-				found = true
-			}
+			found = true
 		}
 	}
 
 	if !found {
-		if isFile {
-			return fmt.Errorf("ZIP文件中未找到文件: %s", sourcePath)
-		}
-		return fmt.Errorf("ZIP文件中未找到目录: %s", sourcePath)
+		return fmt.Errorf("没有匹配的ZIP文件内容: %s", matchPattern)
 	}
 
 	return nil
 }
 
-// 解压单个文件
-func extractFile(f *zip.File, targetDir string) error {
-	// 创建目标文件路径
-	destPath := filepath.Join(targetDir, filepath.Base(f.Name))
+// extractFile 解压单个文件
+func extractFile(f *zip.File, destDir string) error {
+	// 1. 创建目标文件路径
+	destPath := filepath.Join(destDir, f.Name)
 
-	// 创建目标文件
-	outFile, err := os.Create(destPath)
+	// 2. 检查目录是否存在，不存在则创建
+	if f.FileInfo().IsDir() {
+		return os.MkdirAll(destPath, f.Mode())
+	}
+
+	// 3. 确保父目录存在
+	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+		return err
+	}
+
+	// 4. 打开ZIP中的文件
+	rc, err := f.Open()
 	if err != nil {
-		return fmt.Errorf("创建文件失败: %v", err)
+		return err
+	}
+	defer rc.Close()
+
+	// 5. 创建目标文件
+	outFile, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+	if err != nil {
+		return err
 	}
 	defer outFile.Close()
 
-	// 打开源文件
-	inFile, err := f.Open()
-	if err != nil {
-		return fmt.Errorf("打开ZIP内文件失败: %v", err)
-	}
-	defer inFile.Close()
-
-	// 复制内容
-	if _, err := io.Copy(outFile, inFile); err != nil {
-		return fmt.Errorf("写入文件失败: %v", err)
-	}
-
-	return nil
+	// 6. 复制文件内容
+	_, err = io.Copy(outFile, rc)
+	return err
 }

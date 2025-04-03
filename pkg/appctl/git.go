@@ -1,4 +1,4 @@
-package app
+package appctl
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/hdget/hd/pkg/utils"
-	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
@@ -15,8 +14,8 @@ import (
 )
 
 type gitImpl struct {
-	repo    *git.Repository
-	baseDir string
+	*appCtlImpl
+	repo *git.Repository
 }
 
 var (
@@ -25,16 +24,18 @@ var (
 	cachedAuth     *http.BasicAuth
 )
 
-func newGit(baseDir string) *gitImpl {
+func newGit(appCtl *appCtlImpl) *gitImpl {
 	// _ = script.Exec(`git config --global credential.helper store`).Wait()
 	_ = script.Exec(`git config --global advice.detachedHead false`).Wait()
 	return &gitImpl{
-		baseDir: baseDir,
+		appCtlImpl: appCtl,
 	}
 }
 
 func (impl *gitImpl) Clone(url, destDir string) *gitImpl {
-	fmt.Printf("git clone, url: %s, destDir: %s\n", url, destDir)
+	if impl.debug {
+		fmt.Printf("git clone, url: %s, destDir: %s\n", url, destDir)
+	}
 
 	if err := os.RemoveAll(destDir); err != nil {
 		utils.Fatal("remove dest directory", err)
@@ -53,7 +54,9 @@ func (impl *gitImpl) Clone(url, destDir string) *gitImpl {
 }
 
 func (impl *gitImpl) Switch(refName string, fallbackRefName ...string) error {
-	fmt.Printf("git switch, ref: %s, fallback: %s\n", refName, fallbackRefName)
+	if impl.debug {
+		fmt.Printf("git switch, ref: %s, fallback: %s\n", refName, fallbackRefName)
+	}
 
 	err := impl.checkout(refName)
 	if err != nil {
@@ -118,7 +121,7 @@ func (impl *gitImpl) getAuth() *http.BasicAuth {
 			gitPassword = utils.GetInput(">>> GIT密码: ")
 		}
 
-		_ = impl.writeEnvFile(filepath.Join(impl.baseDir, ".env"), map[string]string{
+		_ = writeEnvFile(filepath.Join(impl.baseDir, ".env"), map[string]string{
 			"GIT_USER":     gitUser,
 			"GIT_PASSWORD": gitPassword,
 		})
@@ -129,20 +132,4 @@ func (impl *gitImpl) getAuth() *http.BasicAuth {
 		}
 	})
 	return cachedAuth
-}
-
-func (impl *gitImpl) writeEnvFile(filename string, data map[string]string) error {
-	/// 读取现有内容（如果文件存在）
-	existing, err := godotenv.Read(filename)
-	if err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("读取现有.env文件失败: %w", err)
-	}
-
-	// 合并新旧值
-	for k, v := range data {
-		existing[k] = v
-	}
-
-	// 写入文件
-	return godotenv.Write(existing, filename)
 }

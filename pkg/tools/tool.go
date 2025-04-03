@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/bitfield/script"
 	"github.com/pkg/errors"
+	"os"
+	"path/filepath"
 	"runtime"
 )
 
@@ -62,6 +64,15 @@ func (impl *toolImpl) run(cmd string) error {
 
 func (impl *toolImpl) success(cmd string) bool {
 	return script.Exec(cmd).Wait() == nil
+}
+
+// GetSystemBinDir 获取系统标准bin目录列表
+func (impl *toolImpl) GetSystemBinDir() string {
+	switch runtime.GOOS {
+	case "windows":
+		return filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local", "Microsoft", "WindowsApps")
+	}
+	return "/usr/local/bin"
 }
 
 func installTool(t Tool) error {

@@ -1,16 +1,21 @@
 package g
 
-type HDConfig struct {
-	Apps       []AppConfig `toml:"apps"`
-	ConfigRepo string      `toml:"config_repo"`
-	ProtoRepo  string      `toml:"proto_repo"`
+type RootConfig struct {
+	Project ProjectConfig `toml:"project"`
+	Repos   []RepoConfig  `toml:"repos"`
 }
 
-type AppConfig struct {
+type ProjectConfig struct {
+	Name        string `toml:"name"`
+	Env         string `toml:"env"`
+	GatewayPort int    `toml:"gateway_port"`
+}
+
+type RepoConfig struct {
 	Name string `toml:"name"`
-	Repo string `toml:"repo"`
+	Url  string `toml:"url"`
 }
 
 var (
-	Config = &HDConfig{}
+	Config = &RootConfig{}
 )
