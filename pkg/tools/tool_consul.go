@@ -2,7 +2,6 @@ package tools
 
 import (
 	"fmt"
-	"github.com/hdget/hd/g"
 	"os"
 )
 
@@ -11,29 +10,14 @@ type consulTool struct {
 }
 
 func Consul() Tool {
-	impl := &consulTool{
-		toolImpl: &toolImpl{
-			name:            "consul",
-			version:         defaultConsulVersion,
-			urlLinuxRelease: fmt.Sprintf(defaultUrlConsulUnixRelease, defaultConsulVersion, defaultConsulVersion),
-			urlWinRelease:   fmt.Sprintf(defaultUrlConsulWinRelease, defaultConsulVersion, defaultConsulVersion),
-		},
+	return &consulTool{
+		toolImpl: newTool(
+			"consul",
+			defaultConsulVersion,
+			fmt.Sprintf(defaultUrlConsulWinRelease, defaultConsulVersion, defaultConsulVersion),
+			fmt.Sprintf(defaultUrlConsulUnixRelease, defaultConsulVersion, defaultConsulVersion),
+		),
 	}
-
-	if c, exist := g.ToolConfigs["consul"]; exist {
-		if c.UrlLinuxRelease != "" {
-			impl.urlLinuxRelease = c.UrlLinuxRelease
-		}
-
-		if c.UrlWinRelease != "" {
-			impl.urlWinRelease = c.UrlWinRelease
-		}
-		if impl.version != "" {
-			impl.version = c.Version
-		}
-	}
-
-	return impl
 }
 
 const (

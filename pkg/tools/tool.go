@@ -3,6 +3,7 @@ package tools
 import (
 	"fmt"
 	"github.com/bitfield/script"
+	"github.com/hdget/hd/g"
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
@@ -21,6 +22,28 @@ type toolImpl struct {
 	version         string
 	urlWinRelease   string
 	urlLinuxRelease string
+}
+
+func newTool(name, version, urlWinRelease, urlLinuxRelease string) *toolImpl {
+	t := &toolImpl{
+		name:            name,
+		version:         version,
+		urlLinuxRelease: urlWinRelease,
+		urlWinRelease:   urlLinuxRelease,
+	}
+	if c, exist := g.ToolConfigs["consul"]; exist {
+		if c.UrlLinuxRelease != "" {
+			t.urlLinuxRelease = c.UrlLinuxRelease
+		}
+
+		if c.UrlWinRelease != "" {
+			t.urlWinRelease = c.UrlWinRelease
+		}
+		if t.version != "" {
+			t.version = c.Version
+		}
+	}
+	return t
 }
 
 func (impl *toolImpl) GetName() string {

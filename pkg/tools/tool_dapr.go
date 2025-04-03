@@ -11,15 +11,19 @@ type daprTool struct {
 }
 
 const (
-	urlDaprLinuxBinary   = "https://newaigou-public.oss-cn-shanghai.aliyuncs.com/download/dapr/%s/daprbundle_linux_amd64.tar.gz"
-	urlDaprWindowsBinary = "https://newaigou-public.oss-cn-shanghai.aliyuncs.com/download/dapr/%s/daprbundle_windows_amd64.zip"
+	defaultDaprVersion         = "1.15.3"
+	defaultUrlDaprLinuxRelease = "https://github.com/dapr/installer-bundle/releases/download/v%s/daprbundle_linux_amd64.tar.gz"
+	defaultUrlDaprWinRelease   = "https://github.com/dapr/installer-bundle/releases/download/v%s/daprbundle_windows_amd64.zip"
 )
 
 func Dapr() Tool {
 	return &daprTool{
-		toolImpl: &toolImpl{
-			name: "dapr",
-		},
+		toolImpl: newTool(
+			"dapr",
+			defaultDaprVersion,
+			fmt.Sprintf(defaultUrlDaprWinRelease, defaultDaprVersion),
+			fmt.Sprintf(defaultUrlDaprLinuxRelease, defaultDaprVersion),
+		),
 	}
 }
 
@@ -29,9 +33,9 @@ func (t *daprTool) IsInstalled() bool {
 }
 
 func (t *daprTool) LinuxInstall() error {
-	fmt.Printf("正在下载%s v%s...\n", t.name, t.version)
-	url := fmt.Sprintf(urlDaprLinuxBinary, t.version)
-	tempDir, zipFile, err := AllPlatform().Download(url)
+	fmt.Printf("正在下载%s...\n", t.name)
+
+	tempDir, zipFile, err := AllPlatform().Download(t.urlLinuxRelease)
 	if err != nil {
 		return err
 	}
@@ -46,9 +50,9 @@ func (t *daprTool) LinuxInstall() error {
 }
 
 func (t *daprTool) WindowsInstall() error {
-	fmt.Printf("正在下载%s v%s...\n", t.name, t.version)
-	url := fmt.Sprintf(urlDaprWindowsBinary, t.version)
-	tempDir, zipFile, err := AllPlatform().Download(url)
+	fmt.Printf("正在下载%s...\n", t.name)
+
+	tempDir, zipFile, err := AllPlatform().Download(t.urlWinRelease)
 	if err != nil {
 		return err
 	}

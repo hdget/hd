@@ -3,7 +3,6 @@ package appctl
 import (
 	"fmt"
 	"net"
-	"strconv"
 	"time"
 )
 
@@ -30,19 +29,24 @@ func findAvailablePorts(count, startPort, endPort int) ([]int, error) {
 
 // isPortAvailable 双重验证端口是否可用
 func isPortAvailable(port int) bool {
-	// 首先尝试监听
-	listener, err := net.Listen("tcp", ":"+strconv.Itoa(port))
-	if err != nil {
-		return false
-	}
-	defer listener.Close()
+	// 双重检查机制
+	for i := 0; i < 2; i++ { // 检查两次减少竞态条件风险
+		ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+		if err != nil {
+			return false
+		}
+		_ = ln.Close()
 
-	// 然后尝试连接
-	conn, err := net.DialTimeout("tcp", "localhost:"+strconv.Itoa(port), 100*time.Millisecond)
-	if err == nil {
-		conn.Close()
-		return false
-	}
+		conn, err := net.DialTimeout("tcp", fmt.Sprintf("localhost:%d", port), 500*time.Millisecond)
+		if err != nil {
+			return true // 连接失败说明端口可能可用
+		}
+		if conn != nil {
+			_ = conn.Close()
+			return false
+		}
 
-	return true
+		time.Sleep(10 * time.Millisecond) // 短暂等待
+	}
+	return false
 }

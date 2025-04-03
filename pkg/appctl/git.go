@@ -6,6 +6,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
 	"os"
@@ -121,7 +122,7 @@ func (impl *gitImpl) getAuth() *http.BasicAuth {
 			gitPassword = utils.GetInput(">>> GIT密码: ")
 		}
 
-		_ = writeEnvFile(filepath.Join(impl.baseDir, ".env"), map[string]string{
+		_ = env.WriteEnvFile(filepath.Join(impl.baseDir, ".env"), map[string]string{
 			"GIT_USER":     gitUser,
 			"GIT_PASSWORD": gitPassword,
 		})

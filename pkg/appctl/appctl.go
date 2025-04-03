@@ -2,8 +2,7 @@ package appctl
 
 import (
 	"fmt"
-	"github.com/hdget/hd/pkg/utils"
-	"os"
+	"github.com/hdget/hd/pkg/env"
 	"path/filepath"
 	"runtime"
 )
@@ -17,24 +16,17 @@ type AppController interface {
 }
 
 type appCtlImpl struct {
-	baseDir string
-	binDir  string
-	debug   bool
-}
-
-func init() {
-	// 初始化导出环境变量
-	for k, v := range getExportedEnvs() {
-		if err := os.Setenv(k, v); err != nil {
-			utils.Fatal("export HD environment variable", err)
-		}
-	}
+	baseDir   string
+	binDir    string
+	absBinDir string
+	debug     bool
 }
 
 func New(baseDir string, options ...Option) AppController {
 	impl := &appCtlImpl{
-		baseDir: baseDir,
-		binDir:  filepath.Join(baseDir, "bin"),
+		baseDir:   baseDir,
+		binDir:    "bin",
+		absBinDir: filepath.Join(baseDir, "bin"),
 	}
 
 	for _, apply := range options {
@@ -86,7 +78,7 @@ func (a *appCtlImpl) getExecutable(app string) string {
 }
 
 func (a *appCtlImpl) getAppId(app string) string {
-	if nm, exists := os.LookupEnv(envHdNamespace); exists {
+	if nm, exists := env.GetHdNamespace(); exists {
 		return fmt.Sprintf("%s_%s", nm, app)
 	}
 	return app

@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func (a *appCtlImpl) runDetached(appId, command string, healthCheck func() bool, timeout time.Duration) error {
+func (a *appCtlImpl) run(appId, command string, healthCheck func() bool, timeout time.Duration) error {
 	// 1. 设置日志文件
 	logPath := fmt.Sprintf("/var/log/%s.log", appId)
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)

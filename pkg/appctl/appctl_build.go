@@ -42,7 +42,6 @@ func newAppBuilder(appCtl *appCtlImpl) (*appBuilder, error) {
 }
 
 func (b *appBuilder) build(refName string, apps ...string) error {
-
 	// 创建临时目录
 	tempDir, err := os.MkdirTemp(os.TempDir(), "hd-build-*")
 	if err != nil {
@@ -67,7 +66,7 @@ func (b *appBuilder) build(refName string, apps ...string) error {
 func (b *appBuilder) buildApp(tempDir, app, refName string) error {
 	appRepoConfig, exist := g.RepoConfigs[app]
 	if !exist {
-		return fmt.Errorf("app config not found, app: %s", app)
+		return fmt.Errorf("git repository not found, app: %s", app)
 	}
 
 	// 创建工作目录
@@ -125,10 +124,10 @@ func (b *appBuilder) golangBuild(appSrcDir, app string) error {
 	}
 
 	// move binary to binDir
-	if err = os.MkdirAll(b.binDir, 0755); err != nil {
-		return errors.Wrapf(err, "make bin dir, binDir: %s", b.binDir)
+	if err = os.MkdirAll(b.absBinDir, 0755); err != nil {
+		return errors.Wrapf(err, "make bin dir, binDir: %s", b.absBinDir)
 	}
-	if _, err = script.File(binFile).WriteFile(filepath.Join(b.binDir, binFile)); err != nil {
+	if _, err = script.File(binFile).WriteFile(filepath.Join(b.absBinDir, binFile)); err != nil {
 		return err
 	}
 
@@ -141,15 +140,21 @@ func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) err
 		return fmt.Errorf("repo config not found, name: %s", gitConfigRepoName)
 	}
 
-	destConfigDir := filepath.Join(b.baseDir, "config")
-	if err := newGit(b.appCtlImpl).Clone(gitConfigRepo.Url, destConfigDir).Switch(refName, "main"); err != nil {
+	// 创建临时目录
+	tempDir, err := os.MkdirTemp(os.TempDir(), "hd-config-*")
+	if err != nil {
+		return errors.Wrap(err, "创建Build临时目录失败")
+	}
+	defer os.Remove(tempDir)
+
+	if err = newGit(b.appCtlImpl).Clone(gitConfigRepo.Url, tempDir).Switch(refName, "main"); err != nil {
 		return err
 	}
 
 	// 拷贝sqlboiler.toml
-	sourceSqlboilerFile := filepath.Join(destConfigDir, "app", app, "sqlboiler.toml")
-	destSqlboilerFile := filepath.Join(appSrcDir, "sqlboiler.toml")
-	if _, err := script.File(sourceSqlboilerFile).WriteFile(destSqlboilerFile); err != nil {
+	srcPath := filepath.Join(tempDir, "app", app, "sqlboiler.toml")
+	destPath := filepath.Join(appSrcDir, "sqlboiler.toml")
+	if _, err = script.File(srcPath).WriteFile(destPath); err != nil {
 		return err
 	}
 	return nil

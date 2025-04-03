@@ -1,4 +1,4 @@
-package appctl
+package env
 
 import (
 	"fmt"
@@ -17,14 +17,14 @@ var (
 	supportedEnvs = []string{"prod", "test"}
 )
 
-func getExportedEnvs() map[string]string {
+func GetExportedEnvs() map[string]string {
 	return map[string]string{
 		envHdNamespace: g.Config.Project.Name,
 		envHdEnv:       g.Config.Project.Env,
 	}
 }
 
-func getEnv() (string, error) {
+func GetHdEnv() (string, error) {
 	env, exists := os.LookupEnv(envHdEnv)
 	if !exists {
 		return "", fmt.Errorf("env not found, env: %s", envHdEnv)
@@ -36,7 +36,11 @@ func getEnv() (string, error) {
 	return env, nil
 }
 
-func writeEnvFile(filename string, data map[string]string) error {
+func GetHdNamespace() (string, bool) {
+	return os.LookupEnv(envHdNamespace)
+}
+
+func WriteEnvFile(filename string, data map[string]string) error {
 	/// 读取现有内容（如果文件存在）
 	existing, err := godotenv.Read(filename)
 	if err != nil && !os.IsNotExist(err) {

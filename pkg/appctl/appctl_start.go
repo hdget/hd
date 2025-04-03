@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/bitfield/script"
 	"github.com/hdget/hd/g"
+	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/tools"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -16,14 +18,15 @@ type appStartImpl struct {
 
 const (
 	// 52000-59999
-	defaultGatewayPort = 52000
+	defaultGatewayPort = 55000
 	cmdNormalAppStart  = "%s run --app-address 127.0.0.1:%d --env %s"
 	cmdGatewayAppStart = "%s run --app-address 127.0.0.1:%d --web-address :%d --env %s"
 	cmdDaprStart       = "dapr run --app-id %s %s -- %s"
+	defaultTimeout     = 10 * time.Second
 )
 
 var (
-	daprPortRange   = []int{53000, 59999}
+	daprPortRange   = []int{56000, 59999}
 	daprPortOptions = []string{
 		"--app-port %d",
 		"--dapr-grpc-port %d",
@@ -35,8 +38,9 @@ var (
 		"--app-protocol grpc",
 		"--config config/dapr/config.yaml",
 		"--resources-path config/dapr/components",
+		"--scheduler-host-address ''",
+		"--placement-host-address ''",
 		"--enable-app-health-check",
-		"--scheduler-host-address",
 		"--app-health-probe-interval 60",
 	}
 )
@@ -50,14 +54,14 @@ func newAppStarter(appCtl *appCtlImpl) (*appStartImpl, error) {
 		return nil, err
 	}
 
-	env, err := getEnv()
+	e, err := env.GetHdEnv()
 	if err != nil {
 		return nil, err
 	}
 
 	return &appStartImpl{
 		appCtlImpl: appCtl,
-		env:        env,
+		env:        e,
 	}, nil
 }
 
@@ -67,7 +71,11 @@ func (a *appStartImpl) start(app string) error {
 		return err
 	}
 
-	err = a.runDetached(a.getAppId(app), cmd, a.getHealthChecker(app), 1*time.Second)
+	if a.debug {
+		fmt.Println(cmd)
+	}
+
+	err = a.run(a.getAppId(app), cmd, a.getHealthChecker(app), defaultTimeout)
 	if err != nil {
 		return err
 	}
@@ -81,12 +89,17 @@ func (a *appStartImpl) getStartCommand(app string) (string, error) {
 		return "", err
 	}
 
+	appBinPath := filepath.ToSlash(filepath.Join(a.binDir, app))
+
 	var subCmd string
 	switch app {
 	case "gateway":
-		subCmd = fmt.Sprintf(cmdGatewayAppStart, a.getExecutable(app), ports[0], a.getGatewayPort(), a.env)
+		if !isPortAvailable(a.getGatewayPort()) {
+			return "", fmt.Errorf("gateway port %d is not available", a.getGatewayPort())
+		}
+		subCmd = fmt.Sprintf(cmdGatewayAppStart, appBinPath, ports[0], a.getGatewayPort(), a.env)
 	default:
-		subCmd = fmt.Sprintf(cmdNormalAppStart, a.getExecutable(app), ports[0], a.env)
+		subCmd = fmt.Sprintf(cmdNormalAppStart, appBinPath, ports[0], a.env)
 	}
 
 	var daprOptions []string
@@ -107,7 +120,7 @@ func (a *appStartImpl) getGatewayPort() int {
 
 func (a *appStartImpl) getHealthChecker(app string) func() bool {
 	return func() bool {
-		pid, _ := script.Echo("dapr list").Match(a.getAppId(app)).Column(11).String()
+		pid, _ := script.Exec("dapr list").Match(a.getAppId(app)).Column(11).String()
 		return pid != ""
 	}
 }
