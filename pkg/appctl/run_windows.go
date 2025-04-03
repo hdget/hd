@@ -4,7 +4,6 @@ package appctl
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -51,6 +50,6 @@ func (a *appCtlImpl) runDetached(appId, command string, healthCheck func() bool,
 		return runHealthCheck(healthCheck, timeout, cmd)
 	}
 
-	log.Printf("进程已启动 (PID: %d), 日志: %s", cmd.Process.Pid, logPath)
+	fmt.Printf("进程已启动 (PID: %d), 日志: %s", cmd.Process.Pid, logPath)
 	return nil
 }

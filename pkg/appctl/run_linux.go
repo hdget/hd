@@ -2,6 +2,14 @@
 
 package appctl
 
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"syscall"
+	"time"
+)
+
 func (a *appCtlImpl) runDetached(appId, command string, healthCheck func() bool, timeout time.Duration) error {
 	// 1. 设置日志文件
 	logPath := fmt.Sprintf("/var/log/%s.log", appId)
@@ -35,6 +43,6 @@ func (a *appCtlImpl) runDetached(appId, command string, healthCheck func() bool,
 		return runHealthCheck(healthCheck, timeout, cmd)
 	}
 
-	log.Printf("进程已启动 (PID: %d), 日志: %s", cmd.Process.Pid, logPath)
+	fmt.Printf("进程已启动 (PID: %d), 日志: %s\n", cmd.Process.Pid, logPath)
 	return nil
 }
