@@ -11,7 +11,6 @@ import (
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
 	"os"
-	"path/filepath"
 	"sync"
 	"time"
 )
@@ -143,20 +142,14 @@ func (impl *gitImpl) checkout(refName string) error {
 
 func (impl *gitImpl) getAuth() *http.BasicAuth {
 	once.Do(func() {
-		gitUser, _ := os.LookupEnv("GIT_USER")
+		gitUser, gitPassword := env.GetGitCredential()
 		if gitUser == "" {
 			gitUser = utils.GetInput(">>> GIT用户: ")
 		}
-
-		gitPassword, _ := os.LookupEnv("GIT_PASSWORD")
 		if gitPassword == "" {
 			gitPassword = utils.GetInput(">>> GIT密码: ")
 		}
-
-		_ = env.WriteEnvFile(filepath.Join(impl.baseDir, ".env"), map[string]string{
-			"GIT_USER":     gitUser,
-			"GIT_PASSWORD": gitPassword,
-		})
+		_ = env.SetGitCredential(gitUser, gitPassword)
 
 		cachedAuth = &http.BasicAuth{
 			Username: gitUser,     // 对于GitHub，可以是任意非空字符串

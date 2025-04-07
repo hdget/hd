@@ -56,9 +56,7 @@ func initialize() {
 	}
 
 	// 初始化环境变量
-	for k, v := range env.GetExportedEnvs() {
-		if err := os.Setenv(k, v); err != nil {
-			utils.Fatal("export HD environment variable", err)
-		}
+	if err := env.Initialize(); err != nil {
+		utils.Fatal("environment variables not initialized", err)
 	}
 }

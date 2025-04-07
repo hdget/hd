@@ -11,17 +11,24 @@ import (
 const (
 	envHdNamespace = "HD_NAMESPACE"
 	envHdEnv       = "HD_ENV"
+	envGitUser     = "HD_GIT_USER"
+	envGitPassword = "HD_GIT_PASSWORD"
+	filename       = ".env"
 )
 
 var (
 	supportedEnvs = []string{"prod", "test"}
 )
 
-func GetExportedEnvs() map[string]string {
-	return map[string]string{
+func Initialize() error {
+	err := save(map[string]string{
 		envHdNamespace: g.Config.Project.Name,
 		envHdEnv:       g.Config.Project.Env,
+	})
+	if err != nil {
+		return err
 	}
+	return godotenv.Load()
 }
 
 func GetHdEnv() (string, error) {
@@ -40,11 +47,25 @@ func GetHdNamespace() (string, bool) {
 	return os.LookupEnv(envHdNamespace)
 }
 
-func WriteEnvFile(filename string, data map[string]string) error {
+func GetGitCredential() (string, string) {
+	gitUser, _ := os.LookupEnv(envGitUser)
+	gitPassword, _ := os.LookupEnv(envGitPassword)
+	return gitUser, gitPassword
+}
+
+func SetGitCredential(username, password string) error {
+	return save(map[string]string{
+		envGitUser:     username,
+		envGitPassword: password,
+	})
+
+}
+
+func save(data map[string]string) error {
 	/// 读取现有内容（如果文件存在）
 	existing, err := godotenv.Read(filename)
 	if err != nil && !os.IsNotExist(err) {
-		return nil
+		return err
 	}
 
 	// 合并新旧值
