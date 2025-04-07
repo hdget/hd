@@ -1,9 +1,14 @@
 package g
 
 type RootConfig struct {
-	Project ProjectConfig `toml:"project"`
-	Repos   []RepoConfig  `toml:"repos"`
-	Tools   []ToolConfig  `toml:"tools"`
+	Project   ProjectConfig `toml:"project"`
+	Repos     []RepoConfig  `toml:"repos"`
+	Tools     []ToolConfig  `toml:"tools"`
+	AppStarts []string      `toml:"app_starts"` // 应用启动顺序
+}
+
+type AppConfig struct {
+	Name string `toml:"name"`
 }
 
 type ProjectConfig struct {

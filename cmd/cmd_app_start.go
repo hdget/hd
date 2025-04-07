@@ -5,6 +5,7 @@ import (
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
 	"os"
+	"strings"
 )
 
 var (
@@ -19,7 +20,14 @@ var (
 
 func startApp(args []string) {
 	if len(args) != 1 {
-		utils.Fatal("Usage: start <app>")
+		utils.Fatal("Usage: start <app1,app2..>")
+	}
+
+	appList := args[0]
+
+	apps := strings.Split(appList, ",")
+	if len(apps) == 0 {
+		utils.Fatal("you need specify at least one app")
 	}
 
 	baseDir, err := os.Getwd()
@@ -27,7 +35,7 @@ func startApp(args []string) {
 		utils.Fatal("get current dir", err)
 	}
 
-	err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Start(args[0])
+	err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Start(apps)
 	if err != nil {
 		utils.Fatal("start app", err)
 	}

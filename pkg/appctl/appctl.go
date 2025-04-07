@@ -8,11 +8,10 @@ import (
 )
 
 type AppController interface {
-	Start(app string) error
-	Stop(app string) error
+	Start(apps []string) error
+	Stop(apps []string) error
+	Build(apps []string, refName string) error
 	Run() error
-	Build(refName string, apps ...string) error
-	Deploy() error
 }
 
 type appCtlImpl struct {
@@ -36,30 +35,51 @@ func New(baseDir string, options ...Option) AppController {
 	return impl
 }
 
-func (a *appCtlImpl) Start(app string) error {
+func (a *appCtlImpl) Start(apps []string) error {
 	instance, err := newAppStarter(a)
 	if err != nil {
 		return err
 	}
-	return instance.start(app)
+
+	for _, app := range apps {
+		err = instance.start(app)
+		if err != nil {
+			return err
+		}
+	}
+	
+	return nil
 }
 
-func (a *appCtlImpl) Build(refName string, apps ...string) error {
+func (a *appCtlImpl) Build(apps []string, ref string) error {
 	instance, err := newAppBuilder(a)
 	if err != nil {
 		return err
 	}
 
-	return instance.build(refName, apps...)
+	for _, app := range apps {
+		err = instance.build(app, ref)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func (a *appCtlImpl) Stop(app string) error {
+func (a *appCtlImpl) Stop(apps []string) error {
 	instance, err := newAppStopper(a)
 	if err != nil {
 		return err
 	}
 
-	return instance.stop(app)
+	for _, app := range apps {
+		err = instance.stop(app)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (a *appCtlImpl) Run() error {

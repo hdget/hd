@@ -44,7 +44,7 @@ func newAppBuilder(appCtl *appCtlImpl) (*appBuilder, error) {
 	}, nil
 }
 
-func (b *appBuilder) build(refName string, apps ...string) error {
+func (b *appBuilder) build(app, refName string) error {
 	// 创建临时目录
 	tempDir, err := os.MkdirTemp(os.TempDir(), "hd-build-*")
 	if err != nil {
@@ -56,17 +56,6 @@ func (b *appBuilder) build(refName string, apps ...string) error {
 		fmt.Println("临时目录：", tempDir)
 	}
 
-	for _, app := range apps {
-		err = b.buildApp(tempDir, app, refName)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (b *appBuilder) buildApp(tempDir, app, refName string) error {
 	appRepoConfig, exist := g.RepoConfigs[app]
 	if !exist {
 		return fmt.Errorf("git repository not found, app: %s", app)
@@ -77,7 +66,7 @@ func (b *appBuilder) buildApp(tempDir, app, refName string) error {
 
 	// 拷贝源代码并切换到指定分支并获取git信息
 	gitOperator := newGit(b.appCtlImpl)
-	err := gitOperator.Clone(appRepoConfig.Url, appSrcDir).Switch(refName)
+	err = gitOperator.Clone(appRepoConfig.Url, appSrcDir).Switch(refName)
 	if err != nil {
 		return err
 	}

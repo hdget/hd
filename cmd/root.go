@@ -12,17 +12,20 @@ import (
 )
 
 var (
-	argDebug bool
+	argDebug bool // 是否开启debug模式
+	argAll   bool // 是否操作所有app
 	rootCmd  = &cobra.Command{}
 )
 
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&argDebug, "debug", "", false, "--debug")
+	rootCmd.PersistentFlags().BoolVarP(&argDebug, "debug", "d", false, "--debug")
+	rootCmd.PersistentFlags().BoolVarP(&argAll, "all", "a", false, "--all")
 
 	rootCmd.AddCommand(cmdProtobufGen)
 	rootCmd.AddCommand(cmdAppBuild)
 	rootCmd.AddCommand(cmdAppStart)
 	rootCmd.AddCommand(cmdAppStop)
+	rootCmd.AddCommand(cmdAppDeploy)
 }
 
 func Execute() {

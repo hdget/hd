@@ -23,14 +23,14 @@ func buildApp(args []string) {
 		utils.Fatal("Usage: build <app1,app2...> <branch>")
 	}
 
-	appList, refName := args[0], args[1]
+	appList, ref := args[0], args[1]
 
 	apps := strings.Split(appList, ",")
 	if len(apps) == 0 {
 		utils.Fatal("you need specify at least one app")
 	}
 
-	if refName == "" {
+	if ref == "" {
 		utils.Fatal("you need specify branch")
 	}
 
@@ -39,7 +39,7 @@ func buildApp(args []string) {
 		utils.Fatal("get current dir", err)
 	}
 
-	err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Build(refName, apps...)
+	err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Build(apps, ref)
 	if err != nil {
 		utils.Fatal("build app", err)
 	}
