@@ -60,7 +60,9 @@ func (a *appCtlImpl) Start(app string) error {
 
 func (a *appCtlImpl) Install(app string, ref string) error {
 	if a.debug {
+		fmt.Println()
 		fmt.Println("=== INSTALL ===")
+		fmt.Println()
 	}
 
 	return newAppInstaller(a).install(app, ref)
@@ -68,7 +70,9 @@ func (a *appCtlImpl) Install(app string, ref string) error {
 
 func (a *appCtlImpl) Build(app string, ref string) error {
 	if a.debug {
+		fmt.Println()
 		fmt.Println("=== BUILD ===")
+		fmt.Println()
 	}
 
 	// 检查依赖的工具是否安装
@@ -85,7 +89,9 @@ func (a *appCtlImpl) Build(app string, ref string) error {
 
 func (a *appCtlImpl) Stop(app string) error {
 	if a.debug {
+		fmt.Println()
 		fmt.Println("=== STOP ===")
+		fmt.Println()
 	}
 
 	// 检查依赖的工具是否安装

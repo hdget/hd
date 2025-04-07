@@ -35,6 +35,10 @@ func New(options ...Option) ProtobufCompiler {
 }
 
 func (impl *protobufCompilerImpl) Compile(sourceProtoDir, outputPbDir string) error {
+	if impl.debug {
+		fmt.Println("### PROTOBUF COMPILE ###")
+	}
+
 	// 检查依赖的工具是否安装
 	if err := tools.Check(impl.debug, allTools...); err != nil {
 		return err
