@@ -41,7 +41,11 @@ func (t *consulTool) WindowsInstall() error {
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() {
+		if e := os.RemoveAll(tempDir); e != nil {
+			fmt.Printf("删除临时目录失败: %v, dir: %s", e, tempDir)
+		}
+	}()
 
 	// 解压zip文件
 	if err = AllPlatform().UnzipSpecific(zipFile, "consul.exe", t.GetSystemBinDir()); err != nil {

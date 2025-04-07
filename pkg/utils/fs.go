@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/elliotchance/pie/v2"
 	"github.com/pkg/errors"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -150,6 +151,108 @@ func FindDirContainingFiles(srcDir string, matchFiles []string, skipDirs ...stri
 		return "", fmt.Errorf("no matched dir found, files: %+v", matchFiles)
 	}
 	return foundDir, nil
+}
+
+// CopyWithWildcard 支持通配符的目录复制
+func CopyWithWildcard(srcPattern, dst string) error {
+	// 获取匹配的所有文件和目录
+	matches, err := filepath.Glob(srcPattern)
+	if err != nil {
+		return fmt.Errorf("通配符匹配失败: %v", err)
+	}
+
+	if len(matches) == 0 {
+		return fmt.Errorf("没有找到匹配的文件或目录")
+	}
+
+	// 确保目标目录存在
+	if err := os.MkdirAll(dst, 0755); err != nil {
+		return fmt.Errorf("创建目标目录失败: %v", err)
+	}
+
+	// 遍历所有匹配项
+	for _, src := range matches {
+		// 获取文件信息
+		info, err := os.Stat(src)
+		if err != nil {
+			return fmt.Errorf("获取文件信息失败: %v", err)
+		}
+
+		// 处理目录
+		if info.IsDir() {
+			// 获取目录名
+			dirName := filepath.Base(src)
+			// 创建目标子目录
+			targetDir := filepath.Join(dst, dirName)
+			if err = os.MkdirAll(targetDir, info.Mode()); err != nil {
+				return fmt.Errorf("创建子目录失败: %v", err)
+			}
+			// 递归复制目录内容
+			if err := CopyDir(src, targetDir); err != nil {
+				return err
+			}
+		} else {
+			// 处理文件
+			targetFile := filepath.Join(dst, filepath.Base(src))
+			if err := CopyFile(src, targetFile); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// CopyDir 复制整个目录
+func CopyDir(src, dst string) error {
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// 计算相对路径
+		relPath, err := filepath.Rel(src, path)
+		if err != nil {
+			return fmt.Errorf("计算相对路径失败: %v", err)
+		}
+
+		dstPath := filepath.Join(dst, relPath)
+
+		// 处理目录
+		if info.IsDir() {
+			return os.MkdirAll(dstPath, info.Mode())
+		}
+
+		// 处理文件
+		return CopyFile(path, dstPath)
+	})
+}
+
+// CopyFile 复制单个文件
+func CopyFile(src, dst string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+
+	if _, err = io.Copy(dstFile, srcFile); err != nil {
+		return err
+	}
+
+	// 复制文件权限
+	srcInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	return os.Chmod(dst, srcInfo.Mode())
 }
 
 func getDirDepth(baseDir, path string) int {

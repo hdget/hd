@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/appctl"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
@@ -13,10 +14,29 @@ var (
 		Use:   "start",
 		Short: "start app",
 		Run: func(cmd *cobra.Command, args []string) {
-			startApp(args)
+			if argAll {
+				startAllApp()
+			} else {
+				startApp(args)
+			}
+
 		},
 	}
 )
+
+func startAllApp() {
+	baseDir, err := os.Getwd()
+	if err != nil {
+		utils.Fatal("get current dir", err)
+	}
+
+	for _, app := range g.Config.AppStarts {
+		err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Start(app)
+		if err != nil {
+			utils.Fatal("start app", err)
+		}
+	}
+}
 
 func startApp(args []string) {
 	if len(args) != 1 {
@@ -35,8 +55,10 @@ func startApp(args []string) {
 		utils.Fatal("get current dir", err)
 	}
 
-	err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Start(apps)
-	if err != nil {
-		utils.Fatal("start app", err)
+	for _, app := range apps {
+		err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Start(app)
+		if err != nil {
+			utils.Fatal("start app", err)
+		}
 	}
 }

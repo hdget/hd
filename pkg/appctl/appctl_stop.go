@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/bitfield/script"
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/hd/pkg/tools"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"net/http"
@@ -16,17 +15,10 @@ type appStopperImpl struct {
 	*appCtlImpl
 }
 
-func newAppStopper(appCtl *appCtlImpl) (*appStopperImpl, error) {
-	// 检查依赖的工具是否安装
-	if err := tools.Check(appCtl.debug,
-		tools.Consul(),
-	); err != nil {
-		return nil, err
-	}
-
+func newAppStopper(appCtl *appCtlImpl) *appStopperImpl {
 	return &appStopperImpl{
 		appCtlImpl: appCtl,
-	}, nil
+	}
 }
 
 func (impl *appStopperImpl) stop(app string) error {

@@ -39,8 +39,11 @@ func buildApp(args []string) {
 		utils.Fatal("get current dir", err)
 	}
 
-	err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Build(apps, ref)
-	if err != nil {
-		utils.Fatal("build app", err)
+	for _, app := range apps {
+		err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Build(app, ref)
+		if err != nil {
+			utils.Fatal("build app", err)
+		}
 	}
+
 }

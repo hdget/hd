@@ -3,14 +3,16 @@ package appctl
 import (
 	"fmt"
 	"github.com/hdget/hd/pkg/env"
+	"github.com/hdget/hd/pkg/tools"
 	"path/filepath"
 	"runtime"
 )
 
 type AppController interface {
-	Start(apps []string) error
-	Stop(apps []string) error
-	Build(apps []string, refName string) error
+	Start(app string) error
+	Stop(app string) error
+	Build(app string, ref string) error
+	Install(app string, ref string) error
 	Run() error
 }
 
@@ -35,58 +37,68 @@ func New(baseDir string, options ...Option) AppController {
 	return impl
 }
 
-func (a *appCtlImpl) Start(apps []string) error {
+func (a *appCtlImpl) Start(app string) error {
+	if a.debug {
+		fmt.Println("=== START ===")
+	}
+
+	// 检查依赖的工具是否安装
+	if err := tools.Check(a.debug,
+		tools.Consul(),
+		tools.Dapr(),
+	); err != nil {
+		return err
+	}
+
 	instance, err := newAppStarter(a)
 	if err != nil {
 		return err
 	}
 
-	for _, app := range apps {
-		err = instance.start(app)
-		if err != nil {
-			return err
-		}
-	}
-	
-	return nil
+	return instance.start(app)
 }
 
-func (a *appCtlImpl) Build(apps []string, ref string) error {
-	instance, err := newAppBuilder(a)
-	if err != nil {
+func (a *appCtlImpl) Install(app string, ref string) error {
+	if a.debug {
+		fmt.Println("=== INSTALL ===")
+	}
+
+	return newAppInstaller(a).install(app, ref)
+}
+
+func (a *appCtlImpl) Build(app string, ref string) error {
+	if a.debug {
+		fmt.Println("=== BUILD ===")
+	}
+
+	// 检查依赖的工具是否安装
+	if err := tools.Check(a.debug,
+		tools.Protoc(),
+		tools.ProtocGogoFaster(),
+		tools.Sqlboiler(),
+	); err != nil {
 		return err
 	}
 
-	for _, app := range apps {
-		err = instance.build(app, ref)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return newAppBuilder(a).build(app, ref)
 }
 
-func (a *appCtlImpl) Stop(apps []string) error {
-	instance, err := newAppStopper(a)
-	if err != nil {
+func (a *appCtlImpl) Stop(app string) error {
+	if a.debug {
+		fmt.Println("=== STOP ===")
+	}
+
+	// 检查依赖的工具是否安装
+	if err := tools.Check(a.debug,
+		tools.Consul(),
+	); err != nil {
 		return err
 	}
 
-	for _, app := range apps {
-		err = instance.stop(app)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return newAppStopper(a).stop(app)
 }
 
 func (a *appCtlImpl) Run() error {
-	return nil
-}
-
-func (a *appCtlImpl) Deploy() error {
 	return nil
 }
 

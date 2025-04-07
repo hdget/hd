@@ -6,7 +6,6 @@ import (
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/protocompile"
 	"github.com/hdget/hd/pkg/protorefine"
-	"github.com/hdget/hd/pkg/tools"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
 	"os"
@@ -27,21 +26,12 @@ const (
 	gitConfigRepoName = "config"
 )
 
-func newAppBuilder(appCtl *appCtlImpl) (*appBuilder, error) {
-	// 检查依赖的工具是否安装
-	if err := tools.Check(appCtl.debug,
-		tools.Protoc(),
-		tools.ProtocGogoFaster(),
-		tools.Sqlboiler(),
-	); err != nil {
-		return nil, err
-	}
-
+func newAppBuilder(appCtl *appCtlImpl) *appBuilder {
 	return &appBuilder{
 		appCtlImpl:      appCtl,
 		pbOutputDir:     "autogen",
 		pbOutputPackage: "pb",
-	}, nil
+	}
 }
 
 func (b *appBuilder) build(app, refName string) error {
@@ -50,7 +40,11 @@ func (b *appBuilder) build(app, refName string) error {
 	if err != nil {
 		return errors.Wrap(err, "创建Build临时目录失败")
 	}
-	defer os.Remove(tempDir)
+	defer func() {
+		if e := os.RemoveAll(tempDir); e != nil {
+			fmt.Printf("删除临时目录失败: %v, dir: %s", e, tempDir)
+		}
+	}()
 
 	if b.debug {
 		fmt.Println("临时目录：", tempDir)
@@ -138,7 +132,8 @@ func (b *appBuilder) golangBuild(appSrcDir, app string, gitBuildInfo *gitInfo) e
 	if err = os.MkdirAll(b.absBinDir, 0755); err != nil {
 		return errors.Wrapf(err, "make bin dir, binDir: %s", b.absBinDir)
 	}
-	if _, err = script.File(binFile).WriteFile(filepath.Join(b.absBinDir, binFile)); err != nil {
+	// if _, err = script.File(binFile).WriteFile(filepath.Join(b.absBinDir, binFile)); err != nil {
+	if err = utils.CopyFile(binFile, filepath.Join(b.absBinDir, binFile)); err != nil {
 		return err
 	}
 
@@ -146,17 +141,22 @@ func (b *appBuilder) golangBuild(appSrcDir, app string, gitBuildInfo *gitInfo) e
 }
 
 func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) error {
-	gitConfigRepo, exists := g.RepoConfigs[gitConfigRepoName]
-	if !exists {
-		return fmt.Errorf("repo config not found, name: %s", gitConfigRepoName)
-	}
-
 	// 创建临时目录
 	tempDir, err := os.MkdirTemp(os.TempDir(), "hd-config-*")
 	if err != nil {
 		return errors.Wrap(err, "创建Build临时目录失败")
 	}
-	defer os.Remove(tempDir)
+	defer func() {
+		if e := os.RemoveAll(tempDir); e != nil {
+			fmt.Printf("删除临时目录失败: %v", e)
+		}
+	}()
+
+	// clone config repo
+	gitConfigRepo, exists := g.RepoConfigs[gitConfigRepoName]
+	if !exists {
+		return fmt.Errorf("repo config not found, name: %s", gitConfigRepoName)
+	}
 
 	if err = newGit(b.appCtlImpl).Clone(gitConfigRepo.Url, tempDir).Switch(refName, "main"); err != nil {
 		return err
@@ -165,7 +165,8 @@ func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) err
 	// 拷贝sqlboiler.toml
 	srcPath := filepath.Join(tempDir, "app", app, "sqlboiler.toml")
 	destPath := filepath.Join(appSrcDir, "sqlboiler.toml")
-	if _, err = script.File(srcPath).WriteFile(destPath); err != nil {
+	// if _, err = script.File(srcPath).WriteFile(destPath); err != nil {
+	if err = utils.CopyFile(srcPath, destPath); err != nil {
 		return err
 	}
 	return nil

@@ -39,7 +39,11 @@ func (t *daprTool) LinuxInstall() error {
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() {
+		if e := os.RemoveAll(tempDir); e != nil {
+			fmt.Printf("删除临时目录失败: %v, dir: %s", e, tempDir)
+		}
+	}()
 
 	// 解压zip文件
 	if err = AllPlatform().UnzipSpecific(zipFile, "daprbundle/dapr", t.GetSystemBinDir()); err != nil {
@@ -56,7 +60,11 @@ func (t *daprTool) WindowsInstall() error {
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() {
+		if e := os.RemoveAll(tempDir); e != nil {
+			fmt.Printf("删除临时目录失败: %v, dir: %s", e, tempDir)
+		}
+	}()
 
 	// 解压zip文件
 	if err = AllPlatform().UnzipSpecific(zipFile, "daprbundle/dapr.exe", t.GetSystemBinDir()); err != nil {

@@ -43,10 +43,11 @@ func (impl *protoRefineImpl) Refine(arg Argument) (string, error) {
 	outputDir := filepath.Join(absOutputDir, filepath.Base(arg.ProtoRepository))
 
 	if impl.debug {
-		fmt.Println("===> golang module:", arg.GolangModule)
-		fmt.Println("===> pb import path:", pbImportPath)
-		fmt.Println("===> proto repository:", absProtoRepository)
-		fmt.Println("===> output proto dir:", outputDir)
+		fmt.Println("=== PROTOBUF REFINE ===")
+		fmt.Println("golang module:", arg.GolangModule)
+		fmt.Println("pb import path:", pbImportPath)
+		fmt.Println("proto repository:", absProtoRepository)
+		fmt.Println("output proto dir:", outputDir)
 	}
 
 	// 实际逻辑

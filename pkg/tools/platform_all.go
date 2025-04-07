@@ -37,6 +37,11 @@ func (platformAll) Download(url string) (string, string, error) {
 	if err != nil {
 		return "", "", errors.Wrap(err, "创建临时目录失败")
 	}
+	defer func() {
+		if e := os.RemoveAll(tempDir); e != nil {
+			fmt.Printf("删除临时目录失败: %v, dir: %s", e, tempDir)
+		}
+	}()
 
 	downloadFile := filepath.Join(tempDir, filepath.Base(url))
 	_, err = script.Get(url).WriteFile(downloadFile)

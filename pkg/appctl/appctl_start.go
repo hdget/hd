@@ -5,7 +5,6 @@ import (
 	"github.com/bitfield/script"
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
-	"github.com/hdget/hd/pkg/tools"
 	"path/filepath"
 	"strings"
 	"time"
@@ -18,7 +17,7 @@ type appStartImpl struct {
 
 const (
 	// 52000-59999
-	defaultGatewayPort = 55000
+	defaultGatewayPort = 1000
 	cmdNormalAppStart  = "%s run --app-address 127.0.0.1:%d --env %s"
 	cmdGatewayAppStart = "%s run --app-address 127.0.0.1:%d --web-address :%d --env %s"
 	cmdDaprStart       = "dapr run --app-id %s %s -- %s"
@@ -26,7 +25,7 @@ const (
 )
 
 var (
-	daprPortRange   = []int{56000, 59999}
+	daprPortRange   = []int{55000, 59999}
 	daprPortOptions = []string{
 		"--app-port %d",
 		"--dapr-grpc-port %d",
@@ -46,14 +45,6 @@ var (
 )
 
 func newAppStarter(appCtl *appCtlImpl) (*appStartImpl, error) {
-	// 检查依赖的工具是否安装
-	if err := tools.Check(appCtl.debug,
-		tools.Consul(),
-		tools.Dapr(),
-	); err != nil {
-		return nil, err
-	}
-
 	e, err := env.GetHdEnv()
 	if err != nil {
 		return nil, err

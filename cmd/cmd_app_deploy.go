@@ -41,21 +41,28 @@ func deployAllApp(args []string) {
 
 	ctl := appctl.New(baseDir, appctl.WithDebug(argDebug))
 
-	appStops := pie.Reverse(g.Config.AppStarts)
-
-	err = ctl.Stop(appStops)
-	if err != nil {
-		utils.Fatal("stop app", err)
+	for _, app := range pie.Reverse(g.Config.AppStarts) {
+		err = ctl.Stop(app)
+		if err != nil {
+			utils.Fatal("stop app", err)
+		}
 	}
 
-	err = ctl.Build(g.Config.AppStarts, ref)
-	if err != nil {
-		utils.Fatal("build app", err)
-	}
+	for _, app := range g.Config.AppStarts {
+		err = ctl.Build(app, ref)
+		if err != nil {
+			utils.Fatal("build app", err)
+		}
 
-	err = ctl.Start(g.Config.AppStarts)
-	if err != nil {
-		utils.Fatal("stop app", err)
+		err = ctl.Install(app, ref)
+		if err != nil {
+			utils.Fatal("install app", err)
+		}
+
+		err = ctl.Start(app)
+		if err != nil {
+			utils.Fatal("start app", err)
+		}
 	}
 }
 
@@ -81,25 +88,28 @@ func deployApp(args []string) {
 
 	ctl := appctl.New(baseDir, appctl.WithDebug(argDebug))
 
-	err = ctl.Stop(apps)
-	if err != nil {
-		utils.Fatal("stop app", err)
+	for _, app := range apps {
+		err = ctl.Stop(app)
+		if err != nil {
+			utils.Fatal("stop app", err)
+		}
+
+		err = ctl.Build(app, ref)
+		if err != nil {
+			utils.Fatal("build app", err)
+		}
+
+		err = ctl.Install(app, ref)
+		if err != nil {
+			utils.Fatal("install app", err)
+		}
+
+		err = ctl.Start(app)
+		if err != nil {
+			utils.Fatal("start app", err)
+		}
 	}
 
-	err = ctl.Build(apps, ref)
-	if err != nil {
-		utils.Fatal("build app", err)
-	}
-
-	//err = ctl.Install(app, refName)
-	//if err != nil {
-	//	utils.Fatal("install app", err)
-	//}
-
-	err = ctl.Start(apps)
-	if err != nil {
-		utils.Fatal("start app", err)
-	}
 }
 
 //
