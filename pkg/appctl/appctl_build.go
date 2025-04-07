@@ -10,7 +10,10 @@ import (
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
+	"time"
 )
 
 type appBuilder struct {
@@ -72,8 +75,14 @@ func (b *appBuilder) buildApp(tempDir, app, refName string) error {
 	// 创建工作目录
 	appSrcDir := filepath.Join(tempDir, app)
 
-	// 拷贝源代码并切换到指定分支
-	if err := newGit(b.appCtlImpl).Clone(appRepoConfig.Url, appSrcDir).Switch(refName); err != nil {
+	// 拷贝源代码并切换到指定分支并获取git信息
+	gitOperator := newGit(b.appCtlImpl)
+	err := gitOperator.Clone(appRepoConfig.Url, appSrcDir).Switch(refName)
+	if err != nil {
+		return err
+	}
+	gitBuildInfo, err := gitOperator.GetGitInfo()
+	if err != nil {
 		return err
 	}
 
@@ -88,14 +97,26 @@ func (b *appBuilder) buildApp(tempDir, app, refName string) error {
 	}
 
 	// go build
-	if err := b.golangBuild(appSrcDir, app); err != nil {
+	if err := b.golangBuild(appSrcDir, app, gitBuildInfo); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (b *appBuilder) golangBuild(appSrcDir, app string) error {
+func (b *appBuilder) getBuildLdflags(app string, info *gitInfo) string {
+	impDir := path.Join(app, "cmd")
+	ldflags := []string{
+		"-w -s",
+		fmt.Sprintf("-X %s.gitTag=%s", impDir, info.tag),
+		fmt.Sprintf("-X %s.gitCommit=%s", impDir, info.commit),
+		fmt.Sprintf("-X %s.gitBranch=%s", impDir, info.branch),
+		fmt.Sprintf("-X %s.buildDate=%s", impDir, time.Now().Format("2006-01-02T15:04:05-0700")),
+	}
+	return strings.Join(ldflags, " ")
+}
+
+func (b *appBuilder) golangBuild(appSrcDir, app string, gitBuildInfo *gitInfo) error {
 	// 切换到app源代码目录
 	err := os.Chdir(appSrcDir)
 	if err != nil {
@@ -117,7 +138,8 @@ func (b *appBuilder) golangBuild(appSrcDir, app string) error {
 
 	// go build
 	binFile := b.getExecutable(app)
-	cmd := fmt.Sprintf("go build -ldflags='-w -s' -o %s", binFile)
+	ldflagsValue := b.getBuildLdflags(app, gitBuildInfo)
+	cmd := fmt.Sprintf("go build -ldflags='%s' -o %s", ldflagsValue, binFile)
 	output, err = script.Exec(cmd).String()
 	if err != nil {
 		return errors.Wrapf(err, "go build, err: %s", output)

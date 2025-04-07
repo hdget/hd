@@ -5,6 +5,7 @@ import (
 	"github.com/bitfield/script"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/utils"
@@ -12,11 +13,18 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 type gitImpl struct {
 	*appCtlImpl
 	repo *git.Repository
+}
+
+type gitInfo struct {
+	tag    string
+	branch string
+	commit string
 }
 
 var (
@@ -67,6 +75,29 @@ func (impl *gitImpl) Switch(refName string, fallbackRefName ...string) error {
 		return err
 	}
 	return nil
+}
+
+func (impl *gitImpl) GetGitInfo() (*gitInfo, error) {
+	latestTag, err := impl.getLatestTag()
+	if err != nil {
+		return nil, err
+	}
+
+	commit, err := impl.getHeadShortHash()
+	if err != nil {
+		return nil, err
+	}
+
+	branch, err := impl.getCurrentBranchName()
+	if err != nil {
+		return nil, err
+	}
+
+	return &gitInfo{
+		branch: branch,
+		commit: commit,
+		tag:    latestTag,
+	}, nil
 }
 
 func (impl *gitImpl) checkout(refName string) error {
@@ -133,4 +164,91 @@ func (impl *gitImpl) getAuth() *http.BasicAuth {
 		}
 	})
 	return cachedAuth
+}
+
+func (impl *gitImpl) getLatestTag() (string, error) {
+	// 获取当前HEAD
+	headRef, err := impl.repo.Head()
+	if err != nil {
+		return "", errors.Wrap(err, "get HEAD")
+	}
+
+	// 获取当前提交
+	currentCommit, err := impl.repo.CommitObject(headRef.Hash())
+	if err != nil {
+		return "", errors.Wrap(err, "get current commit")
+	}
+
+	tags, err := impl.repo.Tags()
+	if err != nil {
+		return "", errors.Wrap(err, "get tags")
+	}
+
+	var latestTagName string
+	var latestTagTime time.Time
+	err = tags.ForEach(func(ref *plumbing.Reference) error {
+		// 获取标签对应的提交
+		var tagCommit *object.Commit
+
+		// 尝试解析带注释标签
+		if tagObj, err := impl.repo.TagObject(ref.Hash()); err == nil {
+			tagCommit, _ = tagObj.Commit()
+		} else { // 轻量级标签
+			tagCommit, _ = impl.repo.CommitObject(ref.Hash())
+		}
+
+		// 检查是否在当前提交的历史中
+		if impl.isAncestorCommit(currentCommit, tagCommit) {
+			// 保留最新时间戳的标签
+			if tagCommit.Committer.When.After(latestTagTime) {
+				latestTagName = ref.Name().Short()
+				latestTagTime = tagCommit.Committer.When
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return latestTagName, nil
+}
+
+// 检查是否在提交历史中
+func (impl *gitImpl) isAncestorCommit(current, target *object.Commit) bool {
+	iter := object.NewCommitPreorderIter(current, nil, nil)
+	for {
+		commit, err := iter.Next()
+		if err != nil || commit == nil {
+			break
+		}
+		if commit.Hash == target.Hash {
+			return true
+		}
+	}
+	return false
+}
+
+func (impl *gitImpl) getCurrentBranchName() (string, error) {
+	ref, err := impl.repo.Head()
+	if err != nil {
+		return "", err
+	}
+
+	// 如果是分支引用
+	if ref.Name().IsBranch() {
+		return ref.Name().Short(), nil
+	}
+
+	// 如果不是分支（如分离头状态）
+	return "", fmt.Errorf("not on a branch (detached HEAD)")
+}
+
+func (impl *gitImpl) getHeadShortHash() (string, error) {
+	ref, err := impl.repo.Head()
+	if err != nil {
+		return "", err
+	}
+
+	return ref.Hash().String()[:7], nil // 取前7个字符作为短哈希
 }
