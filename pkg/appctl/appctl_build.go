@@ -176,11 +176,13 @@ func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) err
 
 	// 拷贝sqlboiler.toml
 	srcPath := filepath.Join(tempDir, "app", app, "sqlboiler.toml")
-	destPath := filepath.Join(appSrcDir, "sqlboiler.toml")
-	// if _, err = script.File(srcPath).WriteFile(destPath); err != nil {
-	if err = utils.CopyFile(srcPath, destPath); err != nil {
-		return err
+	if utils.ExistsFile(srcPath) {
+		destPath := filepath.Join(appSrcDir, "sqlboiler.toml")
+		if err = utils.CopyFile(srcPath, destPath); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 

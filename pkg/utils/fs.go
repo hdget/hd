@@ -255,6 +255,18 @@ func CopyFile(src, dst string) error {
 	return os.Chmod(dst, srcInfo.Mode())
 }
 
+func ExistsFile(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	// 其他类型的错误（如权限问题）也视为不存在
+	return false
+}
+
 func getDirDepth(baseDir, path string) int {
 	// 计算当前深度
 	rel, err := filepath.Rel(baseDir, path)
