@@ -36,7 +36,7 @@ func New(options ...Option) ProtobufCompiler {
 
 func (impl *protobufCompilerImpl) Compile(sourceProtoDir, outputPbDir string) error {
 	if impl.debug {
-		fmt.Println("### PROTOBUF COMPILE ###")
+		fmt.Println("===> protobuf compiling...")
 	}
 
 	// 检查依赖的工具是否安装

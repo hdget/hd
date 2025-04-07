@@ -43,7 +43,7 @@ func (impl *protoRefineImpl) Refine(arg Argument) (string, error) {
 	outputDir := filepath.Join(absOutputDir, filepath.Base(arg.ProtoRepository))
 
 	if impl.debug {
-		fmt.Println("### PROTOBUF REFINE ###")
+		fmt.Println("===> protobuf refine...")
 		fmt.Println("golang module:", arg.GolangModule)
 		fmt.Println("pb import path:", pbImportPath)
 		fmt.Println("proto repository:", absProtoRepository)
