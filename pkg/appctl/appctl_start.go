@@ -40,7 +40,7 @@ var (
 		"--scheduler-host-address ''",
 		"--placement-host-address ''",
 		"--enable-app-health-check",
-		"--app-health-probe-interval 10",
+		"--app-health-probe-interval 5",
 	}
 )
 
