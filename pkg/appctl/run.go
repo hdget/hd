@@ -25,12 +25,12 @@ func runHealthCheck(healthCheck func() bool, timeout time.Duration, cmd *exec.Cm
 			return fmt.Errorf("health check timeout after %v, cmd: %s", timeout, strings.Join(cmd.Args, " "))
 
 		case <-ticker.C:
+			fmt.Println("waiting app start...")
+
 			if healthCheck() {
 				// 启动成功
 				return nil
 			}
-
-			fmt.Println("xxxxxxx")
 
 			// 检查进程是否仍在运行
 			if cmd.Process == nil || (cmd.ProcessState != nil && cmd.ProcessState.Exited()) {
