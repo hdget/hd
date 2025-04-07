@@ -30,6 +30,8 @@ func runHealthCheck(healthCheck func() bool, timeout time.Duration, cmd *exec.Cm
 				return nil
 			}
 
+			fmt.Println("xxxxxxx")
+
 			// 检查进程是否仍在运行
 			if cmd.Process == nil || (cmd.ProcessState != nil && cmd.ProcessState.Exited()) {
 				return fmt.Errorf("process exited")
