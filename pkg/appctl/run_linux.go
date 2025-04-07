@@ -21,7 +21,7 @@ func (a *appCtlImpl) run(appId, command string, healthCheck func() bool, timeout
 
 	// 2. 创建命令
 	cmd := exec.Command(command)
-	cmd.Env = os.Environ()
+	//cmd.Env = os.Environ()
 
 	// 3. 设置进程属性 - 完全脱离终端控制
 	cmd.SysProcAttr = &syscall.SysProcAttr{
