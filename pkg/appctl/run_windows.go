@@ -20,6 +20,7 @@ func (a *appCtlImpl) run(appId, command string, healthCheck func() bool, timeout
 
 	// Windows 设置
 	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Env = os.Environ()
 	//cmd.SysProcAttr = &syscall.SysProcAttr{
 	//	HideWindow:    true,                                          // 隐藏窗口
 	//	CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP | 0x00000008, // CREATE_NO_WINDOW
