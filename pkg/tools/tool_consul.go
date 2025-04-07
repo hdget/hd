@@ -35,7 +35,7 @@ func (t *consulTool) LinuxInstall() error {
 }
 
 func (t *consulTool) WindowsInstall() error {
-	fmt.Printf("Downloading %s...\n", t.name)
+	fmt.Printf("downloading %s...\n", t.name)
 
 	tempDir, zipFile, err := AllPlatform().Download(t.urlWinRelease)
 	if err != nil {

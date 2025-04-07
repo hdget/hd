@@ -35,7 +35,7 @@ func (t *protocTool) IsInstalled() bool {
 }
 
 func (t *protocTool) LinuxInstall() error {
-	fmt.Printf("Downloading %s...\n", t.name)
+	fmt.Printf("downloading %s...\n", t.name)
 
 	tempDir, zipFile, err := AllPlatform().Download(t.urlLinuxRelease)
 	if err != nil {
@@ -62,7 +62,7 @@ func (t *protocTool) LinuxInstall() error {
 }
 
 func (t *protocTool) WindowsInstall() error {
-	fmt.Printf("Downloading %s...\n", t.name)
+	fmt.Printf("downloading %s...\n", t.name)
 
 	tempDir, zipFile, err := AllPlatform().Download(t.urlWinRelease)
 	if err != nil {

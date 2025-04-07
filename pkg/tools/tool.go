@@ -101,7 +101,7 @@ func (impl *toolImpl) GetSystemBinDir() string {
 }
 
 func installTool(t Tool) error {
-	fmt.Printf("Try to install %s...\n", t.GetName())
+	fmt.Printf("try to install %s...\n", t.GetName())
 
 	var err error
 	switch runtime.GOOS {
