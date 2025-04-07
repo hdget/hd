@@ -36,6 +36,7 @@ func (a *appCtlImpl) run(appId, command string, healthCheck func() bool, timeout
 	cmd.Stderr = logFile
 
 	// 5. 启动进程（后台运行）
+	fmt.Println(cmd.Environ())
 	if err = cmd.Start(); err != nil {
 		return fmt.Errorf("启动失败: %v", err)
 	}
