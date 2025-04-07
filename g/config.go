@@ -1,10 +1,9 @@
 package g
 
 type RootConfig struct {
-	Project   ProjectConfig `toml:"project"`
-	Repos     []RepoConfig  `toml:"repos"`
-	Tools     []ToolConfig  `toml:"tools"`
-	AppStarts []string      `toml:"app_starts"` // 应用启动顺序
+	Project ProjectConfig `toml:"project"`
+	Repos   []RepoConfig  `toml:"repos"`
+	Tools   []ToolConfig  `toml:"tools"`
 }
 
 type AppConfig struct {
@@ -12,9 +11,10 @@ type AppConfig struct {
 }
 
 type ProjectConfig struct {
-	Name        string `toml:"name"`
-	Env         string `toml:"env"`
-	GatewayPort int    `toml:"gateway_port"`
+	Name        string   `toml:"name"`
+	Env         string   `toml:"env"`
+	GatewayPort int      `toml:"gateway_port"`
+	AppStarts   []string `toml:"app_starts"` // 应用启动顺序
 }
 
 type RepoConfig struct {
