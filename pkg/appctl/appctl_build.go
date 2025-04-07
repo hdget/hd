@@ -60,9 +60,8 @@ func (b *appBuilder) build(app, refName string) error {
 
 	// 拷贝源代码并切换到指定分支并获取git信息
 	if b.debug {
-		fmt.Println("### build step: clone source code ###")
+		fmt.Println(">>> build step: clone source code")
 	}
-
 	gitOperator := newGit(b.appCtlImpl)
 	err = gitOperator.Clone(appRepoConfig.Url, appSrcDir).Switch(refName)
 	if err != nil {
@@ -75,7 +74,7 @@ func (b *appBuilder) build(app, refName string) error {
 
 	// 编译Protobuf
 	if b.debug {
-		fmt.Println("### build step: generate protobuf ###")
+		fmt.Println(">>> build step: generate protobuf")
 	}
 	if err := b.generateProtobuf(appSrcDir, refName); err != nil {
 		return err
@@ -83,13 +82,16 @@ func (b *appBuilder) build(app, refName string) error {
 
 	// 拷贝sqlboiler.toml
 	if b.debug {
-		fmt.Println("### build step: copy sqlboiler config file ###")
+		fmt.Println(">>> build step: copy sqlboiler config file")
 	}
 	if err := b.copySqlboilerConfigFile(appSrcDir, app, refName); err != nil {
 		return err
 	}
 
 	// go build
+	if b.debug {
+		fmt.Println(">>> build step: goland build")
+	}
 	if err := b.golangBuild(appSrcDir, app, gitBuildInfo); err != nil {
 		return err
 	}
