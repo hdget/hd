@@ -29,7 +29,7 @@ func stopAllApp() {
 		utils.Fatal("get current dir", err)
 	}
 
-	for _, app := range g.Config.AppStarts {
+	for _, app := range g.Config.Project.Apps {
 		err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Stop(app)
 		if err != nil {
 			utils.Fatal("stop app", err)

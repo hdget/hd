@@ -41,14 +41,14 @@ func deployAllApp(args []string) {
 
 	ctl := appctl.New(baseDir, appctl.WithDebug(argDebug))
 
-	for _, app := range pie.Reverse(g.Config.AppStarts) {
+	for _, app := range pie.Reverse(g.Config.Project.Apps) {
 		err = ctl.Stop(app)
 		if err != nil {
 			utils.Fatal("stop app", err)
 		}
 	}
 
-	for _, app := range g.Config.AppStarts {
+	for _, app := range g.Config.Project.Apps {
 		err = ctl.Build(app, ref)
 		if err != nil {
 			utils.Fatal("build app", err)

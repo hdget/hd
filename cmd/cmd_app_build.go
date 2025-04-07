@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/appctl"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
@@ -13,10 +14,35 @@ var (
 		Use:   "build",
 		Short: "build app",
 		Run: func(cmd *cobra.Command, args []string) {
-			buildApp(args)
+			if argAll {
+				buildAllApp(args)
+			} else {
+				buildApp(args)
+			}
+
 		},
 	}
 )
+
+func buildAllApp(args []string) {
+	if len(args) != 1 {
+		utils.Fatal("Usage: build <app1,app2...> <branch>")
+	}
+
+	ref := args[0]
+
+	baseDir, err := os.Getwd()
+	if err != nil {
+		utils.Fatal("get current dir", err)
+	}
+
+	for _, app := range g.Config.Project.Apps {
+		err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Build(app, ref)
+		if err != nil {
+			utils.Fatal("stop app", err)
+		}
+	}
+}
 
 func buildApp(args []string) {
 	if len(args) != 2 {

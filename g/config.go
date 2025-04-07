@@ -14,7 +14,7 @@ type ProjectConfig struct {
 	Name        string   `toml:"name"`
 	Env         string   `toml:"env"`
 	GatewayPort int      `toml:"gateway_port"`
-	AppStarts   []string `toml:"app_starts"` // 应用启动顺序
+	Apps        []string `toml:"apps"` // 应用启动顺序
 }
 
 type RepoConfig struct {
