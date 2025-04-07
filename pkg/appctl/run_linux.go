@@ -4,6 +4,7 @@ package appctl
 
 import (
 	"fmt"
+	"mvdan.cc/sh/v3/shell"
 	"os"
 	"os/exec"
 	"syscall"
