@@ -21,7 +21,7 @@ const (
 	cmdNormalAppStart  = "%s run --app-address 127.0.0.1:%d --env %s"
 	cmdGatewayAppStart = "%s run --app-address 127.0.0.1:%d --web-address :%d --env %s"
 	cmdDaprStart       = "dapr run --app-id %s %s -- %s"
-	defaultTimeout     = 10 * time.Second
+	defaultTimeout     = 30 * time.Second
 )
 
 var (
@@ -40,7 +40,7 @@ var (
 		"--scheduler-host-address ''",
 		"--placement-host-address ''",
 		"--enable-app-health-check",
-		"--app-health-probe-interval 60",
+		"--app-health-probe-interval 10",
 	}
 )
 

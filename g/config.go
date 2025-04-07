@@ -6,10 +6,6 @@ type RootConfig struct {
 	Tools   []ToolConfig  `toml:"tools"`
 }
 
-type AppConfig struct {
-	Name string `toml:"name"`
-}
-
 type ProjectConfig struct {
 	Name        string   `toml:"name"`
 	Env         string   `toml:"env"`
