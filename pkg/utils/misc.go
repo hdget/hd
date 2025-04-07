@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/pkg/errors"
+	"golang.org/x/term"
 	"os"
 	"os/exec"
 	"strings"
@@ -37,6 +38,9 @@ func Fatal(prompt string, errs ...error) {
 
 // GetInput 获取字符串输入
 func GetInput(prompt string) string {
+	oldState, _ := term.MakeRaw(int(os.Stdin.Fd()))
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print(prompt)
