@@ -39,7 +39,9 @@ func New(baseDir string, options ...Option) AppController {
 
 func (a *appCtlImpl) Start(app string) error {
 	if a.debug {
+		fmt.Println()
 		fmt.Printf("=== START app: %s ===\n", app)
+		fmt.Println()
 	}
 
 	// 检查依赖的工具是否安装
