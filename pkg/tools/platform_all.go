@@ -46,7 +46,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	downloadFile := filepath.Join(tempDir, filepath.Base(url))
 	_, err = script.Get(url).WriteFile(downloadFile)
 	if err != nil {
-		return "", "", errors.Wrapf(err, "failed to download, file: %s", downloadFile)
+		return "", "", errors.Wrapf(err, "download failed, file: %s", downloadFile)
 	}
 
 	return tempDir, downloadFile, nil
@@ -64,7 +64,7 @@ func (platformAll) UnzipSpecific(zipFile, matchPattern, destDir string) error {
 	// 打开ZIP文件
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
-		return fmt.Errorf("failed to open zip file: %v", err)
+		return fmt.Errorf("open zip file failed: %v", err)
 	}
 	defer r.Close()
 
@@ -80,7 +80,7 @@ func (platformAll) UnzipSpecific(zipFile, matchPattern, destDir string) error {
 		if matched {
 			// 4. 处理匹配的文件
 			if err = extractFile(f, destDir); err != nil {
-				return fmt.Errorf("failed to uncompress file, file: %s, err: %v", f.Name, err)
+				return fmt.Errorf("uncompress file failed, file: %s, err: %v", f.Name, err)
 			}
 			found = true
 		}
