@@ -39,7 +39,7 @@ func New(baseDir string, options ...Option) AppController {
 
 func (a *appCtlImpl) Start(app string) error {
 	if a.debug {
-		fmt.Println("=== START ===")
+		fmt.Printf("=== START app: %s ===\n", app)
 	}
 
 	// 检查依赖的工具是否安装
@@ -61,7 +61,7 @@ func (a *appCtlImpl) Start(app string) error {
 func (a *appCtlImpl) Install(app string, ref string) error {
 	if a.debug {
 		fmt.Println()
-		fmt.Println("=== INSTALL ===")
+		fmt.Printf("=== INSTALL app: %s ===\n", app)
 		fmt.Println()
 	}
 
@@ -71,7 +71,7 @@ func (a *appCtlImpl) Install(app string, ref string) error {
 func (a *appCtlImpl) Build(app string, ref string) error {
 	if a.debug {
 		fmt.Println()
-		fmt.Println("=== BUILD ===")
+		fmt.Printf("=== BUILD app: %s, ref: %s ===\n", app, ref)
 		fmt.Println()
 	}
 
@@ -90,7 +90,7 @@ func (a *appCtlImpl) Build(app string, ref string) error {
 func (a *appCtlImpl) Stop(app string) error {
 	if a.debug {
 		fmt.Println()
-		fmt.Println("=== STOP ===")
+		fmt.Printf("=== STOP app: %s ===\n", app)
 		fmt.Println()
 	}
 
