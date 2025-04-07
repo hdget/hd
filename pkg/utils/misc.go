@@ -1,11 +1,10 @@
 package utils
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/chzyer/readline"
 	"github.com/pkg/errors"
-	"golang.org/x/term"
 	"os"
 	"os/exec"
 	"strings"
@@ -38,16 +37,18 @@ func Fatal(prompt string, errs ...error) {
 
 // GetInput 获取字符串输入
 func GetInput(prompt string) string {
-	oldState, _ := term.MakeRaw(int(os.Stdin.Fd()))
-	defer term.Restore(int(os.Stdin.Fd()), oldState)
+	rl, _ := readline.New(prompt)
+	defer func() {
+		if rl != nil {
+			rl.Close()
+		}
+	}()
 
-	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print(prompt)
-		input, _ := reader.ReadString('\n')
-		input = strings.TrimSpace(input)
-		if input != "" {
-			return input
+		line, _ := rl.Readline()
+		line = strings.TrimSpace(line)
+		if line != "" {
+			return line
 		}
 		fmt.Println("输入不能为空，请重新输入")
 	}
