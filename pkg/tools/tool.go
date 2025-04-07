@@ -71,7 +71,7 @@ func Check(debug bool, tools ...Tool) error {
 			continue
 		}
 
-		fmt.Printf("%s未安装\n", t.GetName())
+		fmt.Printf("%s not installed\n", t.GetName())
 		if err := installTool(t); err != nil {
 			return fmt.Errorf("%s install failed: %v", t.GetName(), err)
 		}
@@ -101,7 +101,7 @@ func (impl *toolImpl) GetSystemBinDir() string {
 }
 
 func installTool(t Tool) error {
-	fmt.Printf("尝试安装%s...\n", t.GetName())
+	fmt.Printf("Try to install %s...\n", t.GetName())
 
 	var err error
 	switch runtime.GOOS {
