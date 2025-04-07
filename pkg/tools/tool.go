@@ -82,7 +82,7 @@ func Check(debug bool, tools ...Tool) error {
 func (impl *toolImpl) run(cmd string) error {
 	output, err := script.Exec(cmd).String()
 	if err != nil {
-		return errors.Wrapf(err, "%s安装失败, 输出:%s", impl.name, output)
+		return errors.Wrapf(err, "%s安装失败, 错误:%s", impl.name, output)
 	}
 	return nil
 }
