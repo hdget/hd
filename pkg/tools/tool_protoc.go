@@ -62,7 +62,7 @@ func (t *protocTool) LinuxInstall() error {
 }
 
 func (t *protocTool) WindowsInstall() error {
-	fmt.Printf("正在下载%s...\n", t.name)
+	fmt.Printf("Downloading %s...\n", t.name)
 
 	tempDir, zipFile, err := AllPlatform().Download(t.urlWinRelease)
 	if err != nil {
@@ -70,7 +70,7 @@ func (t *protocTool) WindowsInstall() error {
 	}
 	defer func() {
 		if e := os.RemoveAll(tempDir); e != nil {
-			fmt.Printf("删除临时目录失败: %v, dir: %s", e, tempDir)
+			fmt.Printf("delete temp dir failed: %v, dir: %s", e, tempDir)
 		}
 	}()
 

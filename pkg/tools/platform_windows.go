@@ -17,7 +17,7 @@ func (*windowsPlatformImpl) MoveFile(src, dst string) error {
 	cmd := fmt.Sprintf(`powershell -Command Get-ChildItem "%s" | Move-Item -Destination "%s"" -Force`, src, dst)
 	_, err := script.Exec(cmd).Stdout()
 	if err != nil {
-		return errors.Wrapf(err, "移动文件失败, src: %s, dst: %s", src, dst)
+		return errors.Wrapf(err, "move file failed, src: %s, dst: %s", src, dst)
 	}
 	return nil
 }
@@ -26,7 +26,7 @@ func (*windowsPlatformImpl) Unzip(zipFile, dst string) error {
 	cmd := fmt.Sprintf(`powershell -Command Expand-Archive -Path "%s" -DestinationPath "%s" -Force`, zipFile, dst)
 	err := script.Exec(cmd).Wait()
 	if err != nil {
-		return errors.Wrapf(err, "解压失败, 文件: %s", zipFile)
+		return errors.Wrapf(err, "uncompress failed, file: %s", zipFile)
 	}
 	return err
 }

@@ -37,6 +37,6 @@ func (t *golangTool) LinuxInstall() error {
 }
 
 func (t *golangTool) WindowsInstall() error {
-	fmt.Println("请手动安装Golang, e,g: https://golang.google.cn/dl")
+	fmt.Println("Please install Golang manually, e,g: https://golang.google.cn/dl")
 	return nil
 }

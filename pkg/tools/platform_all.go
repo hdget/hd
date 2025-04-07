@@ -35,18 +35,18 @@ func (platformAll) Download(url string) (string, string, error) {
 	// 创建临时目录
 	tempDir, err := os.MkdirTemp(os.TempDir(), "download-*")
 	if err != nil {
-		return "", "", errors.Wrap(err, "创建临时目录失败")
+		return "", "", errors.Wrap(err, "create temp dir")
 	}
 	defer func() {
 		if e := os.RemoveAll(tempDir); e != nil {
-			fmt.Printf("删除临时目录失败: %v, dir: %s", e, tempDir)
+			fmt.Printf("delete temp dir, err: %v, dir: %s", e, tempDir)
 		}
 	}()
 
 	downloadFile := filepath.Join(tempDir, filepath.Base(url))
 	_, err = script.Get(url).WriteFile(downloadFile)
 	if err != nil {
-		return "", "", errors.Wrap(err, "下载失败")
+		return "", "", errors.Wrapf(err, "failed to download, file: %s", downloadFile)
 	}
 
 	return tempDir, downloadFile, nil
@@ -55,7 +55,7 @@ func (platformAll) Download(url string) (string, string, error) {
 func (platformAll) GetGoBinDir() (string, error) {
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
-		return "", errors.New("GOPATH未设置")
+		return "", errors.New("GOPATH not set")
 	}
 	return filepath.Join(gopath, "bin"), nil
 }
@@ -64,7 +64,7 @@ func (platformAll) UnzipSpecific(zipFile, matchPattern, destDir string) error {
 	// 打开ZIP文件
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
-		return fmt.Errorf("打开ZIP文件失败: %v", err)
+		return fmt.Errorf("failed to open zip file: %v", err)
 	}
 	defer r.Close()
 
@@ -80,14 +80,14 @@ func (platformAll) UnzipSpecific(zipFile, matchPattern, destDir string) error {
 		if matched {
 			// 4. 处理匹配的文件
 			if err = extractFile(f, destDir); err != nil {
-				return fmt.Errorf("解压文件%s失败: %v", f.Name, err)
+				return fmt.Errorf("failed to uncompress file, file: %s, err: %v", f.Name, err)
 			}
 			found = true
 		}
 	}
 
 	if !found {
-		return fmt.Errorf("没有匹配的ZIP文件内容: %s", matchPattern)
+		return fmt.Errorf("no matched zip file: %s", matchPattern)
 	}
 
 	return nil

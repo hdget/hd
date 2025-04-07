@@ -66,14 +66,14 @@ func Check(debug bool, tools ...Tool) error {
 	for _, t := range tools {
 		if t.IsInstalled() {
 			if debug {
-				fmt.Printf("%s已安装\n", t.GetName())
+				fmt.Printf("%s installed\n", t.GetName())
 			}
 			continue
 		}
 
 		fmt.Printf("%s未安装\n", t.GetName())
 		if err := installTool(t); err != nil {
-			return fmt.Errorf("%s安装失败: %v", t.GetName(), err)
+			return fmt.Errorf("%s install failed: %v", t.GetName(), err)
 		}
 	}
 	return nil
@@ -82,7 +82,7 @@ func Check(debug bool, tools ...Tool) error {
 func (impl *toolImpl) run(cmd string) error {
 	output, err := script.Exec(cmd).String()
 	if err != nil {
-		return errors.Wrapf(err, "%s安装失败, 错误:%s", impl.name, output)
+		return errors.Wrapf(err, "%s install failed, err: %s", impl.name, output)
 	}
 	return nil
 }
@@ -110,16 +110,16 @@ func installTool(t Tool) error {
 	case "windows":
 		err = t.WindowsInstall()
 	default:
-		return fmt.Errorf("不支持的操作系统: %s", runtime.GOOS)
+		return fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
 	}
 	if err != nil {
 		return err
 	}
 
 	if !t.IsInstalled() {
-		return fmt.Errorf("%s安装后仍然不可用，请检查PATH", t.GetName())
+		return fmt.Errorf("%s is not avaialble after installation, please check execute path", t.GetName())
 	}
 
-	fmt.Printf("%s安装成功\n", t.GetName())
+	fmt.Printf("%s install succeed\n", t.GetName())
 	return nil
 }
