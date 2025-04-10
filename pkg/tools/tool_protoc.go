@@ -16,7 +16,7 @@ const (
 
 func Protoc() Tool {
 	version := "30.2"
-	winfile := fmt.Sprintf("protoc-%s-win64.zip", version)
+	winFile := fmt.Sprintf("protoc-%s-win64.zip", version)
 	linuxFile := fmt.Sprintf("protoc-%s-linux-x86_64.zip", version)
 
 	return &protocTool{
@@ -24,7 +24,7 @@ func Protoc() Tool {
 			name:            "protoc",
 			version:         version,
 			urlLinuxRelease: fmt.Sprintf(urlProtoc, version, linuxFile),
-			urlWinRelease:   fmt.Sprintf(urlProtoc, version, winfile),
+			urlWinRelease:   fmt.Sprintf(urlProtoc, version, winFile),
 		},
 	}
 }
@@ -35,7 +35,7 @@ func (t *protocTool) IsInstalled() bool {
 }
 
 func (t *protocTool) LinuxInstall() error {
-	fmt.Printf("downloading %s...\n", t.name)
+	fmt.Printf("downloading %s: %s...\n", t.name, t.urlWinRelease)
 
 	tempDir, zipFile, err := AllPlatform().Download(t.urlLinuxRelease)
 	if err != nil {
@@ -62,7 +62,7 @@ func (t *protocTool) LinuxInstall() error {
 }
 
 func (t *protocTool) WindowsInstall() error {
-	fmt.Printf("downloading %s...\n", t.name)
+	fmt.Printf("downloading %s: %s...\n", t.name, t.urlWinRelease)
 
 	tempDir, zipFile, err := AllPlatform().Download(t.urlWinRelease)
 	if err != nil {

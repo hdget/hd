@@ -4,7 +4,9 @@ import (
 	"archive/zip"
 	"fmt"
 	"github.com/bitfield/script"
+	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
+	"github.com/schollz/progressbar/v3"
 	"io"
 	"os"
 	"path/filepath"
@@ -43,11 +45,51 @@ func (platformAll) Download(url string) (string, string, error) {
 		}
 	}()
 
-	downloadFile := filepath.Join(tempDir, filepath.Base(url))
-	_, err = script.Get(url).WriteFile(downloadFile)
+	// 获取文件大小
+	client := resty.New()
+	resp, err := client.R().Head(url)
 	if err != nil {
-		return "", "", errors.Wrapf(err, "download failed, file: %s", downloadFile)
+		panic(err)
 	}
+	fileSize := resp.Size()
+
+	// 创建进度条
+	bar := progressbar.NewOptions64(
+		fileSize,
+		progressbar.OptionSetWriter(os.Stderr), // 进度输出到stderr
+		progressbar.OptionShowBytes(true),
+		progressbar.OptionSetWidth(10),
+		progressbar.OptionFullWidth(),
+		progressbar.OptionSetDescription("downloading..."),
+	)
+
+	// 创建输出文件
+	downloadFile := filepath.Join(tempDir, filepath.Base(url))
+	outFile, err := os.Create(filepath.Join(tempDir, downloadFile))
+	if err != nil {
+		panic(err)
+	}
+	defer outFile.Close()
+
+	// 执行下载并显示进度
+	_, err = client.R().
+		SetDoNotParseResponse(true).
+		Get(url)
+	if err != nil {
+		return "", "", err
+	}
+	defer resp.RawBody().Close()
+
+	_, err = io.Copy(io.MultiWriter(outFile, bar), resp.RawBody())
+	if err != nil {
+		return "", "", err
+	}
+	_ = bar.Finish()
+	println("download finished!")
+	//_, err = script.Get(url).WriteFile(downloadFile)
+	//if err != nil {
+	//	return "", "", errors.Wrapf(err, "download failed, file: %s", downloadFile)
+	//}
 
 	return tempDir, downloadFile, nil
 }
