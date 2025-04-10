@@ -60,7 +60,7 @@ func (platformAll) Download(url string) (string, string, error) {
 		progressbar.OptionShowBytes(true),
 		progressbar.OptionSetWidth(10),
 		progressbar.OptionFullWidth(),
-		progressbar.OptionSetDescription("downloading..."),
+		progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s...", url)),
 	)
 
 	// 创建输出文件

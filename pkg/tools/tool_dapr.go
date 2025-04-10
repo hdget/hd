@@ -33,8 +33,6 @@ func (t *daprTool) IsInstalled() bool {
 }
 
 func (t *daprTool) LinuxInstall() error {
-	fmt.Printf("downloading %s...\n", t.name)
-
 	tempDir, zipFile, err := AllPlatform().Download(t.urlLinuxRelease)
 	if err != nil {
 		return err
@@ -54,8 +52,6 @@ func (t *daprTool) LinuxInstall() error {
 }
 
 func (t *daprTool) WindowsInstall() error {
-	fmt.Printf("downloading %s...\n", t.name)
-
 	tempDir, zipFile, err := AllPlatform().Download(t.urlWinRelease)
 	if err != nil {
 		return err
