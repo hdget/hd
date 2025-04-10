@@ -7,9 +7,11 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 	"github.com/schollz/progressbar/v3"
+	"go/build"
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 type platformAll struct {
@@ -99,7 +101,18 @@ func (platformAll) Download(url string) (string, string, error) {
 func (platformAll) GetGoBinDir() (string, error) {
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
-		return "", errors.New("GOPATH not set")
+		gopath = build.Default.GOPATH
+		if gopath == "" {
+			if runtime.GOOS == "windows" {
+				gopath = filepath.Join(os.Getenv("USERPROFILE"), "go")
+			} else {
+				gopath = filepath.Join(os.Getenv("HOME"), "go")
+			}
+		}
+	}
+
+	if gopath == "" {
+		return "", errors.New("GOPATH not found")
 	}
 	return filepath.Join(gopath, "bin"), nil
 }
