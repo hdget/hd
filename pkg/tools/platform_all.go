@@ -35,7 +35,7 @@ func (platformAll) GoInstall(pkg string) error {
 
 func (platformAll) Download(url string) (string, string, error) {
 	// 创建临时目录
-	tempDir, err := os.MkdirTemp(os.TempDir(), "download-*")
+	tempDir, err := os.MkdirTemp(os.TempDir(), "hd-download-*")
 	if err != nil {
 		return "", "", errors.Wrap(err, "create temp dir")
 	}
@@ -62,6 +62,9 @@ func (platformAll) Download(url string) (string, string, error) {
 		progressbar.OptionFullWidth(),
 		progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s...", url)),
 	)
+	defer func() {
+		_ = bar.Finish()
+	}()
 
 	// 创建输出文件
 	downloadFile := filepath.Join(tempDir, filepath.Base(url))
@@ -84,8 +87,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	_ = bar.Finish()
-	println("download finished!")
+
 	//_, err = script.Get(url).WriteFile(downloadFile)
 	//if err != nil {
 	//	return "", "", errors.Wrapf(err, "download failed, file: %s", downloadFile)
