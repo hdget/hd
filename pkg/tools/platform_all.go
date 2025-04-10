@@ -67,7 +67,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	downloadFile := filepath.Join(tempDir, filepath.Base(url))
 	outFile, err := os.Create(filepath.Join(tempDir, downloadFile))
 	if err != nil {
-		panic(err)
+		return "", "", err
 	}
 	defer outFile.Close()
 
