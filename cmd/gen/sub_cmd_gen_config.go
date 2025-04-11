@@ -72,7 +72,7 @@ func genConfig() {
 	}
 
 	if utils.ExistsFile(g.ConfigFile) {
-		fmt.Printf("%s already exist, it will auto saved as %s.bak\n", g.ConfigFile, g.ConfigFile)
+		fmt.Printf("%s exists, automatically saved as %s.bak\n", g.ConfigFile, g.ConfigFile)
 		_ = os.Rename(g.ConfigFile, g.ConfigFile+".bak")
 	}
 
