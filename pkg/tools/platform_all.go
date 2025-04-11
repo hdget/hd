@@ -65,7 +65,7 @@ func (platformAll) Download(url string) (string, string, error) {
 		bar = progressbar.NewOptions64(
 			contentLength,
 			//progressbar.OptionSetWriter(os.Stderr),
-			progressbar.OptionSetDescription(downloadDesc),
+			//progressbar.OptionSetDescription(downloadDesc),
 			progressbar.OptionShowBytes(true),
 			progressbar.OptionSetWidth(50),
 			progressbar.OptionThrottle(100*time.Millisecond),
@@ -79,7 +79,7 @@ func (platformAll) Download(url string) (string, string, error) {
 		bar = progressbar.NewOptions64(
 			-1,
 			//progressbar.OptionSetWriter(os.Stderr),
-			progressbar.OptionSetDescription(downloadDesc),
+			//progressbar.OptionSetDescription(downloadDesc),
 			progressbar.OptionShowBytes(true),
 			progressbar.OptionShowCount(),
 			progressbar.OptionOnCompletion(func() {
