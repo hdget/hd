@@ -90,7 +90,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	}
 	defer outFile.Close()
 
-	fmt.Println("2")
+	fmt.Println("download file:", downloadFile)
 
 	// 执行下载并显示进度
 	_, err = client.R().
