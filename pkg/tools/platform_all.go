@@ -184,10 +184,10 @@ func extractFile(f *zip.File, destDir string) error {
 		return os.MkdirAll(destPath, f.Mode())
 	}
 
-	// 3. 确保父目录存在
-	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
-		return err
-	}
+	//// 3. 确保父目录存在
+	//if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+	//	return err
+	//}
 
 	// 4. 打开ZIP中的文件
 	rc, err := f.Open()

@@ -29,7 +29,6 @@ func (t *protocTool) IsInstalled() bool {
 }
 
 func (t *protocTool) LinuxInstall() error {
-	fmt.Println("==========", t.urlLinuxRelease)
 	_, zipFile, err := AllPlatform().Download(t.urlLinuxRelease)
 	if err != nil {
 		return err
