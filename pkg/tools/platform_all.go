@@ -105,7 +105,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	// 创建输出文件
 	outputPath := filepath.Join(tempDir, filepath.Base(url))
 	fmt.Println("download file:", outputPath)
-	outputFile, err := os.Create(outputPath)
+	outputFile, err := os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return "", "", err
 	}
