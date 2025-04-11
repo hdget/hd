@@ -46,6 +46,8 @@ func (platformAll) Download(url string) (string, string, error) {
 	}
 
 	// 获取文件大小
+	_, _ = fmt.Fprintf(os.Stdout, "downloading: %s\n", url)
+
 	client := resty.New().
 		SetTimeout(30 * time.Second).
 		SetRetryCount(3).
@@ -59,13 +61,11 @@ func (platformAll) Download(url string) (string, string, error) {
 	contentLength, _ := strconv.ParseInt(resp.Header().Get("Content-Length"), 10, 64)
 
 	// 创建进度条
-	_, _ = fmt.Fprintf(os.Stdout, "downloading: %s\n", url)
 	var bar *progressbar.ProgressBar
 	if contentLength > 0 {
 		bar = progressbar.NewOptions64(
 			contentLength,
 			progressbar.OptionSetWriter(os.Stderr),
-			//progressbar.OptionSetDescription(downloadDesc),
 			progressbar.OptionShowBytes(true),
 			progressbar.OptionSetWidth(50),
 			progressbar.OptionThrottle(100*time.Millisecond),
@@ -79,7 +79,6 @@ func (platformAll) Download(url string) (string, string, error) {
 		bar = progressbar.NewOptions64(
 			-1,
 			progressbar.OptionSetWriter(os.Stderr),
-			//progressbar.OptionSetDescription(downloadDesc),
 			progressbar.OptionShowBytes(true),
 			progressbar.OptionShowCount(),
 			progressbar.OptionOnCompletion(func() {
