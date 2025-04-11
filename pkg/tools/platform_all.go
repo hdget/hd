@@ -42,9 +42,9 @@ func (platformAll) Download(url string) (string, string, error) {
 		return "", "", errors.Wrap(err, "create temp dir")
 	}
 	defer func() {
-		if e := os.RemoveAll(tempDir); e != nil {
-			fmt.Printf("delete temp dir, err: %v, dir: %s", e, tempDir)
-		}
+		//if e := os.RemoveAll(tempDir); e != nil {
+		//	fmt.Printf("delete temp dir, err: %v, dir: %s", e, tempDir)
+		//}
 	}()
 
 	// 获取文件大小
