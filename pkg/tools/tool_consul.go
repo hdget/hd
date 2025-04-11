@@ -14,8 +14,8 @@ func Consul() Tool {
 		toolImpl: newTool(
 			"consul",
 			defaultConsulVersion,
-			fmt.Sprintf(defaultUrlConsulWinRelease, defaultConsulVersion, defaultConsulVersion),
 			fmt.Sprintf(defaultUrlConsulUnixRelease, defaultConsulVersion, defaultConsulVersion),
+			fmt.Sprintf(defaultUrlConsulWinRelease, defaultConsulVersion, defaultConsulVersion),
 		),
 	}
 }

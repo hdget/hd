@@ -19,7 +19,7 @@ func Protoc() Tool {
 	linuxFile := fmt.Sprintf("protoc-%s-linux-x86_64.zip", version)
 
 	return &protocTool{
-		toolImpl: newTool("protoc", version, fmt.Sprintf(urlProtoc, version, winFile), fmt.Sprintf(urlProtoc, version, linuxFile)),
+		toolImpl: newTool("protoc", version, fmt.Sprintf(urlProtoc, version, linuxFile), fmt.Sprintf(urlProtoc, version, winFile)),
 	}
 }
 

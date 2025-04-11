@@ -21,8 +21,8 @@ func Dapr() Tool {
 		toolImpl: newTool(
 			"dapr",
 			defaultDaprVersion,
-			fmt.Sprintf(defaultUrlDaprWinRelease, defaultDaprVersion),
 			fmt.Sprintf(defaultUrlDaprLinuxRelease, defaultDaprVersion),
+			fmt.Sprintf(defaultUrlDaprWinRelease, defaultDaprVersion),
 		),
 	}
 }

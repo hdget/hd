@@ -24,12 +24,12 @@ type toolImpl struct {
 	urlLinuxRelease string
 }
 
-func newTool(name, version, urlWinRelease, urlLinuxRelease string) *toolImpl {
+func newTool(name, version, urlLinuxRelease, urlWinRelease string) *toolImpl {
 	t := &toolImpl{
 		name:            name,
 		version:         version,
-		urlLinuxRelease: urlWinRelease,
-		urlWinRelease:   urlLinuxRelease,
+		urlLinuxRelease: urlLinuxRelease,
+		urlWinRelease:   urlWinRelease,
 	}
 
 	if c, exist := g.ToolConfigs[name]; exist {
