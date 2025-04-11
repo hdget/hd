@@ -31,6 +31,9 @@ func newTool(name, version, urlWinRelease, urlLinuxRelease string) *toolImpl {
 		urlLinuxRelease: urlWinRelease,
 		urlWinRelease:   urlLinuxRelease,
 	}
+
+	fmt.Println(g.ToolConfigs)
+
 	if c, exist := g.ToolConfigs[name]; exist {
 		if c.UrlLinuxRelease != "" {
 			t.urlLinuxRelease = c.UrlLinuxRelease
