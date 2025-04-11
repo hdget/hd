@@ -44,7 +44,7 @@ func (t *daprTool) LinuxInstall() error {
 	}()
 
 	// 解压zip文件
-	if err = AllPlatform().UnzipSpecific(zipFile, "daprbundle/dapr", t.GetSystemBinDir()); err != nil {
+	if err = AllPlatform().UnzipSpecificFile(zipFile, "daprbundle/dapr", t.GetSystemBinDir()); err != nil {
 		return err
 	}
 
@@ -63,7 +63,7 @@ func (t *daprTool) WindowsInstall() error {
 	}()
 
 	// 解压zip文件
-	if err = AllPlatform().UnzipSpecific(zipFile, "daprbundle/dapr.exe", t.GetSystemBinDir()); err != nil {
+	if err = AllPlatform().UnzipSpecificFile(zipFile, "daprbundle/dapr.exe", t.GetSystemBinDir()); err != nil {
 		return err
 	}
 

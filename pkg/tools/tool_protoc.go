@@ -46,7 +46,7 @@ func (t *protocTool) LinuxInstall() error {
 	}
 
 	// 解压zip文件
-	if err = AllPlatform().UnzipSpecific(zipFile, "bin/protoc", installDir); err != nil {
+	if err = AllPlatform().UnzipSpecificFile(zipFile, "bin/protoc", installDir); err != nil {
 		return err
 	}
 
@@ -71,7 +71,7 @@ func (t *protocTool) WindowsInstall() error {
 	}
 
 	// 解压zip文件
-	if err = AllPlatform().UnzipSpecific(zipFile, "bin/protoc.exe", installDir); err != nil {
+	if err = AllPlatform().UnzipSpecificFile(zipFile, "bin/protoc.exe", installDir); err != nil {
 		return err
 	}
 

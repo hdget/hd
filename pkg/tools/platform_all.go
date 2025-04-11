@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/bitfield/script"
 	"github.com/go-resty/resty/v2"
+	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
 	"go/build"
 	"io"
@@ -141,7 +142,7 @@ func (platformAll) GetGoBinDir() (string, error) {
 	return filepath.Join(gopath, "bin"), nil
 }
 
-func (platformAll) UnzipSpecific(zipFile, matchPattern, destDir string) error {
+func (platformAll) UnzipSpecificFile(zipFile, matchPattern, destDir string) error {
 	// 打开ZIP文件
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
@@ -159,6 +160,11 @@ func (platformAll) UnzipSpecific(zipFile, matchPattern, destDir string) error {
 
 		// 检查是否匹配指定路径
 		if matched {
+			// 如果是目录，什么都不做
+			if f.FileInfo().IsDir() {
+				continue
+			}
+
 			// 4. 处理匹配的文件
 			if err = extractFile(f, destDir); err != nil {
 				return fmt.Errorf("uncompress file failed, file: %s, err: %v", f.Name, err)
@@ -177,19 +183,14 @@ func (platformAll) UnzipSpecific(zipFile, matchPattern, destDir string) error {
 // extractFile 解压单个文件
 func extractFile(f *zip.File, destDir string) error {
 	// 1. 创建目标文件路径
-	destPath := filepath.Join(destDir, f.Name)
+	destPath := filepath.Join(destDir, filepath.Base(f.Name))
 
-	// 2. 检查目录是否存在，不存在则创建
-	if f.FileInfo().IsDir() {
-		return os.MkdirAll(destPath, f.Mode())
+	// 2. 确保destDir存在
+	if _, err := utils.IsDir(destDir); err != nil {
+		return fmt.Errorf("invalid dest dir, dir: %s", destDir)
 	}
 
-	//// 3. 确保父目录存在
-	//if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
-	//	return err
-	//}
-
-	// 4. 打开ZIP中的文件
+	// 3. 打开ZIP中的文件
 	rc, err := f.Open()
 	if err != nil {
 		return err

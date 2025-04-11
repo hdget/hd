@@ -46,7 +46,7 @@ func (t *consulTool) WindowsInstall() error {
 	}()
 
 	// 解压zip文件
-	if err = AllPlatform().UnzipSpecific(zipFile, "consul.exe", t.GetSystemBinDir()); err != nil {
+	if err = AllPlatform().UnzipSpecificFile(zipFile, "consul.exe", t.GetSystemBinDir()); err != nil {
 		return err
 	}
 
