@@ -45,15 +45,12 @@ func (platformAll) Download(url string) (string, string, error) {
 		return "", "", errors.Wrap(err, "create temp dir")
 	}
 
-	fmt.Println("xxxxxxxxxxxx, temp dir: ", tempDir)
-
 	// 获取文件大小
-	client := resty.New()
-	//New().
-	//SetTimeout(30 * time.Second).
-	//SetRetryCount(3).
-	//SetRetryWaitTime(5 * time.Second).
-	//SetRedirectPolicy(resty.FlexibleRedirectPolicy(5)) // 跟随最多5次重定向
+	client := resty.New().
+		SetTimeout(30 * time.Second).
+		SetRetryCount(3).
+		SetRetryWaitTime(5 * time.Second).
+		SetRedirectPolicy(resty.FlexibleRedirectPolicy(5)) // 跟随最多5次重定向
 
 	resp, err := client.R().Head(url)
 	if err != nil {
@@ -61,9 +58,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	}
 	contentLength, _ := strconv.ParseInt(resp.Header().Get("Content-Length"), 10, 64)
 
-	fmt.Println("xxxxxxxxxxxx, content: ", contentLength)
-
-	// 2. 创建进度条
+	// 创建进度条
 	var bar *progressbar.ProgressBar
 	if contentLength > 0 {
 		bar = progressbar.NewOptions64(
@@ -91,47 +86,39 @@ func (platformAll) Download(url string) (string, string, error) {
 
 	// 创建输出文件
 	outputPath := filepath.Join(tempDir, filepath.Base(url))
-	fmt.Println("download file:", outputPath)
 	outputFile, err := os.OpenFile(outputPath, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return "", "", err
 	}
 	defer func() {
-		fmt.Println("1")
 		if e := outputFile.Close(); e != nil {
 			fmt.Println(e)
 		}
 	}()
 
 	// 执行下载并显示进度
-	_, err = client.R().
+	resp, err = client.R().
 		SetDoNotParseResponse(true).
 		Get(url)
 	if err != nil {
 		return "", "", err
 	}
 	defer func() {
-		fmt.Println("2")
 		if e := resp.RawBody().Close(); e != nil {
 			fmt.Println(e)
 		}
 	}()
 
-	fmt.Println("3")
-	//_, err = io.Copy(io.MultiWriter(outputFile, bar), resp.RawBody())
-	_, err = io.Copy(outputFile, resp.RawBody())
+	_, err = io.Copy(io.MultiWriter(outputFile, bar), resp.RawBody())
 	if err != nil {
 		return "", "", err
 	}
 
-	fmt.Println("4")
-	// 确保所有数据写入磁盘
-	if err = outputFile.Sync(); err != nil {
+	//// 确保所有数据写入磁盘
+	//if err = outputFile.Sync(); err != nil {
+	//	return "", "", err
+	//}
 
-		return "", "", err
-	}
-
-	fmt.Println("5")
 	if err = bar.Finish(); err != nil {
 		return "", "", err
 	}
@@ -140,8 +127,6 @@ func (platformAll) Download(url string) (string, string, error) {
 	//if err != nil {
 	//	return "", "", errors.Wrapf(err, "download failed, file: %s", downloadFile)
 	//}
-	fmt.Println("00000000000000")
-
 	return tempDir, outputPath, nil
 }
 
