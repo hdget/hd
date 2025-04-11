@@ -1,4 +1,4 @@
-package cmd
+package appctl
 
 import (
 	"github.com/hdget/hd/g"
@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	cmdAppStart = &cobra.Command{
-		Use:   "start",
+	subCmdStartApp = &cobra.Command{
+		Use:   "start [app1,app2...]",
 		Short: "start app",
 		Run: func(cmd *cobra.Command, args []string) {
 			if argAll {
@@ -31,7 +31,7 @@ func startAllApp() {
 	}
 
 	for _, app := range g.Config.Project.Apps {
-		err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Start(app)
+		err = appctl.New(baseDir, appctl.WithDebug(g.Debug)).Start(app)
 		if err != nil {
 			utils.Fatal("start app", err)
 		}
@@ -40,7 +40,7 @@ func startAllApp() {
 
 func startApp(args []string) {
 	if len(args) != 1 {
-		utils.Fatal("Usage: start <app1,app2..>")
+		utils.Fatal("Usage: start [app1,app2...]")
 	}
 
 	appList := args[0]
@@ -56,7 +56,7 @@ func startApp(args []string) {
 	}
 
 	for _, app := range apps {
-		err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Start(app)
+		err = appctl.New(baseDir, appctl.WithDebug(g.Debug)).Start(app)
 		if err != nil {
 			utils.Fatal("start app", err)
 		}

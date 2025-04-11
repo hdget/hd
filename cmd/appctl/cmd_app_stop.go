@@ -1,4 +1,4 @@
-package cmd
+package appctl
 
 import (
 	"github.com/hdget/hd/g"
@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	cmdAppStop = &cobra.Command{
-		Use:   "stop",
+	subCmdStopApp = &cobra.Command{
+		Use:   "stop [app1,app2...]",
 		Short: "stop app",
 		Run: func(cmd *cobra.Command, args []string) {
 			if argAll {
@@ -30,7 +30,7 @@ func stopAllApp() {
 	}
 
 	for _, app := range g.Config.Project.Apps {
-		err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Stop(app)
+		err = appctl.New(baseDir, appctl.WithDebug(g.Debug)).Stop(app)
 		if err != nil {
 			utils.Fatal("stop app", err)
 		}
@@ -39,7 +39,7 @@ func stopAllApp() {
 
 func stopApp(args []string) {
 	if len(args) != 1 {
-		utils.Fatal("Usage: stop <app>")
+		utils.Fatal("Usage: stop [app1,app2...]")
 	}
 
 	appList := args[0]
@@ -55,7 +55,7 @@ func stopApp(args []string) {
 	}
 
 	for _, app := range apps {
-		err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Stop(app)
+		err = appctl.New(baseDir, appctl.WithDebug(g.Debug)).Stop(app)
 		if err != nil {
 			utils.Fatal("stop app", err)
 		}

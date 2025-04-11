@@ -36,20 +36,54 @@ func Fatal(prompt string, errs ...error) {
 }
 
 // GetInput 获取字符串输入
-func GetInput(prompt string) string {
-	rl, _ := readline.New(prompt)
+func GetInput(prompt string, defaults ...string) string {
+	rlConfig := &readline.Config{}
+
+	var defaultValue string
+	if len(defaults) > 0 {
+		defaultValue = strings.TrimSpace(defaults[0])
+	}
+
+	if defaultValue != "" {
+		rlConfig.Prompt = fmt.Sprintf("%s[%s]: ", prompt, defaultValue)
+	} else {
+		rlConfig.Prompt = fmt.Sprintf("%s: ", prompt)
+	}
+
+	rl, _ := readline.NewEx(rlConfig)
 	defer func() {
 		if rl != nil {
 			rl.Close()
 		}
 	}()
 
+	var inputValue string
 	for {
-		line, _ := rl.Readline()
+		line, err := rl.Readline()
+		if err != nil {
+			if errors.Is(err, readline.ErrInterrupt) {
+				os.Exit(0)
+			}
+			
+			if defaultValue != "" {
+				inputValue = defaultValue
+			}
+			break
+		}
+
 		line = strings.TrimSpace(line)
 		if line != "" {
-			return line
+			inputValue = line
+		} else if defaultValue != "" {
+			inputValue = defaultValue
 		}
-		fmt.Println("输入不能为空，请重新输入")
+
+		if inputValue != "" {
+			break
+		}
+
+		fmt.Println("empty input, please input again!")
 	}
+
+	return inputValue
 }

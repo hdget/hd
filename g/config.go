@@ -26,6 +26,7 @@ type ToolConfig struct {
 }
 
 var (
+	Debug       bool // 是否开启debug模式
 	Config      = &RootConfig{}
 	ToolConfigs = map[string]ToolConfig{}
 	RepoConfigs = map[string]RepoConfig{}

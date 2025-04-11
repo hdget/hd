@@ -16,8 +16,6 @@ type appStartImpl struct {
 }
 
 const (
-	// 52000-59999
-	defaultGatewayPort = 1000
 	cmdNormalAppStart  = "%s run --app-address 127.0.0.1:%d --env %s"
 	cmdGatewayAppStart = "%s run --app-address 127.0.0.1:%d --web-address :%d --env %s"
 	cmdDaprStart       = "dapr run --app-id %s %s -- %s"
@@ -104,7 +102,7 @@ func (a *appStartImpl) getStartCommand(app string) (string, error) {
 
 func (a *appStartImpl) getGatewayPort() int {
 	if g.Config.Project.GatewayPort == 0 {
-		return defaultGatewayPort
+		return g.DefaultGatewayPort
 	}
 	return g.Config.Project.GatewayPort
 }

@@ -1,4 +1,4 @@
-package cmd
+package appctl
 
 import (
 	"github.com/hdget/hd/g"
@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	cmdAppBuild = &cobra.Command{
-		Use:   "build",
+	subCmdBuildApp = &cobra.Command{
+		Use:   "build [app1,app2...] [branch]",
 		Short: "build app",
 		Run: func(cmd *cobra.Command, args []string) {
 			if argAll {
@@ -26,7 +26,7 @@ var (
 
 func buildAllApp(args []string) {
 	if len(args) != 1 {
-		utils.Fatal("Usage: build <app1,app2...> <branch>")
+		utils.Fatal("Usage: build [branch] --all")
 	}
 
 	ref := args[0]
@@ -37,7 +37,7 @@ func buildAllApp(args []string) {
 	}
 
 	for _, app := range g.Config.Project.Apps {
-		err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Build(app, ref)
+		err = appctl.New(baseDir, appctl.WithDebug(g.Debug)).Build(app, ref)
 		if err != nil {
 			utils.Fatal("stop app", err)
 		}
@@ -46,7 +46,7 @@ func buildAllApp(args []string) {
 
 func buildApp(args []string) {
 	if len(args) != 2 {
-		utils.Fatal("Usage: build <app1,app2...> <branch>")
+		utils.Fatal("Usage: build [app1,app2...] <branch>")
 	}
 
 	appList, ref := args[0], args[1]
@@ -66,7 +66,7 @@ func buildApp(args []string) {
 	}
 
 	for _, app := range apps {
-		err = appctl.New(baseDir, appctl.WithDebug(argDebug)).Build(app, ref)
+		err = appctl.New(baseDir, appctl.WithDebug(g.Debug)).Build(app, ref)
 		if err != nil {
 			utils.Fatal("build app", err)
 		}

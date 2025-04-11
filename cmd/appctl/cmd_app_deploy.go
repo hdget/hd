@@ -1,4 +1,4 @@
-package cmd
+package appctl
 
 import (
 	"github.com/elliotchance/pie/v2"
@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	cmdAppDeploy = &cobra.Command{
-		Use:   "deploy",
+	subCmdDeployApp = &cobra.Command{
+		Use:   "deploy [app1,app2...] [branch]",
 		Short: "deploy app",
 		Run: func(cmd *cobra.Command, args []string) {
 			if argAll {
@@ -26,7 +26,7 @@ var (
 
 func deployAllApp(args []string) {
 	if len(args) != 1 {
-		utils.Fatal("Usage: deploy <branch> --all")
+		utils.Fatal("Usage: deploy [branch] --all")
 	}
 
 	ref := args[0]
@@ -39,7 +39,7 @@ func deployAllApp(args []string) {
 		utils.Fatal("get current dir", err)
 	}
 
-	ctl := appctl.New(baseDir, appctl.WithDebug(argDebug))
+	ctl := appctl.New(baseDir, appctl.WithDebug(g.Debug))
 
 	for _, app := range pie.Reverse(g.Config.Project.Apps) {
 		err = ctl.Stop(app)
@@ -68,7 +68,7 @@ func deployAllApp(args []string) {
 
 func deployApp(args []string) {
 	if len(args) != 2 {
-		utils.Fatal("Usage: deploy <app> <branch>")
+		utils.Fatal("Usage: deploy [app1,app2...] [branch]")
 	}
 
 	appList, ref := args[0], args[1]
@@ -86,7 +86,7 @@ func deployApp(args []string) {
 		utils.Fatal("get current dir", err)
 	}
 
-	ctl := appctl.New(baseDir, appctl.WithDebug(argDebug))
+	ctl := appctl.New(baseDir, appctl.WithDebug(g.Debug))
 
 	for _, app := range apps {
 		err = ctl.Stop(app)

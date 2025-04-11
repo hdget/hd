@@ -1,7 +1,8 @@
-package cmd
+package gen
 
 import (
 	"fmt"
+	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/protocompile"
 	"github.com/hdget/hd/pkg/protorefine"
 	"github.com/hdget/hd/pkg/utils"
@@ -17,8 +18,8 @@ var (
 		generateAll   bool
 	}{}
 
-	cmdProtobufGen = &cobra.Command{
-		Use:   "gen",
+	subCmdGenProtobuf = &cobra.Command{
+		Use:   "pb",
 		Short: "generate protobuf",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := protobufGenerate(); err != nil {
@@ -30,9 +31,9 @@ var (
 )
 
 func init() {
-	cmdProtobufGen.PersistentFlags().StringVarP(&argProtobufGen.outputPackage, "package", "", "pb", "--package <package>")
-	cmdProtobufGen.PersistentFlags().StringVarP(&argProtobufGen.outputDir, "output-dir", "", "autogen", "--output-dir <sub_dir>")
-	cmdProtobufGen.PersistentFlags().BoolVarP(&argProtobufGen.generateAll, "all", "", false, "--all")
+	subCmdGenProtobuf.PersistentFlags().StringVarP(&argProtobufGen.outputPackage, "package", "", "pb", "--package <package>")
+	subCmdGenProtobuf.PersistentFlags().StringVarP(&argProtobufGen.outputDir, "output-dir", "", "autogen", "--output-dir <sub_dir>")
+	subCmdGenProtobuf.PersistentFlags().BoolVarP(&argProtobufGen.generateAll, "all", "", false, "--all")
 }
 
 func protobufGenerate() error {
@@ -59,7 +60,7 @@ func protobufGenerate() error {
 		protoDir = protoRepository
 	} else {
 		var prOptions []protorefine.Option
-		if argDebug {
+		if g.Debug {
 			prOptions = append(prOptions, protorefine.WithDebug(true))
 		}
 		protoDir, err = protorefine.New(prOptions...).Refine(protorefine.Argument{
@@ -76,7 +77,7 @@ func protobufGenerate() error {
 
 	// 第二步：编译protobuf
 	var pcOptions []protocompile.Option
-	if argDebug {
+	if g.Debug {
 		pcOptions = append(pcOptions, protocompile.WithDebug(true))
 	}
 	outputPbDir := filepath.Join(srcDir, argProtobufGen.outputDir, argProtobufGen.outputPackage)
