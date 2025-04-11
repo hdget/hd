@@ -52,6 +52,8 @@ func (platformAll) Download(url string) (string, string, error) {
 	}
 	contentLength, _ := strconv.ParseInt(resp.Header().Get("Content-Length"), 10, 64)
 
+	fmt.Println("xxxxxxxxxxxx, content: ", contentLength)
+
 	// 2. 创建进度条
 	var bar *progressbar.ProgressBar
 	if contentLength > 0 {
@@ -86,6 +88,8 @@ func (platformAll) Download(url string) (string, string, error) {
 	}
 	defer outFile.Close()
 
+	fmt.Println("2")
+
 	// 执行下载并显示进度
 	_, err = client.R().
 		SetDoNotParseResponse(true).
@@ -95,9 +99,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	}
 	defer resp.RawBody().Close()
 
-	proxyReader := progressbar.NewReader(resp.RawBody(), bar)
-
-	_, err = io.Copy(outFile, &proxyReader)
+	_, err = io.Copy(io.MultiWriter(outFile, bar), resp.RawBody())
 	if err != nil {
 		return "", "", err
 	}
