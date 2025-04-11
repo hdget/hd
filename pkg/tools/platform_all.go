@@ -56,7 +56,7 @@ func (platformAll) Download(url string) (string, string, error) {
 
 	resp, err := client.R().Head(url)
 	if err != nil {
-		return "", "", errors.New("get file size failed")
+		return "", "", errors.New("failed to get download file size")
 	}
 	contentLength, _ := strconv.ParseInt(resp.Header().Get("Content-Length"), 10, 64)
 
