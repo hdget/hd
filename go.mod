@@ -1,8 +1,6 @@
 module github.com/hdget/hd
 
-go 1.23.6
-
-toolchain go1.23.7
+go 1.23
 
 require (
 	github.com/BurntSushi/toml v1.5.0
