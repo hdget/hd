@@ -47,7 +47,13 @@ func (platformAll) Download(url string) (string, string, error) {
 	fmt.Println("xxxxxxxxxxxx, temp dir: ", tempDir)
 
 	// 获取文件大小
-	client := resty.New().SetTimeout(30 * time.Second).SetRetryCount(3).SetRetryWaitTime(5 * time.Second)
+	client := resty.
+		New().
+		SetTimeout(30 * time.Second).
+		SetRetryCount(3).
+		SetRetryWaitTime(5 * time.Second).
+		SetRedirectPolicy(resty.FlexibleRedirectPolicy(5)) // 跟随最多5次重定向
+
 	resp, err := client.R().Head(url)
 	if err != nil {
 		return "", "", errors.New("get file size failed")
