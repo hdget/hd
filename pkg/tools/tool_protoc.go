@@ -64,11 +64,11 @@ func (t *protocTool) WindowsInstall() error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if e := os.RemoveAll(tempDir); e != nil {
-			fmt.Printf("delete temp dir failed: %v, dir: %s", e, tempDir)
-		}
-	}()
+	//defer func() {
+	//	if e := os.RemoveAll(tempDir); e != nil {
+	//		fmt.Printf("delete temp dir failed: %v, dir: %s", e, tempDir)
+	//	}
+	//}()
 
 	// 获取GOPATH
 	installDir, err := AllPlatform().GetGoBinDir()
