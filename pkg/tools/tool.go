@@ -35,8 +35,10 @@ func newTool(name, version, urlWinRelease, urlLinuxRelease string) *toolImpl {
 	fmt.Println(g.ToolConfigs)
 
 	if c, exist := g.ToolConfigs[name]; exist {
+		fmt.Println("here:", c)
+
 		if c.UrlLinuxRelease != "" {
-			fmt.Println("here")
+
 			t.urlLinuxRelease = c.UrlLinuxRelease
 		}
 
