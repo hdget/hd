@@ -77,9 +77,6 @@ func (platformAll) Download(url string) (string, string, error) {
 			progressbar.OptionShowCount(),
 		)
 	}
-	defer func() {
-		_ = bar.Finish()
-	}()
 
 	// 创建输出文件
 	downloadFile := filepath.Join(tempDir, filepath.Base(url))
@@ -102,6 +99,8 @@ func (platformAll) Download(url string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
+
+	_ = bar.Finish()
 
 	//_, err = script.Get(url).WriteFile(downloadFile)
 	//if err != nil {
