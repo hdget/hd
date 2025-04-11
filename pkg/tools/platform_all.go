@@ -12,6 +12,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"time"
 )
 
 type platformAll struct {
@@ -43,22 +45,46 @@ func (platformAll) Download(url string) (string, string, error) {
 	}
 
 	// 获取文件大小
-	client := resty.New()
+	client := resty.New().SetTimeout(30 * time.Minute).SetRetryCount(3).SetRetryWaitTime(5 * time.Second)
 	resp, err := client.R().Head(url)
 	if err != nil {
 		panic(err)
 	}
-	fileSize := resp.Size()
+	contentLength, _ := strconv.ParseInt(resp.Header().Get("Content-Length"), 10, 64)
 
-	// 创建进度条
-	bar := progressbar.NewOptions64(
-		fileSize,
-		progressbar.OptionSetWriter(os.Stdout), // 进度输出到stdout
-		progressbar.OptionShowBytes(true),
-		progressbar.OptionSetWidth(10),
-		progressbar.OptionFullWidth(),
-		progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s...", url)),
-	)
+	// 2. 创建进度条
+	var bar *progressbar.ProgressBar
+	if contentLength > 0 {
+		fmt.Printf("file size: %.2f MB\n", float64(contentLength)/1024/1024)
+		bar = progressbar.NewOptions64(
+			contentLength,
+			progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s...", url)),
+			progressbar.OptionSetWriter(os.Stderr),
+			progressbar.OptionShowBytes(true),
+			progressbar.OptionSetWidth(50),
+			progressbar.OptionThrottle(100*time.Millisecond),
+			progressbar.OptionShowCount(),
+			progressbar.OptionOnCompletion(func() {
+				fmt.Fprint(os.Stderr, "\n")
+			}),
+			progressbar.OptionSetTheme(progressbar.Theme{
+				Saucer:        "=",
+				SaucerHead:    ">",
+				SaucerPadding: " ",
+				BarStart:      "[",
+				BarEnd:        "]",
+			}),
+		)
+	} else {
+		// 未知大小的进度条
+		bar = progressbar.NewOptions64(
+			-1,
+			progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s...", url)),
+			progressbar.OptionSetWriter(os.Stderr),
+			progressbar.OptionShowBytes(true),
+			progressbar.OptionShowCount(),
+		)
+	}
 	defer func() {
 		_ = bar.Finish()
 	}()
