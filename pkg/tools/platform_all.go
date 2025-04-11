@@ -64,8 +64,8 @@ func (platformAll) Download(url string) (string, string, error) {
 	if contentLength > 0 {
 		bar = progressbar.NewOptions64(
 			contentLength,
-			progressbar.OptionSetDescription(downloadDesc),
 			progressbar.OptionSetWriter(os.Stderr),
+			progressbar.OptionSetDescription(downloadDesc),
 			progressbar.OptionShowBytes(true),
 			progressbar.OptionSetWidth(50),
 			progressbar.OptionThrottle(100*time.Millisecond),
@@ -78,8 +78,8 @@ func (platformAll) Download(url string) (string, string, error) {
 		// 未知大小的进度条
 		bar = progressbar.NewOptions64(
 			-1,
-			progressbar.OptionSetDescription(downloadDesc),
 			progressbar.OptionSetWriter(os.Stderr),
+			progressbar.OptionSetDescription(downloadDesc),
 			progressbar.OptionShowBytes(true),
 			progressbar.OptionShowCount(),
 			progressbar.OptionOnCompletion(func() {
