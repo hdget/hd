@@ -66,13 +66,6 @@ func (platformAll) Download(url string) (string, string, error) {
 			progressbar.OptionOnCompletion(func() {
 				fmt.Fprint(os.Stderr, "\n")
 			}),
-			//progressbar.OptionSetTheme(progressbar.Theme{
-			//	Saucer:        "=",
-			//	SaucerHead:    ">",
-			//	SaucerPadding: " ",
-			//	BarStart:      "[",
-			//	BarEnd:        "]",
-			//}),
 		)
 	} else {
 		// 未知大小的进度条
@@ -105,10 +98,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	}
 	defer resp.RawBody().Close()
 
-	// 5. 使用代理读取器跟踪进度
-	proxyReader := progressbar.NewReader(resp.RawBody(), bar)
-
-	_, err = io.Copy(outFile, &proxyReader)
+	_, err = io.Copy(io.MultiWriter(outFile, bar), resp.RawBody())
 	if err != nil {
 		return "", "", err
 	}
