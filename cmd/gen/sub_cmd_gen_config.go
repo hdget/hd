@@ -5,6 +5,7 @@ import (
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
 	"os"
+	"path/filepath"
 	"text/template"
 )
 
@@ -49,7 +50,10 @@ const (
 )
 
 func genConfig() {
-	project := utils.GetInput("Please input project name")
+	baseDir, _ := os.Getwd()
+	possibleProject := filepath.Base(baseDir)
+
+	project := utils.GetInput("Please input project name", possibleProject)
 	env := utils.GetInput("Please input running environment", "test")
 
 	exampleConfig := &g.RootConfig{
