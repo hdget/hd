@@ -7,6 +7,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
+	"github.com/schollz/progressbar/v3"
 	"go/build"
 	"io"
 	"os"
@@ -62,65 +63,78 @@ func (platformAll) Download(url string) (string, string, error) {
 
 	fmt.Println("xxxxxxxxxxxx, content: ", contentLength)
 
-	//// 2. 创建进度条
-	//var bar *progressbar.ProgressBar
-	//if contentLength > 0 {
-	//	bar = progressbar.NewOptions64(
-	//		contentLength,
-	//		progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s\n", url)),
-	//		progressbar.OptionSetWriter(os.Stderr),
-	//		progressbar.OptionShowBytes(true),
-	//		progressbar.OptionSetWidth(50),
-	//		progressbar.OptionThrottle(100*time.Millisecond),
-	//		progressbar.OptionShowCount(),
-	//		progressbar.OptionOnCompletion(func() {
-	//			fmt.Fprint(os.Stderr, "\n")
-	//		}),
-	//	)
-	//} else {
-	//	// 未知大小的进度条
-	//	bar = progressbar.NewOptions64(
-	//		-1,
-	//		progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s\n", url)),
-	//		progressbar.OptionSetWriter(os.Stderr),
-	//		progressbar.OptionShowBytes(true),
-	//		progressbar.OptionShowCount(),
-	//	)
-	//}
-
-	// 创建输出文件
-	downloadFile := filepath.Join(tempDir, filepath.Base(url))
-	//outFile, err := os.Create(downloadFile)
-	//if err != nil {
-	//	return "", "", err
-	//}
-	//defer outFile.Close()
-
-	fmt.Println("download file:", downloadFile)
+	// 2. 创建进度条
+	var bar *progressbar.ProgressBar
+	if contentLength > 0 {
+		bar = progressbar.NewOptions64(
+			contentLength,
+			progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s\n", url)),
+			progressbar.OptionSetWriter(os.Stderr),
+			progressbar.OptionShowBytes(true),
+			progressbar.OptionSetWidth(50),
+			progressbar.OptionThrottle(100*time.Millisecond),
+			progressbar.OptionShowCount(),
+			progressbar.OptionOnCompletion(func() {
+				fmt.Fprint(os.Stderr, "\n")
+			}),
+		)
+	} else {
+		// 未知大小的进度条
+		bar = progressbar.NewOptions64(
+			-1,
+			progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s\n", url)),
+			progressbar.OptionSetWriter(os.Stderr),
+			progressbar.OptionShowBytes(true),
+			progressbar.OptionShowCount(),
+		)
+	}
 
 	// 执行下载并显示进度
 	_, err = client.R().
-		SetOutput(downloadFile).
-		//SetDoNotParseResponse(true).
+		SetDoNotParseResponse(true).
 		Get(url)
 	if err != nil {
 		return "", "", err
 	}
-	defer resp.RawBody().Close()
+	defer func() {
+		if e := resp.RawBody().Close(); e != nil {
+			fmt.Println(e)
+		}
+	}()
 
-	//_, err = io.Copy(io.MultiWriter(outFile, bar), resp.RawBody())
-	//if err != nil {
-	//	return "", "", err
-	//}
-	//
-	//_ = bar.Finish()
+	// 创建输出文件
+	outputPath := filepath.Join(tempDir, filepath.Base(url))
+	fmt.Println("download file:", outputPath)
+	outputFile, err := os.Create(outputPath)
+	if err != nil {
+		return "", "", err
+	}
+	defer func() {
+		if e := outputFile.Close(); e != nil {
+			fmt.Println(e)
+		}
+	}()
+
+	_, err = io.Copy(io.MultiWriter(outputFile, bar), resp.RawBody())
+	if err != nil {
+		return "", "", err
+	}
+
+	// 确保所有数据写入磁盘
+	if err = outputFile.Sync(); err != nil {
+		return "", "", err
+	}
+
+	if err = bar.Finish(); err != nil {
+		return "", "", err
+	}
 
 	//_, err = script.Get(url).WriteFile(downloadFile)
 	//if err != nil {
 	//	return "", "", errors.Wrapf(err, "download failed, file: %s", downloadFile)
 	//}
 
-	return tempDir, downloadFile, nil
+	return tempDir, outputPath, nil
 }
 
 func (platformAll) GetGoBinDir() (string, error) {
@@ -142,7 +156,7 @@ func (platformAll) GetGoBinDir() (string, error) {
 	return filepath.Join(gopath, "bin"), nil
 }
 
-func (platformAll) UnzipSpecificFile(zipFile, matchPattern, destDir string) error {
+func (platformAll) UnzipMatchedFiles(zipFile, matchPattern, destDir string) error {
 	// 打开ZIP文件
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
