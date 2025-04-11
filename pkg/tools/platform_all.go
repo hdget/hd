@@ -41,11 +41,11 @@ func (platformAll) Download(url string) (string, string, error) {
 	if err != nil {
 		return "", "", errors.Wrap(err, "create temp dir")
 	}
-	defer func() {
-		//if e := os.RemoveAll(tempDir); e != nil {
-		//	fmt.Printf("delete temp dir, err: %v, dir: %s", e, tempDir)
-		//}
-	}()
+	//defer func() {
+	//	if e := os.RemoveAll(tempDir); e != nil {
+	//		fmt.Printf("delete temp dir, err: %v, dir: %s", e, tempDir)
+	//	}
+	//}()
 
 	// 获取文件大小
 	client := resty.New()
