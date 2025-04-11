@@ -70,6 +70,10 @@ func genConfig() {
 		utils.Fatal("error parse template", err)
 	}
 
+	if utils.ExistsFile(g.ConfigFile) {
+		_ = os.Rename(g.ConfigFile, g.ConfigFile+".bak")
+	}
+
 	f, err := os.Create(g.ConfigFile)
 	if err != nil {
 		utils.Fatal("error create config file", err)
