@@ -118,7 +118,8 @@ func (platformAll) Download(url string) (string, string, error) {
 	}()
 
 	fmt.Println("3")
-	_, err = io.Copy(io.MultiWriter(outputFile, bar), resp.RawBody())
+	//_, err = io.Copy(io.MultiWriter(outputFile, bar), resp.RawBody())
+	_, err = io.Copy(outputFile, resp.RawBody())
 	if err != nil {
 		return "", "", err
 	}
