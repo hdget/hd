@@ -59,28 +59,32 @@ func (platformAll) Download(url string) (string, string, error) {
 	contentLength, _ := strconv.ParseInt(resp.Header().Get("Content-Length"), 10, 64)
 
 	// 创建进度条
+	downloadDesc := fmt.Sprintf("downloading: %s\n", url)
 	var bar *progressbar.ProgressBar
 	if contentLength > 0 {
 		bar = progressbar.NewOptions64(
 			contentLength,
-			progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s\n", url)),
+			progressbar.OptionSetDescription(downloadDesc),
 			progressbar.OptionSetWriter(os.Stderr),
 			progressbar.OptionShowBytes(true),
 			progressbar.OptionSetWidth(50),
 			progressbar.OptionThrottle(100*time.Millisecond),
 			progressbar.OptionShowCount(),
 			progressbar.OptionOnCompletion(func() {
-				fmt.Fprint(os.Stderr, "\n")
+				_, _ = fmt.Fprint(os.Stderr, "\n")
 			}),
 		)
 	} else {
 		// 未知大小的进度条
 		bar = progressbar.NewOptions64(
 			-1,
-			progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s\n", url)),
+			progressbar.OptionSetDescription(downloadDesc),
 			progressbar.OptionSetWriter(os.Stderr),
 			progressbar.OptionShowBytes(true),
 			progressbar.OptionShowCount(),
+			progressbar.OptionOnCompletion(func() {
+				_, _ = fmt.Fprint(os.Stderr, "\n")
+			}),
 		)
 	}
 
