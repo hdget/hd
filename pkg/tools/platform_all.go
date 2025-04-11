@@ -53,7 +53,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	// 创建进度条
 	bar := progressbar.NewOptions64(
 		fileSize,
-		progressbar.OptionSetWriter(os.Stderr), // 进度输出到stderr
+		progressbar.OptionSetWriter(os.Stdout), // 进度输出到stdout
 		progressbar.OptionShowBytes(true),
 		progressbar.OptionSetWidth(10),
 		progressbar.OptionFullWidth(),
