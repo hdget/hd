@@ -59,7 +59,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	contentLength, _ := strconv.ParseInt(resp.Header().Get("Content-Length"), 10, 64)
 
 	// 创建进度条
-	downloadDesc := fmt.Sprintf("downloading: %s\n", url)
+	// downloadDesc := fmt.Sprintf("downloading: %s\n", url)
 	var bar *progressbar.ProgressBar
 	if contentLength > 0 {
 		bar = progressbar.NewOptions64(
