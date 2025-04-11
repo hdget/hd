@@ -55,7 +55,6 @@ func (platformAll) Download(url string) (string, string, error) {
 	// 2. 创建进度条
 	var bar *progressbar.ProgressBar
 	if contentLength > 0 {
-		fmt.Printf("file size: %.2f MB\n", float64(contentLength)/1024/1024)
 		bar = progressbar.NewOptions64(
 			contentLength,
 			progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s\n", url)),
@@ -106,7 +105,10 @@ func (platformAll) Download(url string) (string, string, error) {
 	}
 	defer resp.RawBody().Close()
 
-	_, err = io.Copy(io.MultiWriter(outFile, bar), resp.RawBody())
+	// 5. 使用代理读取器跟踪进度
+	proxyReader := progressbar.NewReader(resp.RawBody(), bar)
+
+	_, err = io.Copy(outFile, &proxyReader)
 	if err != nil {
 		return "", "", err
 	}
