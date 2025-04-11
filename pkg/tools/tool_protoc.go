@@ -60,7 +60,7 @@ func (t *protocTool) LinuxInstall() error {
 }
 
 func (t *protocTool) WindowsInstall() error {
-	tempDir, zipFile, err := AllPlatform().Download(t.urlWinRelease)
+	_, zipFile, err := AllPlatform().Download(t.urlWinRelease)
 	if err != nil {
 		return err
 	}
