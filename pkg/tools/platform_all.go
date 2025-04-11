@@ -50,7 +50,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	client := resty.New()
 	resp, err := client.R().Head(url)
 	if err != nil {
-		panic(err)
+		return "", "", errors.New("get file size failed")
 	}
 	contentLength, _ := strconv.ParseInt(resp.Header().Get("Content-Length"), 10, 64)
 
