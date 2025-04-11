@@ -97,6 +97,7 @@ func (platformAll) Download(url string) (string, string, error) {
 		return "", "", err
 	}
 	defer func() {
+		fmt.Println("1")
 		if e := resp.RawBody().Close(); e != nil {
 			fmt.Println(e)
 		}
@@ -105,11 +106,12 @@ func (platformAll) Download(url string) (string, string, error) {
 	// 创建输出文件
 	outputPath := filepath.Join(tempDir, filepath.Base(url))
 	fmt.Println("download file:", outputPath)
-	outputFile, err := os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
+	outputFile, err := os.OpenFile(outputPath, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return "", "", err
 	}
 	defer func() {
+		fmt.Println("2")
 		if e := outputFile.Close(); e != nil {
 			fmt.Println(e)
 		}
@@ -117,15 +119,18 @@ func (platformAll) Download(url string) (string, string, error) {
 
 	_, err = io.Copy(io.MultiWriter(outputFile, bar), resp.RawBody())
 	if err != nil {
+		fmt.Println("3")
 		return "", "", err
 	}
 
 	// 确保所有数据写入磁盘
 	if err = outputFile.Sync(); err != nil {
+		fmt.Println("4")
 		return "", "", err
 	}
 
 	if err = bar.Finish(); err != nil {
+		fmt.Println("5")
 		return "", "", err
 	}
 
@@ -133,6 +138,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	//if err != nil {
 	//	return "", "", errors.Wrapf(err, "download failed, file: %s", downloadFile)
 	//}
+	fmt.Println("00000000000000")
 
 	return tempDir, outputPath, nil
 }
