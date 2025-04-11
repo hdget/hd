@@ -3,7 +3,6 @@ package tools
 import (
 	"fmt"
 	"github.com/bitfield/script"
-	"os"
 )
 
 type protocTool struct {
@@ -35,15 +34,15 @@ func (t *protocTool) IsInstalled() bool {
 }
 
 func (t *protocTool) LinuxInstall() error {
-	tempDir, zipFile, err := AllPlatform().Download(t.urlLinuxRelease)
+	_, zipFile, err := AllPlatform().Download(t.urlLinuxRelease)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if e := os.RemoveAll(tempDir); e != nil {
-			fmt.Printf("delete temp dir failed: %v, dir: %s", e, tempDir)
-		}
-	}()
+	//defer func() {
+	//	if e := os.RemoveAll(tempDir); e != nil {
+	//		fmt.Printf("delete temp dir failed: %v, dir: %s", e, tempDir)
+	//	}
+	//}()
 
 	// 获取GOPATH
 	installDir, err := AllPlatform().GetGoBinDir()

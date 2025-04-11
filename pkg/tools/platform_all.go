@@ -58,7 +58,7 @@ func (platformAll) Download(url string) (string, string, error) {
 		fmt.Printf("file size: %.2f MB\n", float64(contentLength)/1024/1024)
 		bar = progressbar.NewOptions64(
 			contentLength,
-			progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s...", url)),
+			progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s...\n", url)),
 			progressbar.OptionSetWriter(os.Stderr),
 			progressbar.OptionShowBytes(true),
 			progressbar.OptionSetWidth(50),
@@ -79,7 +79,7 @@ func (platformAll) Download(url string) (string, string, error) {
 		// 未知大小的进度条
 		bar = progressbar.NewOptions64(
 			-1,
-			progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s...", url)),
+			progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s...\n", url)),
 			progressbar.OptionSetWriter(os.Stderr),
 			progressbar.OptionShowBytes(true),
 			progressbar.OptionShowCount(),
