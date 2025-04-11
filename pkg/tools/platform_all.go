@@ -6,7 +6,6 @@ import (
 	"github.com/bitfield/script"
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
-	"github.com/schollz/progressbar/v3"
 	"go/build"
 	"io"
 	"os"
@@ -62,57 +61,58 @@ func (platformAll) Download(url string) (string, string, error) {
 
 	fmt.Println("xxxxxxxxxxxx, content: ", contentLength)
 
-	// 2. 创建进度条
-	var bar *progressbar.ProgressBar
-	if contentLength > 0 {
-		bar = progressbar.NewOptions64(
-			contentLength,
-			progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s\n", url)),
-			progressbar.OptionSetWriter(os.Stderr),
-			progressbar.OptionShowBytes(true),
-			progressbar.OptionSetWidth(50),
-			progressbar.OptionThrottle(100*time.Millisecond),
-			progressbar.OptionShowCount(),
-			progressbar.OptionOnCompletion(func() {
-				fmt.Fprint(os.Stderr, "\n")
-			}),
-		)
-	} else {
-		// 未知大小的进度条
-		bar = progressbar.NewOptions64(
-			-1,
-			progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s\n", url)),
-			progressbar.OptionSetWriter(os.Stderr),
-			progressbar.OptionShowBytes(true),
-			progressbar.OptionShowCount(),
-		)
-	}
+	//// 2. 创建进度条
+	//var bar *progressbar.ProgressBar
+	//if contentLength > 0 {
+	//	bar = progressbar.NewOptions64(
+	//		contentLength,
+	//		progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s\n", url)),
+	//		progressbar.OptionSetWriter(os.Stderr),
+	//		progressbar.OptionShowBytes(true),
+	//		progressbar.OptionSetWidth(50),
+	//		progressbar.OptionThrottle(100*time.Millisecond),
+	//		progressbar.OptionShowCount(),
+	//		progressbar.OptionOnCompletion(func() {
+	//			fmt.Fprint(os.Stderr, "\n")
+	//		}),
+	//	)
+	//} else {
+	//	// 未知大小的进度条
+	//	bar = progressbar.NewOptions64(
+	//		-1,
+	//		progressbar.OptionSetDescription(fmt.Sprintf("downloading: %s\n", url)),
+	//		progressbar.OptionSetWriter(os.Stderr),
+	//		progressbar.OptionShowBytes(true),
+	//		progressbar.OptionShowCount(),
+	//	)
+	//}
 
 	// 创建输出文件
 	downloadFile := filepath.Join(tempDir, filepath.Base(url))
-	outFile, err := os.Create(downloadFile)
-	if err != nil {
-		return "", "", err
-	}
-	defer outFile.Close()
+	//outFile, err := os.Create(downloadFile)
+	//if err != nil {
+	//	return "", "", err
+	//}
+	//defer outFile.Close()
 
 	fmt.Println("download file:", downloadFile)
 
 	// 执行下载并显示进度
 	_, err = client.R().
-		SetDoNotParseResponse(true).
+		SetOutput(downloadFile).
+		//SetDoNotParseResponse(true).
 		Get(url)
 	if err != nil {
 		return "", "", err
 	}
 	defer resp.RawBody().Close()
 
-	_, err = io.Copy(io.MultiWriter(outFile, bar), resp.RawBody())
-	if err != nil {
-		return "", "", err
-	}
-
-	_ = bar.Finish()
+	//_, err = io.Copy(io.MultiWriter(outFile, bar), resp.RawBody())
+	//if err != nil {
+	//	return "", "", err
+	//}
+	//
+	//_ = bar.Finish()
 
 	//_, err = script.Get(url).WriteFile(downloadFile)
 	//if err != nil {
