@@ -89,20 +89,6 @@ func (platformAll) Download(url string) (string, string, error) {
 		)
 	}
 
-	// 执行下载并显示进度
-	_, err = client.R().
-		SetDoNotParseResponse(true).
-		Get(url)
-	if err != nil {
-		return "", "", err
-	}
-	defer func() {
-		fmt.Println("1")
-		if e := resp.RawBody().Close(); e != nil {
-			fmt.Println(e)
-		}
-	}()
-
 	// 创建输出文件
 	outputPath := filepath.Join(tempDir, filepath.Base(url))
 	fmt.Println("download file:", outputPath)
@@ -111,26 +97,41 @@ func (platformAll) Download(url string) (string, string, error) {
 		return "", "", err
 	}
 	defer func() {
-		fmt.Println("2")
+		fmt.Println("1")
 		if e := outputFile.Close(); e != nil {
 			fmt.Println(e)
 		}
 	}()
 
+	// 执行下载并显示进度
+	_, err = client.R().
+		SetDoNotParseResponse(true).
+		Get(url)
+	if err != nil {
+		return "", "", err
+	}
+	defer func() {
+		fmt.Println("2")
+		if e := resp.RawBody().Close(); e != nil {
+			fmt.Println(e)
+		}
+	}()
+
+	fmt.Println("3")
 	_, err = io.Copy(io.MultiWriter(outputFile, bar), resp.RawBody())
 	if err != nil {
-		fmt.Println("3")
 		return "", "", err
 	}
 
+	fmt.Println("4")
 	// 确保所有数据写入磁盘
 	if err = outputFile.Sync(); err != nil {
-		fmt.Println("4")
+
 		return "", "", err
 	}
 
+	fmt.Println("5")
 	if err = bar.Finish(); err != nil {
-		fmt.Println("5")
 		return "", "", err
 	}
 
