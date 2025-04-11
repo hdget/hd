@@ -45,7 +45,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	}
 
 	// 获取文件大小
-	client := resty.New().SetTimeout(30 * time.Minute).SetRetryCount(3).SetRetryWaitTime(5 * time.Second)
+	client := resty.New()
 	resp, err := client.R().Head(url)
 	if err != nil {
 		panic(err)
@@ -95,7 +95,9 @@ func (platformAll) Download(url string) (string, string, error) {
 	}
 	defer resp.RawBody().Close()
 
-	_, err = io.Copy(io.MultiWriter(outFile, bar), resp.RawBody())
+	proxyReader := progressbar.NewReader(resp.RawBody(), bar)
+
+	_, err = io.Copy(outFile, &proxyReader)
 	if err != nil {
 		return "", "", err
 	}
