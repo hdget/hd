@@ -44,6 +44,8 @@ func (platformAll) Download(url string) (string, string, error) {
 		return "", "", errors.Wrap(err, "create temp dir")
 	}
 
+	fmt.Println("xxxxxxxxxxxx, temp dir: ", tempDir)
+
 	// 获取文件大小
 	client := resty.New()
 	resp, err := client.R().Head(url)
