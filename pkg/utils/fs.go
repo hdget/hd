@@ -351,3 +351,22 @@ func IsValidRelativePath(path string) bool {
 	// 3. 不包含上级目录引用
 	return true
 }
+
+//
+//func SaveFile(file string, data []byte) error {
+//	f, err := os.Create(file)
+//	if err != nil {
+//		return err
+//	}
+//
+//	_, err = f.Write(data)
+//	if err != nil {
+//		return err
+//	}
+//
+//	err = f.Sync()
+//	if err != nil {
+//		return err
+//	}
+//	return nil
+//}

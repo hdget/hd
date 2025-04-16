@@ -144,7 +144,7 @@ func (b *appBuilder) golangBuild(appSrcDir, app string, gitBuildInfo *gitInfo) e
 	if err = os.MkdirAll(b.absBinDir, 0755); err != nil {
 		return errors.Wrapf(err, "make bin dir, binDir: %s", b.absBinDir)
 	}
-	// if _, err = script.File(binFile).WriteFile(filepath.Join(b.absBinDir, binFile)); err != nil {
+	// if _, err = script.EntryFilePath(binFile).WriteFile(filepath.Join(b.absBinDir, binFile)); err != nil {
 	if err = utils.CopyFile(binFile, filepath.Join(b.absBinDir, binFile)); err != nil {
 		return err
 	}

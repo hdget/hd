@@ -65,8 +65,8 @@ func (golangParser) parse(srcDir, pbImportPath string, skipDirs ...string) ([]st
 					}
 					//case *ast.ImportSpec: // record all name2pkgImportPath
 					//	var alias string
-					//	if n.Name != nil {
-					//		alias = n.Name.Name
+					//	if n.name != nil {
+					//		alias = n.name.name
 					//	}
 					//	fullPath := n.Path.Value[1 : len(n.Path.Value)-1]
 					//	pkgName := filepath.Base(fullPath)

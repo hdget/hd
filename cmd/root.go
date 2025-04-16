@@ -21,6 +21,7 @@ func init() {
 
 	rootCmd.AddCommand(gen.Command)
 	rootCmd.AddCommand(appctl.Command)
+	rootCmd.AddCommand(cmdHandleSourceCode)
 }
 
 func Execute() {
