@@ -2,7 +2,7 @@ package sourcecode
 
 import (
 	"fmt"
-	"github.com/hdget/common/types"
+	"github.com/hdget/common/protobuf"
 	"github.com/hdget/hd/g"
 	"github.com/pkg/errors"
 	"go/ast"
@@ -32,9 +32,9 @@ type parserImpl struct {
 }
 
 type sourceCodeInfo struct {
-	serverEntryFilePath    string                         // appServer.Run的入口文件即appServer开始运行所在的go文件
-	daprModules            []*daprModuleInfo              // 获取DaprInvocationModule
-	daprInvocationHandlers []*types.DaprInvocationHandler // DaprInvocationModuleHandler
+	serverEntryFilePath    string                  // appServer.Run的入口文件即appServer开始运行所在的go文件
+	daprModules            []*parsedDaprModuleInfo // 获取DaprInvocationModule
+	daprInvocationHandlers []*protobuf.DaprHandler // DaprInvocationModuleHandler
 }
 
 func newParser(srcDir string, excludeDirs []string) (Parser, error) {

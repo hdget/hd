@@ -3,7 +3,7 @@ package sourcecode
 import (
 	"fmt"
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/common/types"
+	"github.com/hdget/common/protobuf"
 	"go/ast"
 	"go/token"
 	"maps"
@@ -43,14 +43,14 @@ var (
 )
 
 // parseDaprInvocationHandlers 从第一次解析的结果中去获取DaprInvocationModule中所有handler的路由注解
-func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*daprModuleInfo) ([]*types.DaprInvocationHandler, error) {
-	results := make([]*types.DaprInvocationHandler, 0)
+func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*parsedDaprModuleInfo) ([]*protobuf.DaprHandler, error) {
+	results := make([]*protobuf.DaprHandler, 0)
 
-	invocationModuleInfos := pie.Filter(moduleInfos, func(m *daprModuleInfo) bool {
-		return m.kind == DaprModuleKindInvocation
+	invocationModuleInfos := pie.Filter(moduleInfos, func(m *parsedDaprModuleInfo) bool {
+		return m.kind == protobuf.DaprModuleKind_DaprModuleKindInvocation
 	})
 
-	allInvocationPkgRelPaths := pie.Unique(pie.Map(invocationModuleInfos, func(m *daprModuleInfo) string {
+	allInvocationPkgRelPaths := pie.Unique(pie.Map(invocationModuleInfos, func(m *parsedDaprModuleInfo) string {
 		return m.pkgRelPath
 	}))
 
@@ -98,7 +98,7 @@ func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*daprModuleInfo) 
 }
 
 // parseInvocationHandler 解析Dapr所有invocation handlers
-func (p *parserImpl) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath string, registeredHandlerPath2handlerAlias map[string]string) *types.DaprInvocationHandler {
+func (p *parserImpl) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath string, registeredHandlerPath2handlerAlias map[string]string) *protobuf.DaprHandler {
 	receiverTypeName := astGetReceiverTypeName(fn, true)
 	// receiverTypeName为空表示为普通函数，忽略
 	if receiverTypeName == "" {
@@ -115,8 +115,9 @@ func (p *parserImpl) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath s
 
 		handlerPath := fmt.Sprintf("%s.%s.%s", pkgRelPath, receiverTypeName, fn.Name.Name)
 		if handlerAlias, exist := registeredHandlerPath2handlerAlias[handlerPath]; exist && handlerAlias != "" {
-			return &types.DaprInvocationHandler{
+			return &protobuf.DaprHandler{
 				PkgPath:     pkgRelPath,
+				ModuleKind:  protobuf.DaprModuleKind_DaprModuleKindInvocation,
 				Module:      receiverTypeName,
 				Name:        fn.Name.Name,
 				Alias:       handlerAlias,

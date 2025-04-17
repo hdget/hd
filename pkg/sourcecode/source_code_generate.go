@@ -15,7 +15,7 @@ const (
 func (impl *sourceCodeHandlerImpl) generate(scInfo *sourceCodeInfo) error {
 	fmt.Println("===> generate invocation handler info")
 
-	//invocationModules := pie.Filter(scInfo.daprModules, func(info *daprModuleInfo) bool {
+	//invocationModules := pie.Filter(scInfo.daprModules, func(info *parsedDaprModuleInfo) bool {
 	//	return info.kind == DaprModuleKindInvocation
 	//})
 
@@ -35,18 +35,21 @@ func (impl *sourceCodeHandlerImpl) generate(scInfo *sourceCodeInfo) error {
 	//	}
 	//}
 
-	//if len(routeAnnotations) > 0 {
 	data, err := json.Marshal(scInfo.daprInvocationHandlers)
 	if err != nil {
 		return err
 	}
 
-	outputPath := filepath.Join(impl.assetsPath, fileInvocationHandlers)
+	ext := filepath.Ext(fileInvocationHandlers)
+	if len(ext) > 1 {
+		ext = ext[1:]
+	}
+
+	outputPath := filepath.Join(impl.assetsPath, ext, fileInvocationHandlers)
 	err = os.WriteFile(outputPath, data, 0644)
 	if err != nil {
 		return err
 	}
-	//}
 
 	return nil
 }
