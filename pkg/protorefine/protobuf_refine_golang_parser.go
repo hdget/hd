@@ -63,18 +63,6 @@ func (golangParser) parse(srcDir, pbImportPath string, skipDirs ...string) ([]st
 							}
 						}
 					}
-					//case *ast.ImportSpec: // record all name2pkgImportPath
-					//	var alias string
-					//	if n.name != nil {
-					//		alias = n.name.name
-					//	}
-					//	fullPath := n.Path.Value[1 : len(n.Path.Value)-1]
-					//	pkgName := filepath.Base(fullPath)
-					//	if alias == "" {
-					//		name2pkgImportPath[pkgName] = fullPath
-					//	} else {
-					//		name2pkgImportPath[alias] = fullPath
-					//	}
 				}
 				return true
 			})
