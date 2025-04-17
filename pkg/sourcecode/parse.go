@@ -2,6 +2,8 @@ package sourcecode
 
 import (
 	"fmt"
+	"github.com/hdget/common/types"
+	"github.com/hdget/hd/g"
 	"github.com/pkg/errors"
 	"go/ast"
 	"go/parser"
@@ -17,13 +19,6 @@ type Parser interface {
 	Parse() (*sourceCodeInfo, error)
 }
 
-type callSignature struct {
-	functionChain      string         // 必传
-	pkg                string         // 可选
-	argCount           int            // 可选, -1不去检查
-	argIndex2Signature map[int]string // 可选, nil不去检查
-}
-
 // astPackage 表示解析后的包信息
 type astPackage struct {
 	Name    string
@@ -37,9 +32,9 @@ type parserImpl struct {
 }
 
 type sourceCodeInfo struct {
-	serverEntryFilePath    string                   // appServer.Run的入口文件即appServer开始运行所在的go文件
-	daprModules            []*daprModuleInfo        // 获取DaprInvocationModule
-	daprInvocationHandlers []*daprInvocationHandler // DaprInvocationModuleHandler
+	serverEntryFilePath    string                         // appServer.Run的入口文件即appServer开始运行所在的go文件
+	daprModules            []*daprModuleInfo              // 获取DaprInvocationModule
+	daprInvocationHandlers []*types.DaprInvocationHandler // DaprInvocationModuleHandler
 }
 
 func newParser(srcDir string, excludeDirs []string) (Parser, error) {
@@ -52,12 +47,18 @@ func newParser(srcDir string, excludeDirs []string) (Parser, error) {
 }
 
 func (p *parserImpl) Parse() (*sourceCodeInfo, error) {
+	fmt.Println(">>> parse source code")
+
 	serverEntryPath, err := p.parseServerEntryFilePath()
 	if err != nil {
 		return nil, err
 	}
 	if serverEntryPath == "" {
 		return nil, errors.New("can't find server.Start call")
+	}
+
+	if g.Debug {
+		fmt.Println("server entry file path:", serverEntryPath)
 	}
 
 	daprModules, err := p.parseDaprModules()
@@ -68,9 +69,27 @@ func (p *parserImpl) Parse() (*sourceCodeInfo, error) {
 		return nil, errors.New("can't find dapr modules")
 	}
 
+	if g.Debug {
+		for _, module := range daprModules {
+			fmt.Printf(" * found modules, path: %s, name: %s\n", module.pkgRelPath, module.name)
+		}
+	}
+
 	daprInvocationHandlers, err := p.parseDaprInvocationHandlers(daprModules)
 	if err != nil {
 		return nil, err
+	}
+	if g.Debug {
+		fmt.Println("found handlers")
+		for _, m := range daprModules {
+			handlerNames := make([]string, 0)
+			for _, h := range daprInvocationHandlers {
+				if m.pkgRelPath == h.PkgPath && m.name == h.Module {
+					handlerNames = append(handlerNames, h.Name)
+				}
+			}
+			fmt.Printf(" * found handlers, path: %s, module: %s, total: %d, handlers: %v\n", m.pkgRelPath, m.name, len(handlerNames), handlerNames)
+		}
 	}
 
 	scInfo := &sourceCodeInfo{
@@ -79,7 +98,6 @@ func (p *parserImpl) Parse() (*sourceCodeInfo, error) {
 		daprInvocationHandlers: daprInvocationHandlers,
 	}
 
-	fmt.Println(scInfo)
 	return scInfo, nil
 }
 

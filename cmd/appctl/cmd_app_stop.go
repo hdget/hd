@@ -30,7 +30,7 @@ func stopAllApp() {
 	}
 
 	for _, app := range g.Config.Project.Apps {
-		err = appctl.New(baseDir, appctl.WithDebug(g.Debug)).Stop(app)
+		err = appctl.New(baseDir).Stop(app)
 		if err != nil {
 			utils.Fatal("stop app", err)
 		}
@@ -55,7 +55,7 @@ func stopApp(args []string) {
 	}
 
 	for _, app := range apps {
-		err = appctl.New(baseDir, appctl.WithDebug(g.Debug)).Stop(app)
+		err = appctl.New(baseDir).Stop(app)
 		if err != nil {
 			utils.Fatal("stop app", err)
 		}

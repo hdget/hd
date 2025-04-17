@@ -9,6 +9,7 @@ import (
 
 var (
 	argPatchSkipDirs    []string // inspect时需要跳过的目录
+	argAssetsPath       string
 	cmdHandleSourceCode = &cobra.Command{
 		Use:   "handle_source",
 		Short: "handle source code",
@@ -19,6 +20,7 @@ var (
 )
 
 func init() {
+	cmdHandleSourceCode.PersistentFlags().StringVarP(&argAssetsPath, "assets-path", "", "assets", "--assets-path assets")
 	cmdHandleSourceCode.PersistentFlags().StringSliceVarP(&argPatchSkipDirs, "skip", "", []string{"autogen"}, "--entry [import_path.func]")
 }
 
@@ -30,6 +32,7 @@ func handleSourceCode() {
 
 	err = sourcecode.New(srcDir,
 		sourcecode.WithSkipDirs(argPatchSkipDirs...),
+		sourcecode.WithAssetPath(argAssetsPath),
 	).Handle()
 	if err != nil {
 		utils.Fatal("handle source code", err)

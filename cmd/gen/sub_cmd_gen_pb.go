@@ -2,7 +2,6 @@ package gen
 
 import (
 	"fmt"
-	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/protocompile"
 	"github.com/hdget/hd/pkg/protorefine"
 	"github.com/hdget/hd/pkg/utils"
@@ -59,11 +58,7 @@ func protobufGenerate() error {
 	if argProtobufGen.generateAll {
 		protoDir = protoRepository
 	} else {
-		var prOptions []protorefine.Option
-		if g.Debug {
-			prOptions = append(prOptions, protorefine.WithDebug(true))
-		}
-		protoDir, err = protorefine.New(prOptions...).Refine(protorefine.Argument{
+		protoDir, err = protorefine.New().Refine(protorefine.Argument{
 			GolangModule:        rootGolangModule,
 			GolangSourceCodeDir: srcDir,
 			ProtoRepository:     protoRepository,
@@ -76,12 +71,9 @@ func protobufGenerate() error {
 	}
 
 	// 第二步：编译protobuf
-	var pcOptions []protocompile.Option
-	if g.Debug {
-		pcOptions = append(pcOptions, protocompile.WithDebug(true))
-	}
+
 	outputPbDir := filepath.Join(srcDir, argProtobufGen.outputDir, argProtobufGen.outputPackage)
-	err = protocompile.New(pcOptions...).Compile(protoDir, outputPbDir)
+	err = protocompile.New().Compile(protoDir, outputPbDir)
 	if err != nil {
 		return err
 	}

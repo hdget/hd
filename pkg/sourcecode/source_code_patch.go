@@ -17,9 +17,7 @@ import (
 // patch 匿名导入invocationModule和eventModule的路径到服务运行入口文件
 // MonkeyPatch 修改源代码的方式匿名导入pkg, sourceFile是相对于basePath的相对路径
 func (impl *sourceCodeHandlerImpl) patch(scInfo *sourceCodeInfo) error {
-	fmt.Println("")
-	fmt.Println("=== add module import paths ===")
-	fmt.Println("")
+	fmt.Println(">>> patch source code")
 
 	// 获取项目模块名
 	projectModuleName, err := impl.getProjectModuleName()

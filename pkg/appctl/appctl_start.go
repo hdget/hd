@@ -60,7 +60,7 @@ func (a *appStartImpl) start(app string) error {
 		return err
 	}
 
-	if a.debug {
+	if g.Debug {
 		fmt.Println(cmd)
 	}
 

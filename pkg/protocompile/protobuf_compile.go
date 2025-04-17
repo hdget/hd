@@ -3,6 +3,7 @@ package protocompile
 import (
 	"fmt"
 	"github.com/bitfield/script"
+	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/tools"
 	"github.com/pkg/errors"
 	"os"
@@ -15,7 +16,6 @@ type ProtobufCompiler interface {
 }
 
 type protobufCompilerImpl struct {
-	debug bool
 }
 
 var (
@@ -35,12 +35,12 @@ func New(options ...Option) ProtobufCompiler {
 }
 
 func (impl *protobufCompilerImpl) Compile(sourceProtoDir, outputPbDir string) error {
-	if impl.debug {
+	if g.Debug {
 		fmt.Println("===> protobuf compiling...")
 	}
 
 	// 检查依赖的工具是否安装
-	if err := tools.Check(impl.debug, allTools...); err != nil {
+	if err := tools.Check(allTools...); err != nil {
 		return err
 	}
 

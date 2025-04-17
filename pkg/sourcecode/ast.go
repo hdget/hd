@@ -5,32 +5,46 @@ import (
 	"github.com/elliotchance/pie/v2"
 	"go/ast"
 	"go/token"
+	"regexp"
 	"strings"
 )
 
-func astMatchCall(n *ast.CallExpr, callSignature *callSignature, imports map[string]string) bool {
-	if astGetFunctionChain(n) != callSignature.functionChain {
+type callSignature struct {
+	functionChain      string         // 必传
+	pkg                string         // 可选
+	argCount           int            // 可选, -1不去检查
+	argIndex2Signature map[int]string // 可选, nil不去检查
+}
+
+type functionSignature struct {
+	namePattern *regexp.Regexp
+	params      []string
+	results     []string
+}
+
+func astMatchCall(n *ast.CallExpr, sig *callSignature, imports map[string]string) bool {
+	if astGetFunctionChain(n) != sig.functionChain {
 		return false
 	}
 
-	if callSignature.argCount > 0 {
-		if len(n.Args) != callSignature.argCount {
+	if sig.argCount > 0 {
+		if len(n.Args) != sig.argCount {
 			return false
 		}
 	}
 
 	// 如果传入了pkg，则调用类似: dapr.New
-	if callSignature.pkg != "" {
+	if sig.pkg != "" {
 		caller, found := astGetCaller(n)
 		if !found {
 			return false
 		}
-		if imports[caller] != callSignature.pkg {
+		if imports[caller] != sig.pkg {
 			return false
 		}
 	}
 
-	for argIndex, signature := range callSignature.argIndex2Signature {
+	for argIndex, signature := range sig.argIndex2Signature {
 		if argIndex >= len(n.Args) {
 			return false
 		}
@@ -104,21 +118,27 @@ func astResolveVarType(expr ast.Expr) string {
 	return ""
 }
 
-func astMatchFunction(fn *ast.FuncDecl, fnParams, fnResults []string) bool {
+func astMatchFunction(fn *ast.FuncDecl, sig *functionSignature) bool {
 	// 检查参数数量
-	if fn.Type.Params == nil || len(fn.Type.Params.List) != len(fnParams) || fn.Type.Results == nil || len(fn.Type.Results.List) != len(fnResults) {
+	if fn.Type.Params == nil || len(fn.Type.Params.List) != len(sig.params) || fn.Type.Results == nil || len(fn.Type.Results.List) != len(sig.results) {
 		return false
+	}
+
+	if sig.namePattern != nil {
+		if !sig.namePattern.MatchString(fn.Name.Name) {
+			return false
+		}
 	}
 
 	// 检查参数
 	for i, param := range fn.Type.Params.List {
-		if paramTypeName := astGetExprTypeName(param.Type); paramTypeName != fnParams[i] {
+		if paramTypeName := astGetExprTypeName(param.Type); paramTypeName != sig.params[i] {
 			return false
 		}
 	}
 
 	for i, result := range fn.Type.Results.List {
-		if resultTypeName := astGetExprTypeName(result.Type); resultTypeName != fnResults[i] {
+		if resultTypeName := astGetExprTypeName(result.Type); resultTypeName != sig.results[i] {
 			return false
 		}
 	}

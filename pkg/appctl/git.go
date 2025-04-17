@@ -7,6 +7,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
@@ -41,7 +42,7 @@ func newGit(appCtl *appCtlImpl) *gitImpl {
 }
 
 func (impl *gitImpl) Clone(url, destDir string) *gitImpl {
-	if impl.debug {
+	if g.Debug {
 		fmt.Printf("git clone, url: %s, destDir: %s\n", url, destDir)
 	}
 
@@ -62,7 +63,7 @@ func (impl *gitImpl) Clone(url, destDir string) *gitImpl {
 }
 
 func (impl *gitImpl) Switch(refName string, fallbackRefName ...string) error {
-	if impl.debug {
+	if g.Debug {
 		fmt.Printf("git switch, ref: %s, fallback: %s\n", refName, fallbackRefName)
 	}
 

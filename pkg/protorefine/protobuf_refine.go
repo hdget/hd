@@ -2,6 +2,7 @@ package protorefine
 
 import (
 	"fmt"
+	"github.com/hdget/hd/g"
 	"path"
 	"path/filepath"
 )
@@ -42,7 +43,7 @@ func (impl *protoRefineImpl) Refine(arg Argument) (string, error) {
 	pbImportPath := path.Join(arg.GolangModule, arg.OutputDir, arg.OutputPackage)
 	outputDir := filepath.Join(absOutputDir, filepath.Base(arg.ProtoRepository))
 
-	if impl.debug {
+	if g.Debug {
 		fmt.Println("===> protobuf refine...")
 		fmt.Println("golang module:", arg.GolangModule)
 		fmt.Println("pb import path:", pbImportPath)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bitfield/script"
 	"github.com/elliotchance/pie/v2"
+	"github.com/hdget/hd/g"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"net/http"
@@ -36,7 +37,7 @@ func (impl *appStopperImpl) stop(app string) error {
 func (impl *appStopperImpl) stopDaprdApp(app string) error {
 	pids := impl.getDaprdPids(app)
 	for _, pid := range pids {
-		if impl.debug {
+		if g.Debug {
 			fmt.Printf("kill dapr app: %d\n", pid)
 		}
 		if err := impl.kill(pid); err != nil {
@@ -52,7 +53,7 @@ func (impl *appStopperImpl) consulDeregister(app string) error {
 
 	client := &http.Client{}
 	for _, svcId := range svcIds {
-		if impl.debug {
+		if g.Debug {
 			fmt.Printf("deregister service: %s\n", svcId)
 		}
 		err := impl.deregister(client, svcId)

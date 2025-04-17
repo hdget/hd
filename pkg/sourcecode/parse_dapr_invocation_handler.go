@@ -3,6 +3,7 @@ package sourcecode
 import (
 	"fmt"
 	"github.com/elliotchance/pie/v2"
+	"github.com/hdget/common/types"
 	"go/ast"
 	"go/token"
 	"maps"
@@ -11,21 +12,22 @@ import (
 	"strings"
 )
 
-type daprInvocationHandler struct {
-	pkgRelPath  string
-	moduleName  string // receiver name
-	alias       string
-	name        string // method name
-	comments    []string
-	annotations map[string]string // annotationName => annotation value
-}
+//type daprInvocationHandler struct {
+//	pkgRelPath  string
+//	module      string // receiver name
+//	alias       string
+//	name        string // method name
+//	comments    []string
+//	annotations map[string]string // annotationName => annotation value
+//}
 
 var (
-	hdAnnotationRegex  = regexp.MustCompile(`@hd\.(\S+)(?:\s+(.*))?`)
-	commentMarkerRegex = regexp.MustCompile(`^\s*(?:\/\/|\/\*|\*\/?)\s*`)
 	// invocation handler: func((context.Context, *common.InvocationEvent) (any, error)
-	invocationHandlerParamSignatures  = []string{"context.Context", "*common.InvocationEvent"}
-	invocationHandlerResultSignatures = []string{"any", "error"}
+	invocationHandlerSignature = &functionSignature{
+		namePattern: regexp.MustCompile(`.*Handler`),
+		params:      []string{"context.Context", "*common.InvocationEvent"},
+		results:     []string{"any", "error"},
+	}
 
 	// 模块注册的调用签名
 	moduleRegisterCall = &callSignature{
@@ -35,11 +37,14 @@ var (
 			1: "map[string]dapr.InvocationFunction",
 		},
 	}
+
+	hdAnnotationRegex  = regexp.MustCompile(`@hd\.(\S+)(?:\s+(.*))?`)
+	commentMarkerRegex = regexp.MustCompile(`^\s*(?:\/\/|\/\*|\*\/?)\s*`)
 )
 
 // parseDaprInvocationHandlers 从第一次解析的结果中去获取DaprInvocationModule中所有handler的路由注解
-func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*daprModuleInfo) ([]*daprInvocationHandler, error) {
-	results := make([]*daprInvocationHandler, 0)
+func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*daprModuleInfo) ([]*types.DaprInvocationHandler, error) {
+	results := make([]*types.DaprInvocationHandler, 0)
 
 	invocationModuleInfos := pie.Filter(moduleInfos, func(m *daprModuleInfo) bool {
 		return m.kind == DaprModuleKindInvocation
@@ -49,8 +54,8 @@ func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*daprModuleInfo) 
 		return m.pkgRelPath
 	}))
 
-	// 获取到所有handler别名
-	handlerName2handlerAlias := make(map[string]string)
+	// 获取到注册的handler
+	registeredHandlerPath2handlerAlias := make(map[string]string)
 	for _, pkgRelPath := range allInvocationPkgRelPaths {
 		if astPkg := p.pkgRelPath2astPkg[pkgRelPath]; astPkg != nil {
 			for _, f := range astPkg.Files {
@@ -60,7 +65,7 @@ func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*daprModuleInfo) 
 						if n.Name.Name == "init" {
 							founds := p.parseInvocationHandlerAlias(n, pkgRelPath)
 							if len(founds) > 0 {
-								maps.Copy(handlerName2handlerAlias, founds)
+								maps.Copy(registeredHandlerPath2handlerAlias, founds)
 							}
 							return false
 						}
@@ -78,7 +83,7 @@ func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*daprModuleInfo) 
 				ast.Inspect(f, func(node ast.Node) bool {
 					switch n := node.(type) {
 					case *ast.FuncDecl:
-						if h := p.parseInvocationHandler(n, p.srcDir, fPath, handlerName2handlerAlias); h != nil {
+						if h := p.parseInvocationHandler(n, p.srcDir, fPath, registeredHandlerPath2handlerAlias); h != nil {
 							results = append(results, h)
 						}
 					}
@@ -93,7 +98,7 @@ func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*daprModuleInfo) 
 }
 
 // parseInvocationHandler 解析Dapr所有invocation handlers
-func (p *parserImpl) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath string, handlerName2handlerAlias map[string]string) *daprInvocationHandler {
+func (p *parserImpl) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath string, registeredHandlerPath2handlerAlias map[string]string) *types.DaprInvocationHandler {
 	receiverTypeName := astGetReceiverTypeName(fn, true)
 	// receiverTypeName为空表示为普通函数，忽略
 	if receiverTypeName == "" {
@@ -102,21 +107,22 @@ func (p *parserImpl) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath s
 
 	// 函数签名匹配
 	// func(ctx context.Context, event *common.InvocationEvent) (*common.Content, any)
-	if astMatchFunction(fn, invocationHandlerParamSignatures, invocationHandlerResultSignatures) {
+	if astMatchFunction(fn, invocationHandlerSignature) {
 		annotations, comments := p.extractAnnotationsAndComments(fn.Doc)
 
 		pkgRelPath, _ := filepath.Rel(srcDir, filepath.Dir(filePath))
 		pkgRelPath = filepath.ToSlash(pkgRelPath)
 
-		fullHandlerName := fmt.Sprintf("%s.%s.%s", pkgRelPath, receiverTypeName, fn.Name.Name)
-
-		return &daprInvocationHandler{
-			pkgRelPath:  pkgRelPath,
-			moduleName:  receiverTypeName,
-			name:        fn.Name.Name,
-			alias:       handlerName2handlerAlias[fullHandlerName],
-			comments:    comments,
-			annotations: annotations,
+		handlerPath := fmt.Sprintf("%s.%s.%s", pkgRelPath, receiverTypeName, fn.Name.Name)
+		if handlerAlias, exist := registeredHandlerPath2handlerAlias[handlerPath]; exist && handlerAlias != "" {
+			return &types.DaprInvocationHandler{
+				PkgPath:     pkgRelPath,
+				Module:      receiverTypeName,
+				Name:        fn.Name.Name,
+				Alias:       handlerAlias,
+				Comments:    comments,
+				Annotations: annotations,
+			}
 		}
 	}
 

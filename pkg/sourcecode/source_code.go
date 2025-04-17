@@ -1,13 +1,18 @@
 package sourcecode
 
+import (
+	"github.com/hdget/hd/pkg/utils"
+	"github.com/pkg/errors"
+)
+
 type SourceCodeHandler interface {
 	Handle() error
 }
 
 type sourceCodeHandlerImpl struct {
-	srcDir   string
-	skipDirs []string
-	// handlerMatchers     []dapr.HandlerMatcher // dapr module handler匹配规则
+	srcDir     string
+	skipDirs   []string
+	assetsPath string
 }
 
 // New 初始化源代码管理器
@@ -24,6 +29,10 @@ func New(srcDir string, options ...Option) SourceCodeHandler {
 }
 
 func (impl *sourceCodeHandlerImpl) Handle() error {
+	if err := utils.IsDirWritable(impl.assetsPath); err != nil {
+		return errors.Wrapf(err, "assets path is not writable, assetsPath: %s", impl.assetsPath)
+	}
+
 	// 第一步：先解析源代码数据
 	parser, err := newParser(impl.srcDir, impl.skipDirs)
 	if err != nil {

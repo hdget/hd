@@ -46,7 +46,7 @@ func (b *appBuilder) build(app, refName string) error {
 		}
 	}()
 
-	if b.debug {
+	if g.Debug {
 		fmt.Println("临时目录：", tempDir)
 	}
 
@@ -59,7 +59,7 @@ func (b *appBuilder) build(app, refName string) error {
 	appSrcDir := filepath.Join(tempDir, app)
 
 	// 拷贝源代码并切换到指定分支并获取git信息
-	if b.debug {
+	if g.Debug {
 		fmt.Println("===> build step: clone source code")
 	}
 	gitOperator := newGit(b.appCtlImpl)
@@ -73,7 +73,7 @@ func (b *appBuilder) build(app, refName string) error {
 	}
 
 	// 编译Protobuf
-	if b.debug {
+	if g.Debug {
 		fmt.Println("===> build step: generate protobuf")
 	}
 	if err := b.generateProtobuf(appSrcDir, refName); err != nil {
@@ -81,7 +81,7 @@ func (b *appBuilder) build(app, refName string) error {
 	}
 
 	// 拷贝sqlboiler.toml
-	if b.debug {
+	if g.Debug {
 		fmt.Println("===> build step: copy sqlboiler config file")
 	}
 	if err := b.copySqlboilerConfigFile(appSrcDir, app, refName); err != nil {
@@ -89,7 +89,7 @@ func (b *appBuilder) build(app, refName string) error {
 	}
 
 	// go build
-	if b.debug {
+	if g.Debug {
 		fmt.Println("===> build step: goland build")
 	}
 	if err := b.golangBuild(appSrcDir, app, gitBuildInfo); err != nil {
@@ -213,12 +213,7 @@ func (b *appBuilder) generateProtobuf(srcDir, refName string) error {
 		return err
 	}
 
-	var prOptions []protorefine.Option
-	if b.debug {
-		prOptions = append(prOptions, protorefine.WithDebug(true))
-	}
-
-	protoDir, err := protorefine.New(prOptions...).Refine(protorefine.Argument{
+	protoDir, err := protorefine.New().Refine(protorefine.Argument{
 		GolangModule:        rootGolangModule,
 		GolangSourceCodeDir: srcDir,
 		ProtoRepository:     protoRepository,
@@ -230,11 +225,7 @@ func (b *appBuilder) generateProtobuf(srcDir, refName string) error {
 	}
 
 	// 第二步：编译protobuf
-	var pcOptions []protocompile.Option
-	if b.debug {
-		pcOptions = append(pcOptions, protocompile.WithDebug(true))
-	}
-	err = protocompile.New(pcOptions...).Compile(protoDir, filepath.Join(srcDir, b.pbOutputDir, b.pbOutputPackage))
+	err = protocompile.New().Compile(protoDir, filepath.Join(srcDir, b.pbOutputDir, b.pbOutputPackage))
 	if err != nil {
 		return err
 	}

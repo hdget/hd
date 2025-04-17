@@ -63,10 +63,10 @@ func (impl *toolImpl) IsInstalled() bool {
 	return err == nil
 }
 
-func Check(debug bool, tools ...Tool) error {
+func Check(tools ...Tool) error {
 	for _, t := range tools {
 		if t.IsInstalled() {
-			if debug {
+			if g.Debug {
 				fmt.Printf("%s installed\n", t.GetName())
 			}
 			continue

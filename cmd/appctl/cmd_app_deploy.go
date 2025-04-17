@@ -39,7 +39,7 @@ func deployAllApp(args []string) {
 		utils.Fatal("get current dir", err)
 	}
 
-	ctl := appctl.New(baseDir, appctl.WithDebug(g.Debug))
+	ctl := appctl.New(baseDir)
 
 	for _, app := range pie.Reverse(g.Config.Project.Apps) {
 		err = ctl.Stop(app)
@@ -86,7 +86,7 @@ func deployApp(args []string) {
 		utils.Fatal("get current dir", err)
 	}
 
-	ctl := appctl.New(baseDir, appctl.WithDebug(g.Debug))
+	ctl := appctl.New(baseDir)
 
 	for _, app := range apps {
 		err = ctl.Stop(app)

@@ -3,85 +3,107 @@ package sourcecode
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
-	"strings"
+	"os"
+	"path/filepath"
 )
-
-type routeAnnotation struct {
-	Endpoint      string   `json:"endpoint"`      // endpoint
-	Methods       []string `json:"methods"`       // http methods
-	Origin        string   `json:"origin"`        // 请求来源
-	IsRawResponse bool     `json:"isRawResponse"` // 是否返回原始消息
-	IsPublic      bool     `json:"isPublic"`      // 是否是公共路由
-	Permissions   []string `json:"permissions"`   // 对应的权限列表
-}
-
-type Route struct {
-	ModuleName    string
-	Handler       string
-	Endpoint      string
-	HttpMethods   []string
-	AllowOrigin   string
-	IsPublic      int32
-	IsRawResponse int32
-	Permissions   []string
-	Comments      []string
-}
 
 const (
-	routeAnnotationName = "route"
+	fileInvocationHandlers = ".invocation_handlers.json"
 )
 
-var (
-	regModuleName = regexp.MustCompile(`^[vV]([0-9]+)_([a-zA-Z0-9]+)`)
-)
-
-// generate 生成相关文件，包括route.json
+// generate 生成相关文件括route.json
 func (impl *sourceCodeHandlerImpl) generate(scInfo *sourceCodeInfo) error {
-	routeItems := make([]*Route, 0)
+	fmt.Println("===> generate invocation handler info")
 
-	for _, h := range scInfo.daprInvocationHandlers {
-		for _, m := range scInfo.daprModules {
-			if m.pkgRelPath == h.pkgRelPath && m.name == h.moduleName {
-				for annKind, annValue := range h.annotations {
-					if annKind == routeAnnotationName && strings.TrimSpace(annValue) != "" {
-						var ann routeAnnotation
-						err := json.Unmarshal([]byte(annValue), &ann)
-						if err != nil {
-							return err
-						}
+	//invocationModules := pie.Filter(scInfo.daprModules, func(info *daprModuleInfo) bool {
+	//	return info.kind == DaprModuleKindInvocation
+	//})
 
-						// 设置初始值
-						routeItem := &Route{
-							ModuleName:  h.moduleName,
-							Handler:     h.alias,
-							Comments:    h.comments,
-							Endpoint:    ann.Endpoint,
-							HttpMethods: []string{"GET"},
-							AllowOrigin: ann.Origin,
-						}
+	//routeAnnotations := make([]*types.RouteAnnotation, 0)
+	//for _, m := range invocationModules {
+	//	for _, h := range scInfo.daprInvocationHandlers {
+	//		if m.pkgRelPath == h.pkgRelPath && m.name == h.module {
+	//			r, err := impl.createRouteItem(h)
+	//			if err != nil {
+	//				return err
+	//			}
+	//
+	//			if r != nil {
+	//				routeAnnotations = append(routeAnnotations, r)
+	//			}
+	//		}
+	//	}
+	//}
 
-						if ann.IsPublic {
-							routeItem.IsPublic = 1
-						}
-
-						if ann.IsRawResponse {
-							routeItem.IsRawResponse = 1
-						}
-
-						if len(ann.Methods) > 0 {
-							routeItem.HttpMethods = ann.Methods
-						}
-
-						routeItems = append(routeItems, routeItem)
-					}
-
-				}
-			}
-		}
+	//if len(routeAnnotations) > 0 {
+	data, err := json.Marshal(scInfo.daprInvocationHandlers)
+	if err != nil {
+		return err
 	}
 
-	fmt.Println(routeItems)
+	outputPath := filepath.Join(impl.assetsPath, fileInvocationHandlers)
+	err = os.WriteFile(outputPath, data, 0644)
+	if err != nil {
+		return err
+	}
+	//}
 
 	return nil
 }
+
+//
+//func (impl *sourceCodeHandlerImpl) formatInvo(h *daprInvocationHandler) (*Route, error) {
+//	// 只要有@hd.route就需要生成routeItem
+//	annValue, exist := h.annotations[routeAnnotationName]
+//	if !exist {
+//		return nil, nil
+//	}
+//
+//	// 设置初始值
+//	routeItem := &Route{
+//		PackagePath: h.pkgRelPath,
+//		Module:      h.module,
+//		Handler:     h.alias,
+//		Comments:    h.comments,
+//		HttpMethods: []string{"GET"},
+//		Permissions: []string{},
+//	}
+//
+//	annValue = strings.TrimSpace(annValue)
+//	if annValue == "" {
+//		return routeItem, nil
+//	}
+//
+//	// 如果已经定义routeAnnotation, 则updateRouteItem
+//	var ann routeAnnotation
+//	err := json.Unmarshal([]byte(annValue), &ann)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	if ann.Endpoint != "" {
+//		routeItem.Endpoint = ann.Endpoint
+//	}
+//
+//	if ann.IsPublic {
+//		routeItem.IsPublic = 1
+//	}
+//
+//	if ann.IsRawResponse {
+//		routeItem.IsRawResponse = 1
+//	}
+//
+//	if len(ann.Methods) > 0 {
+//		routeItem.HttpMethods = ann.Methods
+//	}
+//
+//	if ann.Origin != "" {
+//		routeItem.AllowOrigin = ann.Origin
+//	}
+//
+//	if len(ann.Permissions) > 0 {
+//		routeItem.Permissions = ann.Permissions
+//	}
+//
+//	return routeItem, nil
+//}

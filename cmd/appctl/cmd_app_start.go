@@ -31,7 +31,7 @@ func startAllApp() {
 	}
 
 	for _, app := range g.Config.Project.Apps {
-		err = appctl.New(baseDir, appctl.WithDebug(g.Debug)).Start(app)
+		err = appctl.New(baseDir).Start(app)
 		if err != nil {
 			utils.Fatal("start app", err)
 		}
@@ -56,7 +56,7 @@ func startApp(args []string) {
 	}
 
 	for _, app := range apps {
-		err = appctl.New(baseDir, appctl.WithDebug(g.Debug)).Start(app)
+		err = appctl.New(baseDir).Start(app)
 		if err != nil {
 			utils.Fatal("start app", err)
 		}

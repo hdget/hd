@@ -2,6 +2,7 @@ package appctl
 
 import (
 	"fmt"
+	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/tools"
 	"path/filepath"
@@ -20,7 +21,6 @@ type appCtlImpl struct {
 	baseDir   string
 	binDir    string
 	absBinDir string
-	debug     bool
 }
 
 func New(baseDir string, options ...Option) AppController {
@@ -38,14 +38,14 @@ func New(baseDir string, options ...Option) AppController {
 }
 
 func (a *appCtlImpl) Start(app string) error {
-	if a.debug {
+	if g.Debug {
 		fmt.Println()
 		fmt.Printf("=== START app: %s ===\n", app)
 		fmt.Println()
 	}
 
 	// 检查依赖的工具是否安装
-	if err := tools.Check(a.debug,
+	if err := tools.Check(
 		tools.Consul(),
 		tools.Dapr(),
 	); err != nil {
@@ -61,7 +61,7 @@ func (a *appCtlImpl) Start(app string) error {
 }
 
 func (a *appCtlImpl) Install(app string, ref string) error {
-	if a.debug {
+	if g.Debug {
 		fmt.Println()
 		fmt.Printf("=== INSTALL app: %s ===\n", app)
 		fmt.Println()
@@ -71,14 +71,14 @@ func (a *appCtlImpl) Install(app string, ref string) error {
 }
 
 func (a *appCtlImpl) Build(app string, ref string) error {
-	if a.debug {
+	if g.Debug {
 		fmt.Println()
 		fmt.Printf("=== BUILD app: %s, ref: %s ===\n", app, ref)
 		fmt.Println()
 	}
 
 	// 检查依赖的工具是否安装
-	if err := tools.Check(a.debug,
+	if err := tools.Check(
 		tools.Protoc(),
 		tools.ProtocGogoFaster(),
 		tools.Sqlboiler(),
@@ -90,14 +90,14 @@ func (a *appCtlImpl) Build(app string, ref string) error {
 }
 
 func (a *appCtlImpl) Stop(app string) error {
-	if a.debug {
+	if g.Debug {
 		fmt.Println()
 		fmt.Printf("=== STOP app: %s ===\n", app)
 		fmt.Println()
 	}
 
 	// 检查依赖的工具是否安装
-	if err := tools.Check(a.debug,
+	if err := tools.Check(
 		tools.Consul(),
 	); err != nil {
 		return err
