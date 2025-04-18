@@ -61,16 +61,16 @@ func astMatchCall(n *ast.CallExpr, sig *callSignature, imports map[string]string
 func astGetVarTypes(node ast.Node) map[string]string {
 	results := make(map[string]string)
 	ast.Inspect(node, func(n ast.Node) bool {
-		switch node := n.(type) {
+		switch nn := n.(type) {
 		case *ast.AssignStmt:
 			// 处理短声明（如 v := &v2_captcha{}）
-			if node.Tok == token.DEFINE {
-				for i, lhs := range node.Lhs {
-					if i >= len(node.Rhs) {
+			if nn.Tok == token.DEFINE {
+				for i, lhs := range nn.Lhs {
+					if i >= len(nn.Rhs) {
 						break
 					}
 					varName := lhs.(*ast.Ident).Name
-					typeName := astResolveVarType(node.Rhs[i])
+					typeName := astResolveVarType(nn.Rhs[i])
 					if typeName != "" {
 						results[varName] = typeName
 					}
@@ -78,12 +78,12 @@ func astGetVarTypes(node ast.Node) map[string]string {
 			}
 		case *ast.ValueSpec:
 			// 处理普通声明（如 var v = &v2_captcha{}）
-			for i, name := range node.Names {
-				if i >= len(node.Values) {
+			for i, name := range nn.Names {
+				if i >= len(nn.Values) {
 					break
 				}
 				varName := name.Name
-				typeName := astResolveVarType(node.Values[i])
+				typeName := astResolveVarType(nn.Values[i])
 				if typeName != "" {
 					results[varName] = typeName
 				}
@@ -284,6 +284,64 @@ func astGetCaller(n *ast.CallExpr) (string, bool) {
 	}
 
 	return "", false
+}
+
+// 查找变量声明
+func astGetVarDeclsFromFile(file *ast.File) map[string]*ast.ValueSpec {
+	results := make(map[string]*ast.ValueSpec)
+	for _, decl := range file.Decls {
+		genDecl, ok := decl.(*ast.GenDecl)
+		if !ok || genDecl.Tok != token.VAR {
+			continue
+		}
+		for _, spec := range genDecl.Specs {
+			if valueSpec, ok := spec.(*ast.ValueSpec); ok {
+				for _, name := range valueSpec.Names {
+					results[name.Name] = valueSpec
+				}
+			}
+		}
+	}
+	return results
+}
+
+// astGetVarDeclsFromFunc 从函数体中提取所有 *ast.ValueSpec
+// 提取函数体内所有ValueSpec（包括转换短声明）
+func astGetVarDeclsFromFunc(body *ast.BlockStmt) map[string]*ast.ValueSpec {
+	results := make(map[string]*ast.ValueSpec)
+
+	for _, stmt := range body.List {
+		switch node := stmt.(type) {
+		case *ast.DeclStmt:
+			// 处理var块声明（包含多个ValueSpec）
+			if genDecl, ok := node.Decl.(*ast.GenDecl); ok && genDecl.Tok == token.VAR {
+				for _, spec := range genDecl.Specs {
+					if valueSpec, ok := spec.(*ast.ValueSpec); ok {
+						for _, name := range valueSpec.Names {
+							results[name.Name] = valueSpec
+						}
+					}
+				}
+			}
+
+		case *ast.AssignStmt:
+			// 将短声明（:=）转换为ValueSpec
+			if node.Tok == token.DEFINE {
+				for i, lhs := range node.Lhs {
+					if i >= len(node.Rhs) {
+						break
+					}
+					if ident, ok := lhs.(*ast.Ident); ok {
+						results[ident.Name] = &ast.ValueSpec{
+							Names:  []*ast.Ident{ident},
+							Values: []ast.Expr{node.Rhs[i]},
+						}
+					}
+				}
+			}
+		}
+	}
+	return results
 }
 
 ////

@@ -64,15 +64,24 @@ func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*parsedDaprModule
 	registeredHandlerPath2handlerAlias := make(map[string]string)
 	for _, pkgRelPath := range allInvocationPkgRelPaths {
 		if astPkg := p.pkgRelPath2astPkg[pkgRelPath]; astPkg != nil {
-			for _, f := range astPkg.Files {
-				ast.Inspect(f, func(node ast.Node) bool {
-					// 新建一个记录导入别名与包名映射关系的字典
-					caller2pkgImportPath := astGetPackageImportPaths(f)
 
+			// 收集整个包的变量声明和定义
+			pkgVarTypes := make(map[string]string)
+			pkgVarDecls := make(map[string]*ast.ValueSpec)
+			for _, f := range astPkg.Files {
+				maps.Copy(pkgVarTypes, astGetVarTypes(f))
+				maps.Copy(pkgVarDecls, astGetVarDeclsFromFile(f))
+			}
+
+			for _, f := range astPkg.Files {
+				// 新建一个记录导入别名与包名映射关系的字典
+				caller2pkgImportPath := astGetPackageImportPaths(f)
+
+				ast.Inspect(f, func(node ast.Node) bool {
 					switch n := node.(type) {
 					case *ast.FuncDecl:
 						if n.Name.Name == "init" {
-							founds := p.parseInvocationHandlerAlias(n, pkgRelPath, caller2pkgImportPath)
+							founds := p.parseInvocationHandlerAlias(n, pkgRelPath, caller2pkgImportPath, pkgVarTypes, pkgVarDecls)
 							if len(founds) > 0 {
 								maps.Copy(registeredHandlerPath2handlerAlias, founds)
 							}
@@ -185,12 +194,7 @@ func (p *parserImpl) extractAnnotationsAndComments(doc *ast.CommentGroup) (map[s
 }
 
 // extractHandlerAlias 提取map中的键值对，并替换变量名为类型名
-func (p *parserImpl) extractHandlerAlias(n ast.Expr, pkgRelPath string, varTypes map[string]string) map[string]string {
-	mapLit, ok := n.(*ast.CompositeLit)
-	if !ok {
-		return nil
-	}
-
+func (p *parserImpl) extractHandlerAlias(mapLit *ast.CompositeLit, pkgRelPath string, fnVarTypes, pkgVarTypes map[string]string) map[string]string {
 	results := make(map[string]string)
 	for _, elt := range mapLit.Elts {
 		kv, ok := elt.(*ast.KeyValueExpr)
@@ -210,20 +214,22 @@ func (p *parserImpl) extractHandlerAlias(n ast.Expr, pkgRelPath string, varTypes
 		if !ok {
 			continue
 		}
-
 		// 获取接收者变量名（如 v）
 		receiver, ok := val.X.(*ast.Ident)
 		if !ok {
 			continue
 		}
 
-		// 替换为实际类型名（如 v2_captcha）
-		actualValueType := varTypes[receiver.Name]
-		if actualValueType == "" {
-			actualValueType = receiver.Name // 回退为变量名
+		// 查找变量的实际类型名（如 v2_captcha）先尝试从函数内部查找变量名，然后包级，最后回退到变量名
+		actualReceiverType := fnVarTypes[receiver.Name]
+		if actualReceiverType == "" {
+			actualReceiverType = pkgVarTypes[receiver.Name]
+			if actualReceiverType == "" {
+				actualReceiverType = receiver.Name // 回退为变量名
+			}
 		}
 
-		results[fmt.Sprintf("%s.%s.%s", pkgRelPath, actualValueType, val.Sel.Name)] = keyStr
+		results[fmt.Sprintf("%s.%s.%s", pkgRelPath, actualReceiverType, val.Sel.Name)] = keyStr
 	}
 
 	return results
@@ -232,17 +238,33 @@ func (p *parserImpl) extractHandlerAlias(n ast.Expr, pkgRelPath string, varTypes
 // parseInvocationHandlerAlias 在init函数中解析daprModule.Register函数，获取handlerAlias
 //
 // 返回： service/invocation.v2_xxx.handler => alias
-func (p *parserImpl) parseInvocationHandlerAlias(n *ast.FuncDecl, pkgRelPath string, caller2pkgImportPath map[string]string) map[string]string {
+func (p *parserImpl) parseInvocationHandlerAlias(n *ast.FuncDecl, pkgRelPath string, caller2pkgImportPath, pkgVarTypes map[string]string, pkgVarDecls map[string]*ast.ValueSpec) map[string]string {
 	var handler2alias map[string]string
 
-	// 获取所有变量和变量声明的映射关系
-	varTypes := astGetVarTypes(n.Body)
+	fnVarDecls := astGetVarDeclsFromFunc(n.Body)
+	fnVarTypes := astGetVarTypes(n.Body)
 
 	ast.Inspect(n.Body, func(n ast.Node) bool {
 		switch nn := n.(type) {
 		case *ast.CallExpr:
 			if astMatchCall(nn, moduleNewCall, caller2pkgImportPath) && len(nn.Args) == 3 {
-				handler2alias = p.extractHandlerAlias(nn.Args[2], pkgRelPath, varTypes)
+				// 处理map参数（直接内联或通过变量传递）
+				switch param := nn.Args[2].(type) {
+				case *ast.CompositeLit: // 直接内联map
+					handler2alias = p.extractHandlerAlias(param, pkgRelPath, fnVarTypes, pkgVarTypes)
+				case *ast.Ident: // 通过变量传递
+					// 首先尝试从init函数中获取变量定义
+					if varDecl := fnVarDecls[param.Name]; varDecl != nil {
+						if mapLit, ok := varDecl.Values[0].(*ast.CompositeLit); ok {
+							handler2alias = p.extractHandlerAlias(mapLit, pkgRelPath, fnVarTypes, pkgVarTypes)
+						}
+						// 然后尝试从整个包里面获取变量定义
+					} else if varDecl = pkgVarDecls[param.Name]; varDecl != nil {
+						if mapLit, ok := varDecl.Values[0].(*ast.CompositeLit); ok {
+							handler2alias = p.extractHandlerAlias(mapLit, pkgRelPath, fnVarTypes, pkgVarTypes)
+						}
+					}
+				}
 				return false
 			}
 		}
