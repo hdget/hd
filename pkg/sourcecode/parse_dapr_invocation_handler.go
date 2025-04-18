@@ -12,15 +12,6 @@ import (
 	"strings"
 )
 
-//type daprInvocationHandler struct {
-//	pkgRelPath  string
-//	module      string // receiver name
-//	alias       string
-//	name        string // method name
-//	comments    []string
-//	annotations map[string]string // annotationName => annotation value
-//}
-
 var (
 	// invocation handler: func((context.Context, *common.InvocationEvent) (any, error)
 	invocationHandlerSignature = &functionSignature{
