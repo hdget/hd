@@ -30,12 +30,18 @@ var (
 	}
 
 	// 模块注册的调用签名
-	moduleRegisterCall = &callSignature{
-		functionChain: "Register",
-		argCount:      2,
-		argIndex2Signature: map[int]string{
-			1: "map[string]dapr.InvocationFunction",
-		},
+	//moduleRegisterCall = &callSignature{
+	//	functionChain: "Register",
+	//	argCount:      2,
+	//	argIndex2Signature: map[int]string{
+	//		1: "map[string]dapr.InvocationFunction",
+	//	},
+	//}
+	// 模块初始化的调用签名
+	moduleNewCall = &callSignature{
+		functionChain: "NewInvocationModule",
+		pkg:           "github.com/hdget/sdk/dapr",
+		argCount:      3,
 	}
 
 	hdAnnotationRegex  = regexp.MustCompile(`@hd\.(\S+)(?:\s+(.*))?`)
@@ -60,10 +66,13 @@ func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*parsedDaprModule
 		if astPkg := p.pkgRelPath2astPkg[pkgRelPath]; astPkg != nil {
 			for _, f := range astPkg.Files {
 				ast.Inspect(f, func(node ast.Node) bool {
+					// 新建一个记录导入别名与包名映射关系的字典
+					caller2pkgImportPath := astGetPackageImportPaths(f)
+
 					switch n := node.(type) {
 					case *ast.FuncDecl:
 						if n.Name.Name == "init" {
-							founds := p.parseInvocationHandlerAlias(n, pkgRelPath)
+							founds := p.parseInvocationHandlerAlias(n, pkgRelPath, caller2pkgImportPath)
 							if len(founds) > 0 {
 								maps.Copy(registeredHandlerPath2handlerAlias, founds)
 							}
@@ -223,19 +232,17 @@ func (p *parserImpl) extractHandlerAlias(n ast.Expr, pkgRelPath string, varTypes
 // parseInvocationHandlerAlias 在init函数中解析daprModule.Register函数，获取handlerAlias
 //
 // 返回： service/invocation.v2_xxx.handler => alias
-func (p *parserImpl) parseInvocationHandlerAlias(n *ast.FuncDecl, pkgRelPath string) map[string]string {
-
+func (p *parserImpl) parseInvocationHandlerAlias(n *ast.FuncDecl, pkgRelPath string, caller2pkgImportPath map[string]string) map[string]string {
 	var handler2alias map[string]string
 
 	// 获取所有变量和变量声明的映射关系
 	varTypes := astGetVarTypes(n.Body)
 
 	ast.Inspect(n.Body, func(n ast.Node) bool {
-
 		switch nn := n.(type) {
 		case *ast.CallExpr:
-			if astMatchCall(nn, moduleRegisterCall, nil) && len(nn.Args) == 2 {
-				handler2alias = p.extractHandlerAlias(nn.Args[1], pkgRelPath, varTypes)
+			if astMatchCall(nn, moduleNewCall, caller2pkgImportPath) && len(nn.Args) == 3 {
+				handler2alias = p.extractHandlerAlias(nn.Args[2], pkgRelPath, varTypes)
 				return false
 			}
 		}
