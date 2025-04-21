@@ -23,7 +23,7 @@ var (
 const (
 	configTemplate = `[project]
     # project name, will be used as HD_NAMESPACE environment variable
-    name = "{{.Project.name}}"
+    name = "{{.Project.Name}}"
     # running environment
     env = "{{.Project.Env}}"
     # gateway app listen port
