@@ -145,10 +145,10 @@ func (impl *gitImpl) getAuth() *http.BasicAuth {
 	once.Do(func() {
 		gitUser, gitPassword := env.GetGitCredential()
 		if gitUser == "" {
-			gitUser = utils.GetInput(">>> GIT用户: ")
+			gitUser = utils.GetInput(">>> GIT用户")
 		}
 		if gitPassword == "" {
-			gitPassword = utils.GetInput(">>> GIT密码: ")
+			gitPassword = utils.GetInput(">>> GIT密码")
 		}
 		_ = env.SetGitCredential(gitUser, gitPassword)
 
