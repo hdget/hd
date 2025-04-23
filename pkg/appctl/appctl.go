@@ -2,7 +2,6 @@ package appctl
 
 import (
 	"fmt"
-	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/tools"
 	"path/filepath"
@@ -38,11 +37,9 @@ func New(baseDir string, options ...Option) AppController {
 }
 
 func (a *appCtlImpl) Start(app string) error {
-	if g.Debug {
-		fmt.Println()
-		fmt.Printf("=== START app: %s ===\n", app)
-		fmt.Println()
-	}
+	fmt.Println()
+	fmt.Printf("=== START app: %s ===\n", app)
+	fmt.Println()
 
 	// 检查依赖的工具是否安装
 	if err := tools.Check(
@@ -61,21 +58,17 @@ func (a *appCtlImpl) Start(app string) error {
 }
 
 func (a *appCtlImpl) Install(app string, ref string) error {
-	if g.Debug {
-		fmt.Println()
-		fmt.Printf("=== INSTALL app: %s ===\n", app)
-		fmt.Println()
-	}
+	fmt.Println()
+	fmt.Printf("=== INSTALL app: %s ===\n", app)
+	fmt.Println()
 
 	return newAppInstaller(a).install(app, ref)
 }
 
 func (a *appCtlImpl) Build(app string, ref string) error {
-	if g.Debug {
-		fmt.Println()
-		fmt.Printf("=== BUILD app: %s, ref: %s ===\n", app, ref)
-		fmt.Println()
-	}
+	fmt.Println()
+	fmt.Printf("=== BUILD app: %s, ref: %s ===\n", app, ref)
+	fmt.Println()
 
 	// 检查依赖的工具是否安装
 	if err := tools.Check(
@@ -90,11 +83,9 @@ func (a *appCtlImpl) Build(app string, ref string) error {
 }
 
 func (a *appCtlImpl) Stop(app string) error {
-	if g.Debug {
-		fmt.Println()
-		fmt.Printf("=== STOP app: %s ===\n", app)
-		fmt.Println()
-	}
+	fmt.Println()
+	fmt.Printf("=== STOP app: %s ===\n", app)
+	fmt.Println()
 
 	// 检查依赖的工具是否安装
 	if err := tools.Check(
