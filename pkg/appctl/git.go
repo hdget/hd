@@ -112,10 +112,14 @@ func (impl *gitImpl) checkout(refName string) error {
 
 	// 尝试作为远程分支切换
 	remoteRefName := plumbing.NewRemoteReferenceName("origin", refName)
-	if _, err := impl.repo.Reference(remoteRefName, true); err == nil {
+	if remoteRef, err := impl.repo.Reference(remoteRefName, true); err == nil {
+		localBranchRef := plumbing.NewBranchReferenceName(refName)
+		if e := impl.repo.Storer.SetReference(plumbing.NewHashReference(localBranchRef, remoteRef.Hash())); e != nil {
+			return errors.Wrap(err, "set local branch reference to remote branch")
+		}
 		return w.Checkout(&git.CheckoutOptions{
-			Branch: remoteRefName,
-			Create: true,
+			Branch: localBranchRef,
+			Create: false,
 		})
 	}
 
@@ -147,6 +151,7 @@ func (impl *gitImpl) checkout(refName string) error {
 		if _, err := impl.repo.CommitObject(hash); err == nil {
 			return w.Checkout(&git.CheckoutOptions{
 				Hash:  hash,
+				Keep:  false, // 不保留工作区更改
 				Force: true,
 			})
 		}
