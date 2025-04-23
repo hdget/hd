@@ -6,6 +6,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
@@ -109,7 +110,7 @@ func (impl *gitImpl) GetGitInfo() (*gitInfo, error) {
 
 func (impl *gitImpl) checkout(refName string) error {
 	if impl.repo == nil {
-		return fmt.Errorf("git仓库未初始化")
+		return fmt.Errorf("git repository not initialized")
 	}
 
 	w, err := impl.repo.Worktree()
@@ -118,7 +119,7 @@ func (impl *gitImpl) checkout(refName string) error {
 	}
 
 	// 尝试作为分支切换
-	branchRef := plumbing.ReferenceName("refs/heads/" + refName)
+	branchRef := plumbing.NewRemoteReferenceName("origin", "refs/heads/"+refName)
 	if _, err := impl.repo.Reference(branchRef, true); err == nil {
 		return w.Checkout(&git.CheckoutOptions{
 			Branch: branchRef,
@@ -127,10 +128,24 @@ func (impl *gitImpl) checkout(refName string) error {
 	}
 
 	// 尝试作为标签切换
-	tagRef := plumbing.ReferenceName("refs/tags/" + refName)
-	if ref, err := impl.repo.Reference(tagRef, true); err == nil {
+	var destHash plumbing.Hash
+	tagRefs, err := impl.repo.Tags()
+	if err != nil {
+		return errors.Wrap(err, "get tag list")
+	}
+	err = tagRefs.ForEach(func(ref *plumbing.Reference) error {
+		if ref.Name().Short() == refName {
+			destHash = ref.Hash()
+			return storer.ErrStop
+		}
+		return nil
+	})
+	if err != nil {
+		return errors.Wrap(err, "iterate tag")
+	}
+	if !destHash.IsZero() {
 		return w.Checkout(&git.CheckoutOptions{
-			Hash:  ref.Hash(),
+			Hash:  destHash,
 			Force: true,
 		})
 	}
