@@ -6,7 +6,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
@@ -121,24 +120,24 @@ func (impl *gitImpl) checkout(refName string) error {
 	}
 
 	// 尝试作为标签切换
-	var destHash plumbing.Hash
+	var foundHash plumbing.Hash
 	tagRefs, err := impl.repo.Tags()
 	if err != nil {
 		return errors.Wrap(err, "get tag list")
 	}
 	err = tagRefs.ForEach(func(ref *plumbing.Reference) error {
 		if ref.Name().Short() == refName {
-			destHash = ref.Hash()
-			return storer.ErrStop
+			foundHash = ref.Hash()
+			return nil
 		}
 		return nil
 	})
 	if err != nil {
 		return errors.Wrap(err, "iterate tag")
 	}
-	if !destHash.IsZero() {
+	if !foundHash.IsZero() {
 		return w.Checkout(&git.CheckoutOptions{
-			Hash:  destHash,
+			Hash:  foundHash,
 			Force: true,
 		})
 	}
