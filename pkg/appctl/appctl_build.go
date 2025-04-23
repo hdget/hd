@@ -90,7 +90,7 @@ func (b *appBuilder) build(app, refName string) error {
 
 	// go build
 	if g.Debug {
-		fmt.Println("===> build step: goland build")
+		fmt.Println("===> build step: golang build")
 	}
 	if err := b.golangBuild(appSrcDir, app, gitBuildInfo); err != nil {
 		return err
