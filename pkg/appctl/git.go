@@ -65,6 +65,13 @@ func (impl *gitImpl) Clone(url, destDir string) *gitImpl {
 func (impl *gitImpl) Switch(refName string, fallbackRefName ...string) error {
 	if g.Debug {
 		fmt.Printf("git switch, ref: %s, fallback: %s\n", refName, fallbackRefName)
+		branches, _ := impl.repo.Branches()
+		_ = branches.ForEach(
+			func(r *plumbing.Reference) error {
+				fmt.Println(r.Name())
+				return nil
+			},
+		)
 	}
 
 	err := impl.checkout(refName)
