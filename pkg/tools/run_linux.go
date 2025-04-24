@@ -14,7 +14,7 @@ import (
 
 func RunDaemon(name, command string, healthCheck func() bool, timeout time.Duration) error {
 	// 1. 设置日志文件
-	logPath := fmt.Sprintf("/var/log/%s.log", appId)
+	logPath := fmt.Sprintf("/var/log/%s.log", name)
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return errors.Wrapf(err, "create log file, logFile: %s", logPath)
