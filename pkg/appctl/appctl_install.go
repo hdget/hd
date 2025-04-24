@@ -39,7 +39,7 @@ func (impl *appInstallerImpl) install(app, ref string) error {
 
 	gitConfigRepo, exists := g.RepoConfigs[gitConfigRepoName]
 	if !exists {
-		return fmt.Errorf("repo config not found, name: %s", gitConfigRepoName)
+		return fmt.Errorf("repo not found, name: %s", gitConfigRepoName)
 	}
 
 	if err = newGit(impl.appCtlImpl).Clone(gitConfigRepo.Url, tempDir).Switch(ref, "main"); err != nil {

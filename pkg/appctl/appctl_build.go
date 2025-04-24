@@ -167,7 +167,7 @@ func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) err
 	// clone config repo
 	gitConfigRepo, exists := g.RepoConfigs[gitConfigRepoName]
 	if !exists {
-		return fmt.Errorf("repo config not found, name: %s", gitConfigRepoName)
+		return fmt.Errorf("repo not found, name: %s", gitConfigRepoName)
 	}
 
 	if err = newGit(b.appCtlImpl).Clone(gitConfigRepo.Url, tempDir).Switch(refName, "main"); err != nil {
@@ -189,7 +189,7 @@ func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) err
 func (b *appBuilder) generateProtobuf(srcDir, refName string) error {
 	gitProtoRepo, exists := g.RepoConfigs[gitProtoRepoName]
 	if !exists {
-		return fmt.Errorf("repo config not found, name: %s", gitProtoRepoName)
+		return fmt.Errorf("repo not found, name: %s", gitProtoRepoName)
 	}
 
 	protoRepository := filepath.Join(srcDir, "proto")
