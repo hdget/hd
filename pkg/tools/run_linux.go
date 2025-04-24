@@ -17,7 +17,7 @@ func RunDaemon(name, command string, healthCheck func() bool, timeout time.Durat
 	logPath := fmt.Sprintf("/var/log/%s.log", appId)
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
-		return errors.Wrap(err, "create log file, logFile: %s", logPath)
+		return errors.Wrapf(err, "create log file, logFile: %s", logPath)
 	}
 	defer logFile.Close()
 
