@@ -17,8 +17,8 @@ type appStartImpl struct {
 }
 
 const (
-	cmdNormalAppStart  = "%s run --app-address 127.0.0.1:%d --env %s"
-	cmdGatewayAppStart = "%s run --app-address 127.0.0.1:%d --web-address :%d --env %s"
+	cmdNormalAppStart  = "%s run --app-address 127.0.0.1:%d"
+	cmdGatewayAppStart = "%s run --app-address 127.0.0.1:%d --web-address :%d"
 	cmdDaprStart       = "dapr run --app-id %s %s -- %s"
 	defaultTimeout     = 10 * time.Second
 )
@@ -87,9 +87,9 @@ func (a *appStartImpl) getStartCommand(app string) (string, error) {
 		if !isPortAvailable(a.getGatewayPort()) {
 			return "", fmt.Errorf("gateway port %d is not available", a.getGatewayPort())
 		}
-		subCmd = fmt.Sprintf(cmdGatewayAppStart, appBinPath, ports[0], a.getGatewayPort(), a.env)
+		subCmd = fmt.Sprintf(cmdGatewayAppStart, appBinPath, ports[0], a.getGatewayPort())
 	default:
-		subCmd = fmt.Sprintf(cmdNormalAppStart, appBinPath, ports[0], a.env)
+		subCmd = fmt.Sprintf(cmdNormalAppStart, appBinPath, ports[0])
 	}
 
 	var daprOptions []string
