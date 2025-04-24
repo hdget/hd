@@ -25,6 +25,7 @@ func init() {
 	rootCmd.AddCommand(appctl.Command)
 	rootCmd.AddCommand(sourcecode.Command)
 	rootCmd.AddCommand(cluster.Command)
+	rootCmd.AddCommand(cmdInitGatewayDb)
 }
 
 func Execute() {

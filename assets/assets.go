@@ -4,5 +4,5 @@ import (
 	"embed"
 )
 
-//go:embed repo/*
+//go:embed repo/* db/*
 var Assets embed.FS
