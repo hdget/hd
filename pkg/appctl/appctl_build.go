@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bitfield/script"
 	"github.com/hdget/hd/g"
+	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/protocompile"
 	"github.com/hdget/hd/pkg/protorefine"
 	"github.com/hdget/hd/pkg/utils"
@@ -121,12 +122,8 @@ func (b *appBuilder) golangBuild(appSrcDir, app string, gitBuildInfo *gitInfo) e
 		_ = os.Chdir(b.baseDir)
 	}()
 
-	envs := append(os.Environ(), []string{
-		fmt.Sprintf("HD_WORK_DIR=%s", b.baseDir),
-	}...)
-
 	// go generate
-	output, err := script.NewPipe().WithEnv(envs).Exec(`go generate`).String()
+	output, err := script.NewPipe().WithEnv(env.WithHdWorkDir(b.baseDir)).Exec(`go generate`).String()
 	if err != nil {
 		return errors.Wrapf(err, "go generate, err: %s", output)
 	}

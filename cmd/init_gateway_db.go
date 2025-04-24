@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/hdget/hd/assets"
+	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -28,18 +29,19 @@ func initGatewayDb() {
 	fmt.Println("")
 	fmt.Println("=== initialize gateway database ===")
 	fmt.Println("")
-	baseDir, err := os.Getwd()
-	if err != nil {
-		utils.Fatal("get current dir", err)
+
+	workDir, found := env.GetHdWorkDir()
+	if !found {
+		utils.Fatal("hd work dir not set")
 	}
 
-	destDbFile := filepath.Join(baseDir, fileDatabase)
-	if _, err = os.Stat(destDbFile); !os.IsNotExist(err) {
+	destDbFile := filepath.Join(workDir, fileDatabase)
+	if _, err := os.Stat(destDbFile); !os.IsNotExist(err) {
 		fmt.Printf(" * database file: %s exists, skip...\n", destDbFile)
 		return
 	}
 
-	if err = createEmptyGatewayDb(destDbFile); err != nil {
+	if err := createEmptyGatewayDb(destDbFile); err != nil {
 		utils.Fatal("create empty db", err)
 	}
 	fmt.Printf(" * database file: %s created\n", destDbFile)
