@@ -5,4 +5,4 @@ import (
 )
 
 //go:embed repo/* db/*
-var Assets embed.FS
+var Manager embed.FS
