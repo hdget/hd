@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	fileDatabase = "gateway.db"
+	dbGatewaySchema = "gateway_schema.db"
+	dbGateway       = "gateway.db"
 )
 
 var cmdInitGatewayDb = &cobra.Command{
@@ -35,7 +36,7 @@ func initGatewayDb() {
 		utils.Fatal("hd work dir not set")
 	}
 
-	destDbFile := filepath.Join(workDir, fileDatabase)
+	destDbFile := filepath.Join(workDir, dbGateway)
 	if _, err := os.Stat(destDbFile); !os.IsNotExist(err) {
 		fmt.Printf(" * database file: %s exists, skip...\n", destDbFile)
 		return
@@ -49,7 +50,7 @@ func initGatewayDb() {
 
 func createEmptyGatewayDb(absDbFile string) error {
 	// go generate运行时实在main那一级的目录
-	data, err := assets.Manager.ReadFile(path.Join("db", fileDatabase))
+	data, err := assets.Manager.ReadFile(path.Join("db", dbGatewaySchema))
 	if err != nil {
 		return err
 	}
