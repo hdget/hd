@@ -1,4 +1,4 @@
-package cmd
+package sourcecode
 
 import (
 	"github.com/hdget/hd/pkg/sourcecode"
@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	argPatchSkipDirs    []string // inspect时需要跳过的目录
-	argAssetsPath       string
-	cmdHandleSourceCode = &cobra.Command{
-		Use:   "handle_source",
+	argPatchSkipDirs       []string // inspect时需要跳过的目录
+	argAssetsPath          string
+	subCmdHandleSourceCode = &cobra.Command{
+		Use:   "handle",
 		Short: "handle source code",
 		Run: func(cmd *cobra.Command, args []string) {
 			handleSourceCode()
@@ -20,8 +20,8 @@ var (
 )
 
 func init() {
-	cmdHandleSourceCode.PersistentFlags().StringVarP(&argAssetsPath, "assets-path", "", "assets", "--assets-path assets")
-	cmdHandleSourceCode.PersistentFlags().StringSliceVarP(&argPatchSkipDirs, "skip", "", []string{"autogen"}, "--entry [import_path.func]")
+	subCmdHandleSourceCode.PersistentFlags().StringVarP(&argAssetsPath, "assets-path", "", "assets", "--assets-path assets")
+	subCmdHandleSourceCode.PersistentFlags().StringSliceVarP(&argPatchSkipDirs, "skip", "", []string{"autogen"}, "--entry [import_path.func]")
 }
 
 func handleSourceCode() {

@@ -5,6 +5,7 @@ import (
 	"github.com/bitfield/script"
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
+	"github.com/hdget/hd/pkg/tools"
 	"path/filepath"
 	"strings"
 	"time"
@@ -64,7 +65,7 @@ func (a *appStartImpl) start(app string) error {
 		fmt.Println(cmd)
 	}
 
-	err = a.run(a.getAppId(app), cmd, a.getHealthChecker(app), defaultTimeout)
+	err = tools.RunDaemon(a.getAppId(app), cmd, a.getHealthChecker(app), defaultTimeout)
 	if err != nil {
 		return err
 	}

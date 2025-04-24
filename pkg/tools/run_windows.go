@@ -1,6 +1,6 @@
 //go:build windows
 
-package appctl
+package tools
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func (a *appCtlImpl) run(appId, command string, healthCheck func() bool, timeout time.Duration) error {
+func RunDaemon(name, command string, healthCheck func() bool, timeout time.Duration) error {
 	// 创建命令
 	args, err := shell.Fields(command, nil)
 	if err != nil {
@@ -39,6 +39,6 @@ func (a *appCtlImpl) run(appId, command string, healthCheck func() bool, timeout
 		return runHealthCheck(healthCheck, timeout, cmd)
 	}
 
-	fmt.Printf("APP已启动, app: %s, pid: %d", appId, cmd.Process.Pid)
+	fmt.Printf("%s(PID: %d) started.\n", name, cmd.Process.Pid)
 	return nil
 }

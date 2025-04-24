@@ -1,4 +1,4 @@
-package appctl
+package tools
 
 import (
 	"context"
@@ -25,7 +25,7 @@ func runHealthCheck(healthCheck func() bool, timeout time.Duration, cmd *exec.Cm
 			return fmt.Errorf("health check timeout after %v, cmd: %s", timeout, strings.Join(cmd.Args, " "))
 
 		case <-ticker.C:
-			fmt.Println("waiting app start...")
+			fmt.Println("waiting start...")
 
 			if healthCheck() {
 				// 启动成功

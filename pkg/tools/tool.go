@@ -124,3 +124,40 @@ func installTool(t Tool) error {
 	fmt.Printf("%s install succeed\n", t.GetName())
 	return nil
 }
+
+//func RunDaemon() error {
+//	cmd := exec.Command("your-command", "arg1", "arg2")
+//
+//	// 重定向输出
+//	outFile, err := os.Create("/tmp/cmd.log")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	defer outFile.Close()
+//
+//	cmd.Stdout = outFile
+//	cmd.Stderr = outFile
+//
+//	// 设置进程属性
+//	cmd.SysProcAttr = &syscall.SysProcAttr{
+//		Setsid:     true, // 创建新会话
+//		Setctty:    false,
+//		Foreground: false,
+//	}
+//
+//	// 启动进程
+//	err = cmd.Start()
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	// 可选：记录PID到文件
+//	pidFile, err := os.Create("/tmp/cmd.pid")
+//	if err != nil {
+//		log.Printf("Warning: could not create PID file: %v\n", err)
+//	} else {
+//		_, _ = pidFile.WriteString(fmt.Sprintf("%d", cmd.Process.Pid))
+//		pidFile.Close()
+//	}
+//
+//}

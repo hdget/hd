@@ -1,9 +1,10 @@
 //go:build linux || darwin
 
-package appctl
+package tools
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"mvdan.cc/sh/v3/shell"
 	"os"
 	"os/exec"
@@ -11,12 +12,12 @@ import (
 	"time"
 )
 
-func (a *appCtlImpl) run(appId, command string, healthCheck func() bool, timeout time.Duration) error {
+func RunDaemon(name, command string, healthCheck func() bool, timeout time.Duration) error {
 	// 1. 设置日志文件
 	logPath := fmt.Sprintf("/var/log/%s.log", appId)
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
-		return fmt.Errorf("无法创建日志文件: %v", err)
+		return errors.Wrap(err, "create log file, logFile: %s", logPath)
 	}
 	defer logFile.Close()
 
@@ -31,9 +32,10 @@ func (a *appCtlImpl) run(appId, command string, healthCheck func() bool, timeout
 
 	// 3. 设置进程属性 - 完全脱离终端控制
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setsid:  true,  // 创建新会话
-		Setctty: false, // 不控制终端
-		Pgid:    0,     // 新进程组
+		Setsid:     true,  // 创建新会话
+		Setctty:    false, // 不控制终端
+		Foreground: false, // 不在前台运行
+		Pgid:       0,     // 新进程组
 	}
 
 	// 4. 重定向标准输入/输出/错误
@@ -43,13 +45,13 @@ func (a *appCtlImpl) run(appId, command string, healthCheck func() bool, timeout
 
 	// 5. 启动进程（后台运行）
 	if err = cmd.Start(); err != nil {
-		return fmt.Errorf("启动失败: %v", err)
+		return errors.Wrapf(err, "failed start, command: %s", command)
 	}
 
 	if healthCheck != nil {
 		return runHealthCheck(healthCheck, timeout, cmd)
 	}
 
-	fmt.Printf("进程已启动 (PID: %d), 日志: %s\n", cmd.Process.Pid, logPath)
+	fmt.Printf("%s(PID: %d) started, log path: %s\n", name, cmd.Process.Pid, logPath)
 	return nil
 }
