@@ -39,16 +39,16 @@ func (b *appBuilder) build(app, refName string) error {
 	// 创建临时目录
 	tempDir, err := os.MkdirTemp(os.TempDir(), "hd-build-*")
 	if err != nil {
-		return errors.Wrap(err, "创建Build临时目录失败")
+		return errors.Wrap(err, "create temporary build dir")
 	}
 	defer func() {
 		if e := os.RemoveAll(tempDir); e != nil {
-			fmt.Printf("删除临时目录失败: %v, dir: %s", e, tempDir)
+			fmt.Printf("delete temporary build dir %v, dir: %s", e, tempDir)
 		}
 	}()
 
 	if g.Debug {
-		fmt.Println("临时目录：", tempDir)
+		fmt.Println("temporary build dir：", tempDir)
 	}
 
 	appRepoConfig, exist := g.RepoConfigs[app]
@@ -152,11 +152,11 @@ func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) err
 	// 创建临时目录
 	tempDir, err := os.MkdirTemp(os.TempDir(), "hd-config-*")
 	if err != nil {
-		return errors.Wrap(err, "创建Build临时目录失败")
+		return errors.Wrap(err, "create temporary config dir")
 	}
 	defer func() {
 		if e := os.RemoveAll(tempDir); e != nil {
-			fmt.Printf("删除临时目录失败: %v", e)
+			fmt.Printf("delete temporary config dir: %v", e)
 		}
 	}()
 

@@ -29,11 +29,11 @@ func (impl *appInstallerImpl) install(app, ref string) error {
 	// 创建临时目录
 	tempDir, err := os.MkdirTemp(os.TempDir(), "hd-install-*")
 	if err != nil {
-		return errors.Wrap(err, "创建Build临时目录失败")
+		return errors.Wrap(err, "create temporary install dir")
 	}
 	defer func() {
 		if e := os.RemoveAll(tempDir); e != nil {
-			fmt.Printf("删除临时目录失败: %v, dir: %s", e, tempDir)
+			fmt.Printf("delete temporary install dir: %v, dir: %s", e, tempDir)
 		}
 	}()
 
@@ -51,7 +51,7 @@ func (impl *appInstallerImpl) install(app, ref string) error {
 		filepath.Join(tempDir, "dapr", env, "*"):                                filepath.Join(impl.baseDir, "config", "dapr"),
 	} {
 		if err = utils.CopyWithWildcard(srcPath, destPath); err != nil {
-			return errors.Wrapf(err, "复制目录失败, src: %s, dest: %s", srcPath, destPath)
+			return errors.Wrapf(err, "copy dir, src: %s, dest: %s", srcPath, destPath)
 		}
 	}
 	return nil
