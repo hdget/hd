@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	argProtobufGen = struct {
+	argGenProtobuf = struct {
 		outputDir     string
 		outputPackage string
 		generateAll   bool
@@ -30,9 +30,9 @@ var (
 )
 
 func init() {
-	subCmdGenProtobuf.PersistentFlags().StringVarP(&argProtobufGen.outputPackage, "package", "", "pb", "--package <package>")
-	subCmdGenProtobuf.PersistentFlags().StringVarP(&argProtobufGen.outputDir, "output-dir", "", "autogen", "--output-dir <sub_dir>")
-	subCmdGenProtobuf.PersistentFlags().BoolVarP(&argProtobufGen.generateAll, "all", "", false, "--all")
+	subCmdGenProtobuf.PersistentFlags().StringVarP(&argGenProtobuf.outputPackage, "package", "", "pb", "--package <package>")
+	subCmdGenProtobuf.PersistentFlags().StringVarP(&argGenProtobuf.outputDir, "output-dir", "", "autogen", "--output-dir <sub_dir>")
+	subCmdGenProtobuf.PersistentFlags().BoolVarP(&argGenProtobuf.generateAll, "all", "", false, "--all")
 }
 
 func protobufGenerate() error {
@@ -48,22 +48,22 @@ func protobufGenerate() error {
 
 	// 尝试找到proto repository
 	matchFiles := []string{fmt.Sprintf("%s.proto", filepath.Base(rootGolangModule))}
-	protoRepository, err := utils.FindDirContainingFiles(srcDir, matchFiles, filepath.Join(srcDir, argProtobufGen.outputDir))
+	protoRepository, err := utils.FindDirContainingFiles(srcDir, matchFiles, filepath.Join(srcDir, argGenProtobuf.outputDir))
 	if err != nil {
 		return err
 	}
 
 	// 第一步：先精简proto文件
 	var protoDir string
-	if argProtobufGen.generateAll {
+	if argGenProtobuf.generateAll {
 		protoDir = protoRepository
 	} else {
 		protoDir, err = protorefine.New().Refine(protorefine.Argument{
 			GolangModule:        rootGolangModule,
 			GolangSourceCodeDir: srcDir,
 			ProtoRepository:     protoRepository,
-			OutputPackage:       argProtobufGen.outputPackage,
-			OutputDir:           argProtobufGen.outputDir,
+			OutputPackage:       argGenProtobuf.outputPackage,
+			OutputDir:           argGenProtobuf.outputDir,
 		})
 		if err != nil {
 			return err
@@ -72,7 +72,7 @@ func protobufGenerate() error {
 
 	// 第二步：编译protobuf
 
-	outputPbDir := filepath.Join(srcDir, argProtobufGen.outputDir, argProtobufGen.outputPackage)
+	outputPbDir := filepath.Join(srcDir, argGenProtobuf.outputDir, argGenProtobuf.outputPackage)
 	err = protocompile.New().Compile(protoDir, outputPbDir)
 	if err != nil {
 		return err

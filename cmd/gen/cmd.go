@@ -13,4 +13,5 @@ var (
 func init() {
 	Command.AddCommand(subCmdGenProtobuf)
 	Command.AddCommand(subCmdGenConfig)
+	Command.AddCommand(subCmdGenDatabase)
 }
