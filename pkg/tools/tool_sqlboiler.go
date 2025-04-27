@@ -28,6 +28,7 @@ func (t *sqlboilerTool) install() error {
 	repos := []string{
 		"github.com/volatiletech/sqlboiler/v4@latest",
 		"github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-mysql@latest",
+		"github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-psql@latest",
 		"go install github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-sqlite3@latest",
 	}
 	for _, repo := range repos {
