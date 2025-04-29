@@ -20,7 +20,7 @@ const (
 	cmdNormalAppStart  = "%s run --app-address 127.0.0.1:%d"
 	cmdGatewayAppStart = "%s run --app-address 127.0.0.1:%d --web-address :%d"
 	cmdDaprStart       = "dapr run --app-id %s %s -- %s"
-	defaultTimeout     = 10 * time.Second
+	defaultTimeout     = 5 * time.Second
 )
 
 var (
