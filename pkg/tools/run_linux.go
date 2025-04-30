@@ -28,7 +28,7 @@ func RunDaemon(name, command string, healthCheck func() bool, timeout time.Durat
 	}
 
 	// Windows 设置
-	cmd := exec.Command(args[0], args[1:]...)
+	cmd := exec.Command(name, args...)
 
 	// 3. 设置进程属性 - 完全脱离终端控制
 	cmd.SysProcAttr = &syscall.SysProcAttr{
