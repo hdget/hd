@@ -19,7 +19,7 @@ func RunDaemon(name, command string, healthCheck func() bool, timeout time.Durat
 	}
 
 	// Windows 设置
-	cmd := exec.Command(args[0], args[1:]...)
+	cmd := exec.Command(name, args...)
 	//cmd.SysProcAttr = &syscall.SysProcAttr{
 	//	HideWindow:    true,                                          // 隐藏窗口
 	//	CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP | 0x00000008, // CREATE_NO_WINDOW
