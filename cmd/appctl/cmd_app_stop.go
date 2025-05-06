@@ -38,7 +38,7 @@ func stopAllApp() {
 }
 
 func stopApp(args []string) {
-	if len(args) != 1 {
+	if len(args) <= 1 {
 		utils.Fatal("Usage: stop [app1,app2...]")
 	}
 

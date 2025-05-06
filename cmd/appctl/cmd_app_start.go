@@ -39,7 +39,7 @@ func startAllApp() {
 }
 
 func startApp(args []string) {
-	if len(args) != 1 {
+	if len(args) <= 1 {
 		utils.Fatal("Usage: start [app1,app2...]")
 	}
 

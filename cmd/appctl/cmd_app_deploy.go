@@ -25,7 +25,7 @@ var (
 )
 
 func deployAllApp(args []string) {
-	if len(args) != 1 {
+	if len(args) <= 1 {
 		utils.Fatal("Usage: deploy [branch] --all")
 	}
 
@@ -67,7 +67,7 @@ func deployAllApp(args []string) {
 }
 
 func deployApp(args []string) {
-	if len(args) != 2 {
+	if len(args) <= 2 {
 		utils.Fatal("Usage: deploy [app1,app2...] [branch]")
 	}
 
