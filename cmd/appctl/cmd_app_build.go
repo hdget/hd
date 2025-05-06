@@ -25,7 +25,7 @@ var (
 )
 
 func buildAllApp(args []string) {
-	if len(args) <= 1 {
+	if len(args) < 1 {
 		utils.Fatal("Usage: build [branch] --all")
 	}
 
@@ -45,7 +45,7 @@ func buildAllApp(args []string) {
 }
 
 func buildApp(args []string) {
-	if len(args) <= 2 {
+	if len(args) < 2 {
 		utils.Fatal("Usage: build [app1,app2...] <branch>")
 	}
 
