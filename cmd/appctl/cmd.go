@@ -24,6 +24,7 @@ func init() {
 
 	Command.AddCommand(subCmdBuildApp)
 	Command.AddCommand(subCmdDeployApp)
+	Command.AddCommand(subCmdRestartApp)
 	Command.AddCommand(subCmdStartApp)
 	Command.AddCommand(subCmdStopApp)
 }
