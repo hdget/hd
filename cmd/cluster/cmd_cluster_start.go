@@ -7,21 +7,21 @@ import (
 )
 
 var (
-	subCmdRestartCluster = &cobra.Command{
-		Use:   "restart",
-		Short: "restart cluster",
+	subCmdStartCluster = &cobra.Command{
+		Use:   "start",
+		Short: "start cluster",
 		Run: func(cmd *cobra.Command, args []string) {
-			restartCluster()
+			startCluster()
 		},
 	}
 )
 
 func init() {
-	subCmdRestartCluster.PersistentFlags().StringVarP(&argClusterIp, "cluster-ip", "", "", "--cluster-ip 192.168.0.1")
-	subCmdRestartCluster.PersistentFlags().IntVarP(&argClusterSize, "cluster-size", "", 0, "--cluster-size 1")
+	subCmdStartCluster.PersistentFlags().StringVarP(&argClusterIp, "cluster-ip", "", "", "--cluster-ip 192.168.0.1")
+	subCmdStartCluster.PersistentFlags().IntVarP(&argClusterSize, "cluster-size", "", 0, "--cluster-size 1")
 }
 
-func restartCluster() {
+func startCluster() {
 	options := make([]cluster.Option, 0)
 	if argClusterSize > 0 {
 		options = append(options, cluster.WithClusterSize(argClusterSize))
@@ -37,9 +37,6 @@ func restartCluster() {
 	if err != nil {
 		utils.Fatal("new cluster", err)
 	}
-
-	// stop cluster
-	_ = instance.Stop()
 
 	if err = instance.Start(); err != nil {
 		utils.Fatal("start cluster", err)

@@ -3,7 +3,7 @@ package cluster
 import "github.com/hdget/hd/pkg/tools"
 
 type Cluster interface {
-	Restart() error
+	Start() error
 	Stop() error
 }
 

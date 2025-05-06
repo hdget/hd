@@ -12,16 +12,20 @@ import (
 	"time"
 )
 
-func (impl *clusterImpl) Restart() error {
-	// 检查依赖的工具是否安装
-	if impl.clusterIp != "" && impl.clusterSize > 1 {
-		return impl.restartMultiNodeConsul()
+func (impl *clusterImpl) Start() error {
+	if impl.isConsulStared() {
+		return errors.New("cluster is already started")
 	}
 
-	return impl.restartStandaloneConsul()
+	// 检查依赖的工具是否安装
+	if impl.clusterIp != "" && impl.clusterSize > 1 {
+		return impl.startMultiNodeConsul()
+	}
+
+	return impl.startStandaloneConsul()
 }
 
-func (impl *clusterImpl) restartStandaloneConsul() error {
+func (impl *clusterImpl) startStandaloneConsul() error {
 	fmt.Printf("start consul in standard mode\n")
 
 	localIp, err := utils.GetLocalIP()
@@ -33,8 +37,6 @@ func (impl *clusterImpl) restartStandaloneConsul() error {
 		fmt.Println("local ip: ", localIp)
 	}
 
-	_ = impl.stopConsul()
-
 	if err = impl.startConsul(localIp, localIp); err != nil {
 		return err
 	}
@@ -42,7 +44,7 @@ func (impl *clusterImpl) restartStandaloneConsul() error {
 	return nil
 }
 
-func (impl *clusterImpl) restartMultiNodeConsul() error {
+func (impl *clusterImpl) startMultiNodeConsul() error {
 	fmt.Printf("start consul in multi node mode, join to: %s\n", impl.clusterIp)
 
 	if impl.clusterIp == "" {
@@ -64,13 +66,16 @@ func (impl *clusterImpl) restartMultiNodeConsul() error {
 		fmt.Println("cluster size: ", impl.clusterSize)
 	}
 
-	_ = impl.stopConsul()
-
 	if err = impl.startConsul(localIp, impl.clusterIp); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (impl *clusterImpl) isConsulStared() bool {
+	_, err := script.Exec(`consul members`).String()
+	return err == nil
 }
 
 func (impl *clusterImpl) startConsul(localIp, clusterIp string) error {
