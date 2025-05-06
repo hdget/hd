@@ -22,18 +22,7 @@ func init() {
 }
 
 func startCluster() {
-	options := make([]cluster.Option, 0)
-	if argClusterSize > 0 {
-		options = append(options, cluster.WithClusterSize(argClusterSize))
-	}
-	if argClusterIp != "" {
-		options = append(options, cluster.WithClusterIp(argClusterIp))
-	}
-	if argNeedClean {
-		options = append(options, cluster.WithClusterIp(argClusterIp))
-	}
-
-	instance, err := cluster.New(options...)
+	instance, err := cluster.New(getClusterOptions()...)
 	if err != nil {
 		utils.Fatal("new cluster", err)
 	}

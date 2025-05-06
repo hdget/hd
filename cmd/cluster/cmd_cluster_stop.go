@@ -16,6 +16,10 @@ var (
 	}
 )
 
+func init() {
+	subCmdStopCluster.PersistentFlags().BoolVarP(&argNeedClean, "clean", "", false, "--clean")
+}
+
 func stopCluster() {
 	options := make([]cluster.Option, 0)
 	if argNeedClean {

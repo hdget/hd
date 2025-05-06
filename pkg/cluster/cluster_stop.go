@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/bitfield/script"
 	"os"
-	"path/filepath"
 )
 
 func (impl *clusterImpl) Stop() error {
@@ -17,7 +16,7 @@ func (impl *clusterImpl) stopConsul() error {
 		fmt.Println("leave consul failed, output: ", output)
 	}
 	if impl.needClean {
-		if err = os.RemoveAll(filepath.Join(os.TempDir(), "consul")); err != nil {
+		if err = os.RemoveAll(impl.getConsulDataDir()); err != nil {
 			return err
 		}
 	}

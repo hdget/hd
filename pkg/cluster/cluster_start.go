@@ -7,8 +7,6 @@ import (
 	"github.com/hdget/hd/pkg/tools"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
-	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -79,10 +77,8 @@ func (impl *clusterImpl) isConsulStared() bool {
 }
 
 func (impl *clusterImpl) startConsul(localIp, clusterIp string) error {
-	dataDir := filepath.Join(os.TempDir(), "consul")
-
-	cmd := fmt.Sprintf("consul agent -server -data-dir %s -ui -client 127.0.0.1 -bootstrap-expect %d -bind %s -retry-join %s",
-		dataDir, impl.clusterSize, localIp, clusterIp)
+	cmd := fmt.Sprintf("consul agent -server -data-dir '%s' -ui -client 127.0.0.1 -bootstrap-expect %d -bind %s -retry-join %s",
+		impl.getConsulDataDir(), impl.clusterSize, localIp, clusterIp)
 
 	healthFunc := func() bool {
 		_, err := script.Exec("consul members").Stdout()

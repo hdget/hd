@@ -1,6 +1,10 @@
 package cluster
 
-import "github.com/hdget/hd/pkg/tools"
+import (
+	"github.com/hdget/hd/pkg/tools"
+	"os"
+	"path/filepath"
+)
 
 type Cluster interface {
 	Start() error
@@ -28,4 +32,8 @@ func New(options ...Option) (Cluster, error) {
 	}
 
 	return impl, nil
+}
+
+func (*clusterImpl) getConsulDataDir() string {
+	return filepath.Join(os.TempDir(), "consul")
 }

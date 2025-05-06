@@ -14,9 +14,7 @@ var (
 )
 
 func init() {
-	// 是否需要清除cluster数据
-	Command.PersistentFlags().BoolVarP(&argNeedClean, "clean", "", false, "--clean")
-
 	Command.AddCommand(subCmdRestartCluster)
+	Command.AddCommand(subCmdStartCluster)
 	Command.AddCommand(subCmdStopCluster)
 }

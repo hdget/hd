@@ -32,7 +32,7 @@ func RunDaemon(name, command string, healthCheck func() bool, timeout time.Durat
 
 	// 启动进程
 	if err = cmd.Start(); err != nil {
-		return errors.Wrapf(err, "启动命令失败, cmd:%s", cmd)
+		return errors.Wrapf(err, "启动命令失败, cmd:%s", command)
 	}
 
 	if healthCheck != nil {
