@@ -17,10 +17,11 @@ type appStartImpl struct {
 }
 
 const (
-	cmdNormalAppStart  = "%s run --app-address 127.0.0.1:%d"
-	cmdGatewayAppStart = "%s run --app-address 127.0.0.1:%d --web-address :%d"
-	cmdDaprStart       = "dapr run --app-id %s %s -- %s"
-	defaultTimeout     = 5 * time.Second
+	cmdNormalAppStart       = "%s run --app-address 127.0.0.1:%d"
+	cmdGatewayAppStart      = "%s run --app-address 127.0.0.1:%d --web-address :%d"
+	cmdDaprStart            = "dapr run --app-id %s %s -- %s"
+	defaultTimeout          = 5 * time.Second
+	daprHealthCheckInterval = 5 // 单位：秒
 )
 
 var (
@@ -39,7 +40,7 @@ var (
 		"--scheduler-host-address ''",
 		"--placement-host-address ''",
 		"--enable-app-health-check",
-		"--app-health-probe-interval 5",
+		fmt.Sprintf("--app-health-probe-interval %d", daprHealthCheckInterval),
 	}
 )
 
