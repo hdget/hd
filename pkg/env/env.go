@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	supportedEnvs = []string{"prod", "test"}
+	supportedEnvs = []string{"prod", "test", "local"}
 )
 
 func Initialize() error {
