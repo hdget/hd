@@ -32,13 +32,8 @@ func startAllApp() {
 		utils.Fatal("get current dir", err)
 	}
 
-	var extraParam string
-	if len(os.Args) > 3 {
-		extraParam = strings.Join(os.Args[3:], " ")
-	}
-
 	for _, app := range g.Config.Project.Apps {
-		err = appctl.New(baseDir).Start(app, extraParam)
+		err = appctl.New(baseDir).Start(app)
 		if err != nil {
 			utils.Fatal("start app", err)
 		}

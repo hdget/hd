@@ -9,7 +9,7 @@ import (
 )
 
 type AppController interface {
-	Start(app string, extraParam string) error
+	Start(app string, extraParam ...string) error
 	Stop(app string) error
 	Build(app string, ref string) error
 	Install(app string, ref string) error
@@ -36,7 +36,7 @@ func New(baseDir string, options ...Option) AppController {
 	return impl
 }
 
-func (a *appCtlImpl) Start(app string, extraParam string) error {
+func (a *appCtlImpl) Start(app string, extraParam ...string) error {
 	fmt.Println()
 	fmt.Printf("=== START app: %s ===\n", app)
 	fmt.Println()
@@ -54,7 +54,12 @@ func (a *appCtlImpl) Start(app string, extraParam string) error {
 		return err
 	}
 
-	return instance.start(app, extraParam)
+	var startParam string
+	if len(extraParam) > 0 {
+		startParam = extraParam[0]
+	}
+
+	return instance.start(app, startParam)
 }
 
 func (a *appCtlImpl) Install(app string, ref string) error {
