@@ -52,8 +52,8 @@ func startApp(args []string) {
 	}
 
 	var extraParam string
-	if len(os.Args) > 3 {
-		extraParam = strings.Join(os.Args[3:], " ")
+	if len(os.Args) > 4 {
+		extraParam = strings.Join(os.Args[4:], " ")
 	}
 
 	baseDir, err := os.Getwd()
