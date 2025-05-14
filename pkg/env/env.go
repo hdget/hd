@@ -26,20 +26,11 @@ func Initialize() error {
 		envHdNamespace: g.Config.Project.Name,
 		envHdEnv:       g.Config.Project.Env,
 	} {
-		fmt.Println("set env, k:", k, "v:", v)
 		if err := os.Setenv(k, v); err != nil {
 			return err
 		}
 	}
 	return godotenv.Load()
-	//err := save(map[string]string{
-	//	envHdNamespace: g.Config.Project.Name,
-	//	envHdEnv:       g.Config.Project.Env,
-	//})
-	//if err != nil {
-	//	return err
-	//}
-	//return godotenv.Load()
 }
 
 func GetHdEnv() (string, error) {
