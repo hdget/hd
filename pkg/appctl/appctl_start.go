@@ -17,8 +17,8 @@ type appStartImpl struct {
 }
 
 const (
-	cmdNormalAppStart       = "%s run --app-address 127.0.0.1:%d"
-	cmdGatewayAppStart      = "%s run --app-address 127.0.0.1:%d --web-address :%d"
+	cmdNormalAppStart       = "%s run --app-address 127.0.0.1:%d %s"
+	cmdGatewayAppStart      = "%s run --app-address 127.0.0.1:%d --web-address :%d %s"
 	cmdDaprStart            = "dapr run --app-id %s %s -- %s"
 	defaultTimeout          = 5 * time.Second
 	daprHealthCheckInterval = 5 // 单位：秒
@@ -56,8 +56,8 @@ func newAppStarter(appCtl *appCtlImpl) (*appStartImpl, error) {
 	}, nil
 }
 
-func (a *appStartImpl) start(app string) error {
-	cmd, err := a.getStartCommand(app)
+func (a *appStartImpl) start(app string, extraParameters ...string) error {
+	cmd, err := a.getStartCommand(app, extraParameters...)
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (a *appStartImpl) start(app string) error {
 	return nil
 }
 
-func (a *appStartImpl) getStartCommand(app string) (string, error) {
+func (a *appStartImpl) getStartCommand(app string, extraParameters ...string) (string, error) {
 	ports, err := findAvailablePorts(len(daprPortOptions), daprPortRange[0], daprPortRange[1])
 	if err != nil {
 		return "", err
@@ -88,9 +88,9 @@ func (a *appStartImpl) getStartCommand(app string) (string, error) {
 		if !isPortAvailable(a.getGatewayPort()) {
 			return "", fmt.Errorf("gateway port %d is not available", a.getGatewayPort())
 		}
-		subCmd = fmt.Sprintf(cmdGatewayAppStart, appBinPath, ports[0], a.getGatewayPort())
+		subCmd = fmt.Sprintf(cmdGatewayAppStart, appBinPath, ports[0], a.getGatewayPort(), strings.Join(extraParameters, " "))
 	default:
-		subCmd = fmt.Sprintf(cmdNormalAppStart, appBinPath, ports[0])
+		subCmd = fmt.Sprintf(cmdNormalAppStart, appBinPath, ports[0], strings.Join(extraParameters, " "))
 	}
 
 	var daprOptions []string

@@ -44,7 +44,6 @@ func startApp(args []string) {
 	}
 
 	appList := args[0]
-
 	apps := strings.Split(appList, ",")
 	if len(apps) == 0 {
 		utils.Fatal("you need specify at least one app")
@@ -56,7 +55,11 @@ func startApp(args []string) {
 	}
 
 	for _, app := range apps {
-		err = appctl.New(baseDir).Start(app)
+		if len(args) > 1 {
+			err = appctl.New(baseDir).Start(app, args[1:]...)
+		} else {
+			err = appctl.New(baseDir).Start(app)
+		}
 		if err != nil {
 			utils.Fatal("start app", err)
 		}
