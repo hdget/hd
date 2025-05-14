@@ -6,6 +6,7 @@ import (
 	"github.com/hdget/hd/pkg/appctl"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"os"
 	"strings"
 )
@@ -15,6 +16,23 @@ var (
 		Use:   "start [app1,app2...]",
 		Short: "start app",
 		Run: func(cmd *cobra.Command, args []string) {
+			// 1. 创建临时 FlagSet 解析所有参数
+			tempFlags := pflag.NewFlagSet("temp", pflag.ContinueOnError)
+			tempFlags.ParseErrorsWhitelist.UnknownFlags = true
+			_ = tempFlags.Parse(os.Args[1:])
+
+			// 2. 提取未知 flags
+			var unknownArgs []string
+			tempFlags.VisitAll(func(f *pflag.Flag) {
+				if f.Changed && cmd.Flags().Lookup(f.Name) == nil {
+					unknownArgs = append(unknownArgs, "--"+f.Name)
+					if f.Value.Type() != "bool" {
+						unknownArgs = append(unknownArgs, f.Value.String())
+					}
+				}
+			})
+			fmt.Println("未知 flags:", unknownArgs)
+
 			if argAll {
 				startAllApp()
 			} else {
