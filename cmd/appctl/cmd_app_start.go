@@ -24,6 +24,11 @@ var (
 	}
 )
 
+func init() {
+	// 关键设置：忽略未定义的 flags
+	subCmdStartApp.FParseErrWhitelist.UnknownFlags = true
+}
+
 func startAllApp() {
 	baseDir, err := os.Getwd()
 	if err != nil {
