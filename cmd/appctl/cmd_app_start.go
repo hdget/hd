@@ -1,6 +1,7 @@
 package appctl
 
 import (
+	"fmt"
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/appctl"
 	"github.com/hdget/hd/pkg/utils"
@@ -44,6 +45,8 @@ func startAllApp() {
 }
 
 func startApp(args []string) {
+	fmt.Println("xxxxxxxxxxxxxxxx:", args)
+
 	if len(args) < 1 {
 		utils.Fatal("Usage: start [app1,app2...]")
 	}
