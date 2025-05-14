@@ -19,14 +19,13 @@ const (
 
 var (
 	supportedEnvs = []string{"prod", "test", "local"}
-	exportedEnvs  = map[string]string{
-		envHdNamespace: g.Config.Project.Name,
-		envHdEnv:       g.Config.Project.Env,
-	}
 )
 
 func Initialize() error {
-	for k, v := range exportedEnvs {
+	for k, v := range map[string]string{
+		envHdNamespace: g.Config.Project.Name,
+		envHdEnv:       g.Config.Project.Env,
+	} {
 		fmt.Println("set env, k:", k, "v:", v)
 		if err := os.Setenv(k, v); err != nil {
 			return err
