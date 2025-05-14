@@ -19,17 +19,27 @@ const (
 
 var (
 	supportedEnvs = []string{"prod", "test", "local"}
+	exportedEnvs  = map[string]string{
+		envHdNamespace: g.Config.Project.Name,
+		envHdEnv:       g.Config.Project.Env,
+	}
 )
 
 func Initialize() error {
-	err := save(map[string]string{
-		envHdNamespace: g.Config.Project.Name,
-		envHdEnv:       g.Config.Project.Env,
-	})
-	if err != nil {
-		return err
+	for k, v := range exportedEnvs {
+		if err := os.Setenv(k, v); err != nil {
+			return err
+		}
 	}
-	return godotenv.Load()
+	return nil
+	//err := save(map[string]string{
+	//	envHdNamespace: g.Config.Project.Name,
+	//	envHdEnv:       g.Config.Project.Env,
+	//})
+	//if err != nil {
+	//	return err
+	//}
+	//return godotenv.Load()
 }
 
 func GetHdEnv() (string, error) {
@@ -70,7 +80,6 @@ func SetGitCredential(username, password string) error {
 		envGitUser:     username,
 		envGitPassword: password,
 	})
-
 }
 
 func save(data map[string]string) error {
