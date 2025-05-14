@@ -56,8 +56,8 @@ func newAppStarter(appCtl *appCtlImpl) (*appStartImpl, error) {
 	}, nil
 }
 
-func (a *appStartImpl) start(app string, extraParameters ...string) error {
-	cmd, err := a.getStartCommand(app, extraParameters...)
+func (a *appStartImpl) start(app string, extraParam string) error {
+	cmd, err := a.getStartCommand(app, extraParam)
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (a *appStartImpl) start(app string, extraParameters ...string) error {
 	return nil
 }
 
-func (a *appStartImpl) getStartCommand(app string, extraParameters ...string) (string, error) {
+func (a *appStartImpl) getStartCommand(app string, extraParam string) (string, error) {
 	ports, err := findAvailablePorts(len(daprPortOptions), daprPortRange[0], daprPortRange[1])
 	if err != nil {
 		return "", err
@@ -88,9 +88,9 @@ func (a *appStartImpl) getStartCommand(app string, extraParameters ...string) (s
 		if !isPortAvailable(a.getGatewayPort()) {
 			return "", fmt.Errorf("gateway port %d is not available", a.getGatewayPort())
 		}
-		subCmd = fmt.Sprintf(cmdGatewayAppStart, appBinPath, ports[0], a.getGatewayPort(), strings.Join(extraParameters, " "))
+		subCmd = fmt.Sprintf(cmdGatewayAppStart, appBinPath, ports[0], a.getGatewayPort(), extraParam)
 	default:
-		subCmd = fmt.Sprintf(cmdNormalAppStart, appBinPath, ports[0], strings.Join(extraParameters, " "))
+		subCmd = fmt.Sprintf(cmdNormalAppStart, appBinPath, ports[0], extraParam)
 	}
 
 	var daprOptions []string
