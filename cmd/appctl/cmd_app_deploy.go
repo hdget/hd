@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
+	"time"
 )
 
 var (
@@ -63,6 +64,9 @@ func deployAllApp(args []string) {
 		if err != nil {
 			utils.Fatal("start app", err)
 		}
+
+		// 等待服务启动，有可能服务间有依赖关系
+		time.Sleep(g.DaprHealthCheckInterval * time.Second)
 	}
 }
 
@@ -108,6 +112,9 @@ func deployApp(args []string) {
 		if err != nil {
 			utils.Fatal("start app", err)
 		}
+
+		// 等待服务启动，有可能服务间有依赖关系
+		time.Sleep(g.DaprHealthCheckInterval * time.Second)
 	}
 
 }

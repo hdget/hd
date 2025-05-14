@@ -2,11 +2,13 @@ package appctl
 
 import (
 	"fmt"
+	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/appctl"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
+	"time"
 )
 
 var (
@@ -51,5 +53,8 @@ func restartApp(args []string) {
 		if err != nil {
 			utils.Fatal("start app", err)
 		}
+
+		// 等待服务启动，有可能服务间有依赖关系
+		time.Sleep(g.DaprHealthCheckInterval * time.Second)
 	}
 }
