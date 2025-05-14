@@ -16,6 +16,8 @@ var (
 		Use:   "start [app1,app2...]",
 		Short: "start app",
 		Run: func(cmd *cobra.Command, args []string) {
+			cmd.FParseErrWhitelist.UnknownFlags = true
+
 			// 1. 创建临时 FlagSet 解析所有参数
 			tempFlags := pflag.NewFlagSet("temp", pflag.ContinueOnError)
 			tempFlags.ParseErrorsWhitelist.UnknownFlags = true
