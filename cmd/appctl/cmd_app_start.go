@@ -62,6 +62,10 @@ var (
 	}
 )
 
+func init() {
+	subCmdStartApp.FParseErrWhitelist.UnknownFlags = true
+}
+
 func startAllApp() {
 	baseDir, err := os.Getwd()
 	if err != nil {
