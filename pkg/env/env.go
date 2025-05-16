@@ -3,18 +3,14 @@ package env
 import (
 	"fmt"
 	"github.com/elliotchance/pie/v2"
+	"github.com/hdget/common/constant"
 	"github.com/hdget/hd/g"
 	"github.com/joho/godotenv"
 	"os"
 )
 
 const (
-	envHdNamespace = "HD_NAMESPACE"
-	envHdEnv       = "HD_ENV"
-	envGitUser     = "HD_GIT_USER"
-	envGitPassword = "HD_GIT_PASSWORD"
-	envHdWorkDir   = "HD_WORK_DIR"
-	filename       = ".env"
+	filename = ".env"
 )
 
 var (
@@ -23,8 +19,8 @@ var (
 
 func Initialize() error {
 	for k, v := range map[string]string{
-		envHdNamespace: g.Config.Project.Name,
-		envHdEnv:       g.Config.Project.Env,
+		constant.EnvKeyNamespace:      g.Config.Project.Name,
+		constant.EnvKeyRunEnvironment: g.Config.Project.Env,
 	} {
 		if err := os.Setenv(k, v); err != nil {
 			return err
@@ -34,9 +30,9 @@ func Initialize() error {
 }
 
 func GetHdEnv() (string, error) {
-	env, exists := os.LookupEnv(envHdEnv)
+	env, exists := os.LookupEnv(constant.EnvKeyRunEnvironment)
 	if !exists {
-		return "", fmt.Errorf("env not found, env: %s", envHdEnv)
+		return "", fmt.Errorf("env not found, env: %s", constant.EnvKeyRunEnvironment)
 	}
 
 	if !pie.Contains(supportedEnvs, env) {
@@ -46,30 +42,30 @@ func GetHdEnv() (string, error) {
 }
 
 func GetHdNamespace() (string, bool) {
-	return os.LookupEnv(envHdNamespace)
+	return os.LookupEnv(constant.EnvKeyNamespace)
 }
 
 func GetHdWorkDir() (string, bool) {
-	return os.LookupEnv(envHdWorkDir)
+	return os.LookupEnv(constant.EnvKeyWorkDir)
 }
 
 // WithHdWorkDir 当前环境变量加上HD_WORK_DIR
 func WithHdWorkDir(workDir string) []string {
 	return append(os.Environ(), []string{
-		fmt.Sprintf("HD_WORK_DIR=%s", workDir),
+		fmt.Sprintf("%s=%s", constant.EnvKeyWorkDir, workDir),
 	}...)
 }
 
 func GetGitCredential() (string, string) {
-	gitUser, _ := os.LookupEnv(envGitUser)
-	gitPassword, _ := os.LookupEnv(envGitPassword)
+	gitUser, _ := os.LookupEnv(constant.EnvKeyGitUser)
+	gitPassword, _ := os.LookupEnv(constant.EnvKeyGitPassword)
 	return gitUser, gitPassword
 }
 
 func SetGitCredential(username, password string) error {
 	return save(map[string]string{
-		envGitUser:     username,
-		envGitPassword: password,
+		constant.EnvKeyGitUser:     username,
+		constant.EnvKeyGitPassword: password,
 	})
 }
 
