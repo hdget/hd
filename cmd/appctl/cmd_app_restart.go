@@ -41,13 +41,18 @@ func restartApp(args []string) {
 		utils.Fatal("get current dir", err)
 	}
 
+	var extraParam string
+	if len(os.Args) > 4 {
+		extraParam = strings.Join(os.Args[4:], " ")
+	}
+
 	for _, app := range apps {
 		err = appctl.New(baseDir).Stop(app)
 		if err != nil {
 			utils.Fatal("stop app", err)
 		}
 
-		err = appctl.New(baseDir).Start(app)
+		err = appctl.New(baseDir).Start(app, extraParam)
 		if err != nil {
 			utils.Fatal("start app", err)
 		}

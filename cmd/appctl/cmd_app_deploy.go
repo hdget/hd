@@ -86,6 +86,11 @@ func deployApp(args []string) {
 		utils.Fatal("get current dir", err)
 	}
 
+	var extraParam string
+	if len(os.Args) > 5 {
+		extraParam = strings.Join(os.Args[5:], " ")
+	}
+
 	ctl := appctl.New(baseDir)
 
 	for _, app := range apps {
@@ -104,12 +109,11 @@ func deployApp(args []string) {
 			utils.Fatal("install app", err)
 		}
 
-		err = ctl.Start(app)
+		err = ctl.Start(app, extraParam)
 		if err != nil {
 			utils.Fatal("start app", err)
 		}
 	}
-
 }
 
 //
