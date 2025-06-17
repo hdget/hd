@@ -80,7 +80,9 @@ func genConfig() {
 	if err != nil {
 		utils.Fatal("error create config file", err)
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	err = tpl.Execute(f, exampleConfig)
 	if err != nil {

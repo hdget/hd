@@ -48,7 +48,9 @@ func IsDirReadableAndWithFiles(path, fileSuffix string) error {
 	if err != nil {
 		return errors.Wrapf(err, "path is not readable, path: %s", path)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	var hasFile bool
 	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
@@ -88,8 +90,8 @@ func IsDirWritable(path string) error {
 		return errors.Wrapf(err, "path is not writable, path: %s", path)
 	}
 	defer func() {
-		tempFile.Close()
-		os.Remove(tempFile.Name())
+		_ = tempFile.Close()
+		_ = os.Remove(tempFile.Name())
 	}()
 
 	// 尝试写入内容
@@ -234,13 +236,17 @@ func CopyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer srcFile.Close()
+	defer func() {
+		_ = srcFile.Close()
+	}()
 
 	dstFile, err := os.Create(dst)
 	if err != nil {
 		return err
 	}
-	defer dstFile.Close()
+	defer func() {
+		_ = dstFile.Close()
+	}()
 
 	if _, err = io.Copy(dstFile, srcFile); err != nil {
 		return err

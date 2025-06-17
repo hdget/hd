@@ -53,7 +53,7 @@ func GetInput(prompt string, defaults ...string) string {
 	rl, _ := readline.NewEx(rlConfig)
 	defer func() {
 		if rl != nil {
-			rl.Close()
+			_ = rl.Close()
 		}
 	}()
 
@@ -64,7 +64,7 @@ func GetInput(prompt string, defaults ...string) string {
 			if errors.Is(err, readline.ErrInterrupt) {
 				os.Exit(0)
 			}
-			
+
 			if defaultValue != "" {
 				inputValue = defaultValue
 			}

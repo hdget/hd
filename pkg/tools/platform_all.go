@@ -158,7 +158,9 @@ func (platformAll) UnzipMatchedFiles(zipFile, matchPattern, destDir string) erro
 	if err != nil {
 		return fmt.Errorf("open zip file failed: %v", err)
 	}
-	defer r.Close()
+	defer func() {
+		_ = r.Close()
+	}()
 
 	// 遍历ZIP文件
 	found := false
@@ -205,14 +207,18 @@ func extractFile(f *zip.File, destDir string) error {
 	if err != nil {
 		return err
 	}
-	defer rc.Close()
+	defer func() {
+		_ = rc.Close()
+	}()
 
 	// 5. 创建目标文件
 	outFile, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 	if err != nil {
 		return err
 	}
-	defer outFile.Close()
+	defer func() {
+		_ = outFile.Close()
+	}()
 
 	// 6. 复制文件内容
 	_, err = io.Copy(outFile, rc)

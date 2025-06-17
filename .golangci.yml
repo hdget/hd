@@ -1,4 +1,6 @@
-linters-settings:
-  staticcheck:
-    checks:
-      - "-github.com/jhump/protoreflect/desc/protoparse"
+version: "2"
+linters:
+  settings:
+    staticcheck:
+      checks:
+        - -github.com/jhump/protoreflect/desc/protoparse

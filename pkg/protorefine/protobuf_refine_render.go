@@ -111,7 +111,9 @@ func (r *protoRender) copyFile(src, dest string) error {
 	if err != nil {
 		return err
 	}
-	defer srcFile.Close()
+	defer func() {
+		_ = srcFile.Close()
+	}()
 
 	err = os.MkdirAll(filepath.Dir(dest), 0644)
 	if err != nil {
@@ -122,7 +124,9 @@ func (r *protoRender) copyFile(src, dest string) error {
 	if err != nil {
 		return err
 	}
-	defer destFile.Close()
+	defer func() {
+		_ = destFile.Close()
+	}()
 
 	_, err = io.Copy(destFile, srcFile) // check first var for number of bytes copied
 	if err != nil {
