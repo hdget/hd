@@ -13,9 +13,9 @@ func ProtocGoGRPC() Tool {
 }
 
 func (t *protocGoGRPCTool) LinuxInstall() error {
-	return AllPlatform().GoInstall("google.golang.org/grpc/cmd/protoc-gen-go-grpc")
+	return AllPlatform().GoInstall("google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest")
 }
 
 func (t *protocGoGRPCTool) WindowsInstall() error {
-	return AllPlatform().GoInstall("google.golang.org/grpc/cmd/protoc-gen-go-grpc")
+	return AllPlatform().GoInstall("google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest")
 }
