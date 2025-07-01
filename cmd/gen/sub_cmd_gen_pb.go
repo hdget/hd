@@ -15,6 +15,7 @@ var (
 		outputDir     string
 		outputPackage string
 		generateAll   bool
+		generateGRPC  bool
 	}{}
 
 	subCmdGenProtobuf = &cobra.Command{
@@ -31,8 +32,10 @@ var (
 
 func init() {
 	subCmdGenProtobuf.PersistentFlags().StringVarP(&argGenProtobuf.outputPackage, "package", "", "pb", "--package <package>")
-	subCmdGenProtobuf.PersistentFlags().StringVarP(&argGenProtobuf.outputDir, "output-dir", "", "autogen", "--output-dir <sub_dir>")
+	subCmdGenProtobuf.PersistentFlags().StringVarP(&argGenProtobuf.outputDir, "output-dir", "", "autogen", "relative output dir, --output-dir <sub_dir>")
 	subCmdGenProtobuf.PersistentFlags().BoolVarP(&argGenProtobuf.generateAll, "all", "", false, "--all")
+	// 是否生成grpc代码
+	subCmdGenProtobuf.PersistentFlags().BoolVarP(&argGenProtobuf.generateGRPC, "grpc", "", false, "--grpc")
 }
 
 func protobufGenerate() error {
@@ -71,9 +74,8 @@ func protobufGenerate() error {
 	}
 
 	// 第二步：编译protobuf
-
-	outputPbDir := filepath.Join(srcDir, argGenProtobuf.outputDir, argGenProtobuf.outputPackage)
-	err = protocompile.New().Compile(protoDir, outputPbDir)
+	absOutputDir := filepath.Join(srcDir, argGenProtobuf.outputDir)
+	err = protocompile.New(protocompile.WithGRPC(argGenProtobuf.generateGRPC)).Compile(protoDir, absOutputDir, argGenProtobuf.outputPackage)
 	if err != nil {
 		return err
 	}

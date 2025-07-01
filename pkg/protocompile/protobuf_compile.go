@@ -12,18 +12,22 @@ import (
 )
 
 type ProtobufCompiler interface {
-	Compile(sourceProtoDir, outputPbDir string) error // 生成protobuf.pb文件
+	Compile(sourceProtoDir, outputDir, pkgName string) error // 生成protobuf.pb文件
 }
 
 type protobufCompilerImpl struct {
+	genGRPC bool
 }
 
 var (
 	allTools = []tools.Tool{
 		tools.Protoc(),
-		tools.ProtocGogoFaster(),
+		tools.ProtocGo(),
+		tools.ProtocGoGRPC(),
 	}
-	cmdProtocGen = `protoc --proto_path=%s --gogofaster_out=Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,:%s %s`
+	// cmdProtocGen = `protoc --proto_path=%s --gogofaster_out=Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,:%s %s`
+	cmdProtocGen     = `protoc --proto_path=%s %s --go_out=%s --go_opt=M%s=./%s`
+	cmdProtocGenGRPC = `--go-grpc_out=%s --go-grpc_opt=M%s=./%s`
 )
 
 func New(options ...Option) ProtobufCompiler {
@@ -34,7 +38,7 @@ func New(options ...Option) ProtobufCompiler {
 	return impl
 }
 
-func (impl *protobufCompilerImpl) Compile(sourceProtoDir, outputPbDir string) error {
+func (impl *protobufCompilerImpl) Compile(sourceProtoDir, outputDir, pkgName string) error {
 	if g.Debug {
 		fmt.Println("===> protobuf compiling...")
 	}
@@ -54,7 +58,7 @@ func (impl *protobufCompilerImpl) Compile(sourceProtoDir, outputPbDir string) er
 	}
 
 	// 创建输出目录
-	err = os.MkdirAll(outputPbDir, 0755)
+	err = os.MkdirAll(outputDir, 0755)
 	if err != nil {
 		return err
 	}
@@ -62,11 +66,21 @@ func (impl *protobufCompilerImpl) Compile(sourceProtoDir, outputPbDir string) er
 	for _, f := range protoFiles {
 		fmt.Printf("Compiling: %s\n", f)
 		// 构建 protoc 命令
-		cmd := fmt.Sprintf(cmdProtocGen, filepath.ToSlash(sourceProtoDir), filepath.ToSlash(outputPbDir), f)
+		cmds := []string{fmt.Sprintf(cmdProtocGen, filepath.ToSlash(sourceProtoDir), f, filepath.ToSlash(outputDir), f, pkgName)}
+		if impl.genGRPC {
+			cmds = append(cmds, fmt.Sprintf(cmdProtocGenGRPC, filepath.ToSlash(sourceProtoDir), f, pkgName))
+		}
+
+		command := strings.Join(cmds, " ")
+
+		if g.Debug {
+			fmt.Printf("==> command: %s\n", command)
+		}
+
 		// 执行编译
-		output, err := script.Exec(cmd).String()
+		output, err := script.Exec(command).String()
 		if err != nil {
-			fmt.Println(cmd)
+			fmt.Println(command)
 			return errors.Wrapf(err, "protoc编译失败, output: %s", output)
 		}
 	}

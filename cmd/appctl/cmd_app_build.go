@@ -10,6 +10,12 @@ import (
 )
 
 var (
+	argAppBuild = struct {
+		pbOutputDir     string
+		pbOutputPackage string
+		pbGenGRPC       bool
+	}{}
+
 	subCmdBuildApp = &cobra.Command{
 		Use:   "build [app1,app2...] [branch]",
 		Short: "build app",
@@ -24,6 +30,12 @@ var (
 	}
 )
 
+func init() {
+	subCmdBuildApp.PersistentFlags().StringVarP(&argAppBuild.pbOutputPackage, "package", "", "pb", "--package <package>")
+	subCmdBuildApp.PersistentFlags().StringVarP(&argAppBuild.pbOutputDir, "output-dir", "", "autogen", "relative output dir, --output-dir <sub_dir>")
+	subCmdBuildApp.PersistentFlags().BoolVarP(&argAppBuild.pbGenGRPC, "grpc", "", false, "--grpc")
+}
+
 func buildAllApp(args []string) {
 	if len(args) < 1 {
 		utils.Fatal("Usage: build [branch] --all")
@@ -37,7 +49,11 @@ func buildAllApp(args []string) {
 	}
 
 	for _, app := range g.Config.Project.Apps {
-		err = appctl.New(baseDir).Build(app, ref)
+		err = appctl.New(baseDir,
+			appctl.WithPbOutputDir(argAppBuild.pbOutputDir),
+			appctl.WithPbOutputPackage(argAppBuild.pbOutputPackage),
+			appctl.WithPbGRPC(argAppBuild.pbGenGRPC),
+		).Build(app, ref)
 		if err != nil {
 			utils.Fatal("stop app", err)
 		}
@@ -66,7 +82,11 @@ func buildApp(args []string) {
 	}
 
 	for _, app := range apps {
-		err = appctl.New(baseDir).Build(app, ref)
+		err = appctl.New(baseDir,
+			appctl.WithPbOutputDir(argAppBuild.pbOutputDir),
+			appctl.WithPbOutputPackage(argAppBuild.pbOutputPackage),
+			appctl.WithPbGRPC(argAppBuild.pbGenGRPC),
+		).Build(app, ref)
 		if err != nil {
 			utils.Fatal("build app", err)
 		}

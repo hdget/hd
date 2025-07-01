@@ -1,6 +1,5 @@
-version: "2"
-linters:
-  settings:
-    staticcheck:
-      checks:
-        - -github.com/jhump/protoreflect/desc/protoparse
+issues:
+  exclude-rules:
+    # 忽略 `github.com/jhump/protoreflect` 的 SA1019 警告
+    - linters: [staticcheck]
+      text: "SA1019:.*github.com/jhump/protoreflect"

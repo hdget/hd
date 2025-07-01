@@ -20,13 +20,20 @@ type appCtlImpl struct {
 	baseDir   string
 	binDir    string
 	absBinDir string
+	// builder options
+	pbOutputDir     string
+	pbOutputPackage string
+	pbGenGRPC       bool
 }
 
 func New(baseDir string, options ...Option) AppController {
 	impl := &appCtlImpl{
-		baseDir:   baseDir,
-		binDir:    "bin",
-		absBinDir: filepath.Join(baseDir, "bin"),
+		baseDir:         baseDir,
+		binDir:          "bin",
+		absBinDir:       filepath.Join(baseDir, "bin"),
+		pbOutputDir:     "autogen",
+		pbOutputPackage: "pb",
+		pbGenGRPC:       false,
 	}
 
 	for _, apply := range options {
@@ -78,13 +85,14 @@ func (a *appCtlImpl) Build(app string, ref string) error {
 	// 检查依赖的工具是否安装
 	if err := tools.Check(
 		tools.Protoc(),
-		tools.ProtocGogoFaster(),
+		tools.ProtocGo(),
+		tools.ProtocGoGRPC(),
 		tools.Sqlboiler(),
 	); err != nil {
 		return err
 	}
 
-	return newAppBuilder(a).build(app, ref)
+	return newAppBuilder(a, a.pbOutputDir, a.pbOutputPackage, a.pbGenGRPC).build(app, ref)
 }
 
 func (a *appCtlImpl) Stop(app string) error {
