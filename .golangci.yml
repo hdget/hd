@@ -1,6 +1,4 @@
-version: "2"
-linters:
-  settings:
-    staticcheck:
-      checks:
-        - -github.com/jhump/protoreflect/desc/protoparse
+linters-settings:
+  staticcheck:
+    checks:          # 自定义静态检查规则
+      - "-SA1019"    # 显式忽略 SA1019（如第三方弃用包）

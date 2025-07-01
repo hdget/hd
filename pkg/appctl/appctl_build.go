@@ -20,6 +20,7 @@ type appBuilder struct {
 	*appCtlImpl
 	pbOutputDir     string
 	pbOutputPackage string
+	pbGenGRPC       bool
 }
 
 const (
@@ -27,11 +28,12 @@ const (
 	gitConfigRepoName = "config"
 )
 
-func newAppBuilder(appCtl *appCtlImpl) *appBuilder {
+func newAppBuilder(appCtl *appCtlImpl, pbOutputDir, pbOutputPackage string, pbGenGRPC bool) *appBuilder {
 	return &appBuilder{
 		appCtlImpl:      appCtl,
-		pbOutputDir:     "autogen",
-		pbOutputPackage: "pb",
+		pbOutputDir:     pbOutputDir,
+		pbOutputPackage: pbOutputPackage,
+		pbGenGRPC:       pbGenGRPC,
 	}
 }
 
@@ -218,7 +220,7 @@ func (b *appBuilder) generateProtobuf(srcDir, refName string) error {
 	}
 
 	// 第二步：编译protobuf
-	err = protocompile.New().Compile(protoDir, filepath.Join(srcDir, b.pbOutputDir, b.pbOutputPackage))
+	err = protocompile.New(protocompile.WithGRPC(b.pbGenGRPC)).Compile(protoDir, filepath.Join(srcDir, b.pbOutputDir), b.pbOutputPackage)
 	if err != nil {
 		return err
 	}

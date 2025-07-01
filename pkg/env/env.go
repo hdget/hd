@@ -26,7 +26,9 @@ func Initialize() error {
 			return err
 		}
 	}
-	return godotenv.Load()
+	// 尝试加载.env
+	_ = godotenv.Load()
+	return nil
 }
 
 func GetHdEnv() (string, error) {
