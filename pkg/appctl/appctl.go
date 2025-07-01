@@ -85,7 +85,8 @@ func (a *appCtlImpl) Build(app string, ref string) error {
 	// 检查依赖的工具是否安装
 	if err := tools.Check(
 		tools.Protoc(),
-		tools.ProtocGogoFaster(),
+		tools.ProtocGo(),
+		tools.ProtocGoGRPC(),
 		tools.Sqlboiler(),
 	); err != nil {
 		return err

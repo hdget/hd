@@ -22,7 +22,8 @@ type protobufCompilerImpl struct {
 var (
 	allTools = []tools.Tool{
 		tools.Protoc(),
-		tools.ProtocGogoFaster(),
+		tools.ProtocGo(),
+		tools.ProtocGoGRPC(),
 	}
 	// cmdProtocGen = `protoc --proto_path=%s --gogofaster_out=Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,:%s %s`
 	cmdProtocGen     = `protoc --proto_path=%s %s --go_out=%s --go_opt=M%s=./%s`
