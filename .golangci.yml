@@ -1,4 +1,5 @@
-linters-settings:
-  staticcheck:
-    checks:          # 自定义静态检查规则
-      - "-SA1019"    # 显式忽略 SA1019（如第三方弃用包）
+issues:
+  exclude-rules:
+    # 忽略 `github.com/jhump/protoreflect` 的 SA1019 警告
+    - linters: [staticcheck]
+      text: "SA1019:.*github.com/jhump/protoreflect"
