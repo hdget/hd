@@ -13,9 +13,9 @@ func ProtocGogoFaster() Tool {
 }
 
 func (t *protocGogofasterTool) LinuxInstall() error {
-	return AllPlatform().GoInstall("github.com/gogo/protobuf/protoc-gen-gogofaster")
+	return AllPlatform().GoInstall("github.com/gogo/protobuf/protoc-gen-gogofaster@latest")
 }
 
 func (t *protocGogofasterTool) WindowsInstall() error {
-	return AllPlatform().GoInstall("github.com/gogo/protobuf/protoc-gen-gogofaster")
+	return AllPlatform().GoInstall("github.com/gogo/protobuf/protoc-gen-gogofaster@latest")
 }

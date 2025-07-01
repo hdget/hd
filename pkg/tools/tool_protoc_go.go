@@ -13,9 +13,9 @@ func ProtocGo() Tool {
 }
 
 func (t *protocGoTool) LinuxInstall() error {
-	return AllPlatform().GoInstall("google.golang.org/protobuf/cmd/protoc-gen-go")
+	return AllPlatform().GoInstall("google.golang.org/protobuf/cmd/protoc-gen-go@latest")
 }
 
 func (t *protocGoTool) WindowsInstall() error {
-	return AllPlatform().GoInstall("google.golang.org/protobuf/cmd/protoc-gen-go")
+	return AllPlatform().GoInstall("google.golang.org/protobuf/cmd/protoc-gen-go@latest")
 }
