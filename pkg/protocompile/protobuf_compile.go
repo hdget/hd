@@ -72,7 +72,9 @@ func (impl *protobufCompilerImpl) Compile(sourceProtoDir, outputDir, pkgName str
 
 		command := strings.Join(cmds, " ")
 
-		fmt.Println(command)
+		if g.Debug {
+			fmt.Printf("==> command: %s\n", command)
+		}
 
 		// 执行编译
 		output, err := script.Exec(command).String()
