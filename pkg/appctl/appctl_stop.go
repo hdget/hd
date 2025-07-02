@@ -8,9 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"net/http"
-	"os"
 	"runtime"
-	"syscall"
 	"time"
 )
 
@@ -36,26 +34,18 @@ func (impl *appStopperImpl) stop(app string) error {
 			return errors.Wrapf(err, "%s stop failed, err: %s", app, output)
 		}
 	case "linux", "darwin":
-		if err := impl.unixStopDaprd(app); err != nil {
-			return err
+		pids := impl.getDaprdPids(app)
+		for _, pid := range pids {
+			if g.Debug {
+				fmt.Printf("send terminal signal to: %d\n", pid)
+			}
+
+			if err := sendStopSignal(pid); err != nil {
+				return err
+			}
 		}
 	default:
 		return fmt.Errorf("stop on: %s not supported", platform)
-	}
-
-	return nil
-}
-
-func (impl *appStopperImpl) unixStopDaprd(app string) error {
-	pids := impl.getDaprdPids(app)
-	for _, pid := range pids {
-		if g.Debug {
-			fmt.Printf("send terminal signal to: %d\n", pid)
-		}
-
-		if err := impl.sendTermSignal(pid); err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -108,23 +98,5 @@ func (impl *appStopperImpl) deregister(client *http.Client, svcId string) error 
 		return err
 	}
 	_ = resp.Body.Close()
-	return nil
-}
-
-func (impl *appStopperImpl) sendTermSignal(pid int) error {
-	if pid == 0 {
-		return errors.New("invalid pid")
-	}
-
-	process, err := os.FindProcess(pid)
-	if err != nil {
-		return errors.Wrapf(err, "找不到进程, pid: %d", pid)
-	}
-
-	err = process.Signal(syscall.SIGTERM)
-	if err != nil {
-		return errors.Wrapf(err, "无法终止进程, pid: %d", pid)
-	}
-
 	return nil
 }
