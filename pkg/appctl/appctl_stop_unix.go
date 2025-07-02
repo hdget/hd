@@ -4,6 +4,7 @@ package appctl
 
 import (
 	"github.com/pkg/errors"
+	"syscall"
 	"os"
 )
 
