@@ -4,8 +4,8 @@ package appctl
 
 import (
 	"github.com/pkg/errors"
-	"syscall"
 	"os"
+	"syscall"
 )
 
 func sendStopSignal(pid int) error {
@@ -18,9 +18,15 @@ func sendStopSignal(pid int) error {
 		return errors.Wrapf(err, "找不到进程, pid: %d", pid)
 	}
 
-	err = process.Signal(syscall.SIGUSR1)
+	// 获取 PGID
+	pgid, err := syscall.Getpgid(process.Pid)
 	if err != nil {
-		return errors.Wrapf(err, "无法终止进程, pid: %d", pid)
+		return errors.Wrapf(err, "获取pgid失败, pid: %d", pid)
+	}
+
+	err = syscall.Kill(-pgid, syscall.SIGTERM) // 注意负号 `-pgid`
+	if err != nil {
+		return errors.Wrapf(err, "无法终止进程, pgid: %d", pgid)
 	}
 
 	return nil
