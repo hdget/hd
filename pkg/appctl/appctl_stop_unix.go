@@ -19,7 +19,7 @@ func sendStopSignal(pid int) error {
 	}
 
 	// 给APP发SIGUSR1标识stop信号
-	err := process.Signal(syscall.SIGUSR1)
+	err = process.Signal(syscall.SIGUSR1)
 	if err != nil {
 		return errors.Wrapf(err, "给APP发送退出信号, pid: %d", pid)
 	}
