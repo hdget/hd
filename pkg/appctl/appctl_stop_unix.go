@@ -3,6 +3,7 @@
 package appctl
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	"os"
 	"syscall"
@@ -34,6 +35,9 @@ func sendStopSignal(pid int) error {
 	if err != nil {
 		return errors.Wrapf(err, "无法终止进程, pid: %d", parentProcess.Pid)
 	}
+
+	fmt.Println("app:", process.Pid)
+	fmt.Println("daprd:", parentProcess.Pid)
 
 	return nil
 }
