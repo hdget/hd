@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cast"
 	"net/http"
 	"os"
+	"syscall"
 	"time"
 )
 
@@ -108,7 +109,7 @@ func (impl *appStopperImpl) kill(pid int) error {
 		return errors.Wrapf(err, "找不到进程, pid: %d", pid)
 	}
 
-	err = process.Kill()
+	err = process.Signal(syscall.SIGTERM)
 	if err != nil {
 		return errors.Wrapf(err, "无法终止进程, pid: %d", pid)
 	}
