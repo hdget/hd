@@ -31,7 +31,7 @@ func (impl *appStopperImpl) stop(app string) error {
 
 	switch platform := runtime.GOOS; platform {
 	case "windows":
-		output, err := script.Exec(fmt.Sprintf("dapr stop %s", impl.getAppId(app))).String()
+		output, err := script.Exec(fmt.Sprintf("dapr stop --app-id %s", impl.getAppId(app))).String()
 		if err != nil {
 			return errors.Wrapf(err, "%s stop failed, err: %s", app, output)
 		}
@@ -52,7 +52,7 @@ func (impl *appStopperImpl) unixStopDaprd(app string) error {
 		if g.Debug {
 			fmt.Printf("send terminal signal to: %d\n", pid)
 		}
-		
+
 		if err := impl.sendTermSignal(pid); err != nil {
 			return err
 		}
