@@ -34,7 +34,7 @@ func (impl *appStopperImpl) stop(app string) error {
 			return errors.Wrapf(err, "%s stop failed, err: %s", app, output)
 		}
 	case "linux", "darwin":
-		pids := impl.getDaprdPids(app)
+		pids := impl.getAppPids(app)
 		for _, pid := range pids {
 			if g.Debug {
 				fmt.Printf("send terminal signal to: %d\n", pid)
@@ -82,11 +82,11 @@ func (impl *appStopperImpl) getConsulRegisteredSvcIds(app string) []string {
 	return svcIds
 }
 
-func (impl *appStopperImpl) getDaprdPids(app string) []int {
-	daprdPids, _ := script.Exec("dapr list -o json").
-		JQ(fmt.Sprintf(".[] | select(.appId==\"%s\") | .daprdPid", impl.getAppId(app))).Slice()
+func (impl *appStopperImpl) getAppPids(app string) []int {
+	appPids, _ := script.Exec("dapr list -o json").
+		JQ(fmt.Sprintf(".[] | select(.appId==\"%s\") | .appPid", impl.getAppId(app))).Slice()
 
-	return pie.Map(daprdPids, func(v string) int {
+	return pie.Map(appPids, func(v string) int {
 		return cast.ToInt(v)
 	})
 }
