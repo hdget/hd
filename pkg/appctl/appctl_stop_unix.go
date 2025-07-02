@@ -3,6 +3,7 @@
 package appctl
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	"os"
 	"syscall"
@@ -23,6 +24,9 @@ func sendStopSignal(pid int) error {
 	if err != nil {
 		return errors.Wrapf(err, "获取pgid失败, pid: %d", pid)
 	}
+
+	fmt.Println("==pid:", pid)
+	fmt.Println("==pgid:", pgid)
 
 	err = syscall.Kill(-pgid, syscall.SIGTERM) // 注意负号 `-pgid`
 	if err != nil {
