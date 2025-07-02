@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cast"
 	"net/http"
 	"os"
+	"runtime"
 	"syscall"
 	"time"
 )
@@ -28,20 +29,31 @@ func (impl *appStopperImpl) stop(app string) error {
 		return err
 	}
 
-	if err := impl.stopDaprdApp(app); err != nil {
-		return err
+	switch platform := runtime.GOOS; platform {
+	case "windows":
+		output, err := script.Exec(fmt.Sprintf("dapr stop %s", impl.getAppId(app))).String()
+		if err != nil {
+			return errors.Wrapf(err, "%s stop failed, err: %s", app, output)
+		}
+	case "linux", "darwin":
+		if err := impl.unixStopDaprd(app); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("stop on: %s not supported", platform)
 	}
 
 	return nil
 }
 
-func (impl *appStopperImpl) stopDaprdApp(app string) error {
+func (impl *appStopperImpl) unixStopDaprd(app string) error {
 	pids := impl.getDaprdPids(app)
 	for _, pid := range pids {
 		if g.Debug {
-			fmt.Printf("kill dapr app: %d\n", pid)
+			fmt.Printf("send terminal signal to: %d\n", pid)
 		}
-		if err := impl.kill(pid); err != nil {
+		
+		if err := impl.sendTermSignal(pid); err != nil {
 			return err
 		}
 	}
@@ -99,7 +111,7 @@ func (impl *appStopperImpl) deregister(client *http.Client, svcId string) error 
 	return nil
 }
 
-func (impl *appStopperImpl) kill(pid int) error {
+func (impl *appStopperImpl) sendTermSignal(pid int) error {
 	if pid == 0 {
 		return errors.New("invalid pid")
 	}
