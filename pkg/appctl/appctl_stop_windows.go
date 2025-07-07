@@ -2,6 +2,6 @@
 
 package appctl
 
-func sendStopSignal(pid int) error {
+func sendStopSignal(daprdPid, appPid string) error {
 	return nil
 }
