@@ -44,7 +44,7 @@ func sendStopSignal(strDaprdPid, strAppPid string) error {
 	}
 
 	fmt.Println("app:", appProcess.Pid)
-	fmt.Println("daprd:", parentProcess.Pid)
+	fmt.Println("daprd:", daprdProcess.Pid)
 
 	return nil
 }
