@@ -3,12 +3,10 @@ package appctl
 import (
 	"fmt"
 	"github.com/bitfield/script"
-	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/hd/g"
 	"github.com/pkg/errors"
-	"github.com/spf13/cast"
 	"net/http"
-	"os"
+	"runtime"
 	"time"
 )
 
@@ -27,22 +25,32 @@ func (impl *appStopperImpl) stop(app string) error {
 		return err
 	}
 
-	if err := impl.stopDaprdApp(app); err != nil {
-		return err
-	}
+	switch platform := runtime.GOOS; platform {
+	case "windows": // windows下是强制终止
+		fmt.Println("IMPORTANT: the plugin process needs to be manually terminated!")
 
-	return nil
-}
-
-func (impl *appStopperImpl) stopDaprdApp(app string) error {
-	pids := impl.getDaprdPids(app)
-	for _, pid := range pids {
-		if g.Debug {
-			fmt.Printf("kill dapr app: %d\n", pid)
+		output, err := script.Exec(fmt.Sprintf("dapr stop --app-id %s", impl.getAppId(app))).String()
+		if err != nil {
+			return errors.Wrapf(err, "%s stop failed, err: %s", app, output)
 		}
-		if err := impl.kill(pid); err != nil {
+	case "linux", "darwin":
+		daprdPids, appPids, err := impl.getDaprRelatedPids(app)
+		if err != nil {
 			return err
 		}
+
+		for i := 0; i < len(daprdPids); i++ {
+			if g.Debug {
+				fmt.Printf("send stop signal to, daprdPid: %s, appPid: %s\n", daprdPids[i], appPids[i])
+			}
+
+			if err := sendStopSignal(daprdPids[i], appPids[i]); err != nil {
+				return err
+			}
+		}
+
+	default:
+		return fmt.Errorf("stop on: %s not supported", platform)
 	}
 
 	return nil
@@ -79,13 +87,18 @@ func (impl *appStopperImpl) getConsulRegisteredSvcIds(app string) []string {
 	return svcIds
 }
 
-func (impl *appStopperImpl) getDaprdPids(app string) []int {
+func (impl *appStopperImpl) getDaprRelatedPids(app string) ([]string, []string, error) {
 	daprdPids, _ := script.Exec("dapr list -o json").
 		JQ(fmt.Sprintf(".[] | select(.appId==\"%s\") | .daprdPid", impl.getAppId(app))).Slice()
 
-	return pie.Map(daprdPids, func(v string) int {
-		return cast.ToInt(v)
-	})
+	appPids, _ := script.Exec("dapr list -o json").
+		JQ(fmt.Sprintf(".[] | select(.appId==\"%s\") | .appPid", impl.getAppId(app))).Slice()
+
+	if len(daprdPids) != len(appPids) {
+		return nil, nil, errors.New("pids not match")
+	}
+
+	return daprdPids, appPids, nil
 }
 
 func (impl *appStopperImpl) deregister(client *http.Client, svcId string) error {
@@ -95,23 +108,5 @@ func (impl *appStopperImpl) deregister(client *http.Client, svcId string) error 
 		return err
 	}
 	_ = resp.Body.Close()
-	return nil
-}
-
-func (impl *appStopperImpl) kill(pid int) error {
-	if pid == 0 {
-		return errors.New("invalid pid")
-	}
-
-	process, err := os.FindProcess(pid)
-	if err != nil {
-		return errors.Wrapf(err, "找不到进程, pid: %d", pid)
-	}
-
-	err = process.Kill()
-	if err != nil {
-		return errors.Wrapf(err, "无法终止进程, pid: %d", pid)
-	}
-
 	return nil
 }

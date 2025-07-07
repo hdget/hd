@@ -92,7 +92,7 @@ func (impl *toolImpl) GetSystemBinDir() string {
 func (impl *toolImpl) run(cmd string) error {
 	output, err := script.Exec(cmd).String()
 	if err != nil {
-		return errors.Wrapf(err, "%s install failed, err: %s", impl.name, output)
+		return errors.Wrapf(err, "%s run command failed, err: %s", impl.name, output)
 	}
 	return nil
 }
