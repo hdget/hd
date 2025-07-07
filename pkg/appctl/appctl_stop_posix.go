@@ -24,9 +24,9 @@ func sendStopSignal(strDaprdPid, strAppPid string) error {
 
 	// 给app进程发SIGUSR1标识stop信号
 	if process, _ := os.FindProcess(appPid); process != nil {
-		err := process.Signal(syscall.SIGUSR1)
+		err := process.Signal(syscall.SIGTERM)
 		if err != nil {
-			return errors.Wrapf(err, "send app process stop signal, pid: %d", appPid)
+			return errors.Wrapf(err, "send app process terminal signal, pid: %d", appPid)
 		}
 
 		// 等待app stop
