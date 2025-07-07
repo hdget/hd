@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+const (
+	appQuitCountdown = 3
+)
+
 func sendStopSignal(strDaprdPid, strAppPid string) error {
 	daprdPid, appPid := cast.ToInt(strDaprdPid), cast.ToInt(strAppPid)
 
@@ -30,7 +34,10 @@ func sendStopSignal(strDaprdPid, strAppPid string) error {
 	}
 
 	// 等待app stop
-	time.Sleep(3 * time.Second)
+	for i := appQuitCountdown; i > 0; i-- {
+		fmt.Printf("等待APP退出: %d 秒\n", i)
+		time.Sleep(1 * time.Second) // 阻塞 1 秒
+	}
 
 	// 给daprd发送stop信号
 	daprdProcess, err := os.FindProcess(daprdPid)
