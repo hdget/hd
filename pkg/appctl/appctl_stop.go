@@ -27,7 +27,9 @@ func (impl *appStopperImpl) stop(app string) error {
 
 	switch platform := runtime.GOOS; platform {
 	case "windows": // windows下是强制终止
-		fmt.Println("IMPORTANT: plugin processes will not quit automatically, please terminate them manually!")
+		fmt.Println("IMPORTANT: plugin processes need terminate them manually!")
+		fmt.Println("")
+
 		output, err := script.Exec(fmt.Sprintf("dapr stop --app-id %s", impl.getAppId(app))).String()
 		if err != nil {
 			return errors.Wrapf(err, "%s stop failed, err: %s", app, output)
