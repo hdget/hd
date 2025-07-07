@@ -24,13 +24,13 @@ func sendStopSignal(strDaprdPid, strAppPid string) error {
 
 	appProcess, err := os.FindProcess(appPid)
 	if err != nil {
-		return errors.Wrapf(err, "找不到APP进程, pid: %d", appPid)
+		return errors.Wrapf(err, "find app process, pid: %d", appPid)
 	}
 
 	// 给app进程发SIGUSR1标识stop信号
 	err = appProcess.Signal(syscall.SIGUSR1)
 	if err != nil {
-		return errors.Wrapf(err, "APP进程发送退出信号, pid: %d", appPid)
+		return errors.Wrapf(err, "send app process stop signal, pid: %d", appPid)
 	}
 
 	// 等待app stop
@@ -42,12 +42,12 @@ func sendStopSignal(strDaprdPid, strAppPid string) error {
 	// 给daprd发送stop信号
 	daprdProcess, err := os.FindProcess(daprdPid)
 	if err != nil {
-		return errors.Wrapf(err, "找不到Daprd进程, pid: %d", daprdPid)
+		return errors.Wrapf(err, "find daprd process, pid: %d", daprdPid)
 	}
 
 	err = daprdProcess.Signal(syscall.SIGTERM)
 	if err != nil {
-		return errors.Wrapf(err, "Daprd进程发送退出信号, pid: %d", daprdPid)
+		return errors.Wrapf(err, "send daprd process terminal signal, pid: %d", daprdPid)
 	}
 
 	fmt.Println("app:", appProcess.Pid)
