@@ -35,7 +35,7 @@ func sendStopSignal(strDaprdPid, strAppPid string) error {
 
 	// 等待app stop
 	for i := appQuitCountdown; i > 0; i-- {
-		fmt.Printf("等待APP退出: %d 秒\n", i)
+		fmt.Printf("wait app stop: %d second\n", i)
 		time.Sleep(1 * time.Second) // 阻塞 1 秒
 	}
 
