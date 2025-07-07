@@ -37,7 +37,7 @@ func sendStopSignal(strDaprdPid, strAppPid string) error {
 
 	// 给daprd发送stop信号
 	if process, _ := os.FindProcess(daprdPid); process != nil {
-		err = daprdProcess.Signal(syscall.SIGTERM)
+		err = process.Signal(syscall.SIGTERM)
 		if err != nil {
 			return errors.Wrapf(err, "send daprd process terminal signal, pid: %d", daprdPid)
 		}
