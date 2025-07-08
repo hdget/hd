@@ -102,7 +102,7 @@ func IsDirWritable(path string) error {
 }
 
 // FindDirContainingFiles 查找包含指定文件的目录, 返回目录名
-func FindDirContainingFiles(srcDir string, matchFiles []string, skipDirs ...string) (string, error) {
+func FindDirContainingFiles(srcDir string, repoIdentifyFiles []string, skipDirs ...string) (string, error) {
 	// 记录所有已检查过的目录，防止二次检查
 	visitedDirs := map[string]struct{}{}
 
@@ -130,7 +130,7 @@ func FindDirContainingFiles(srcDir string, matchFiles []string, skipDirs ...stri
 				}
 
 				// 检查当前目录是否包含所有指定文件
-				if containsAllFiles(path, matchFiles) {
+				if containsAllFiles(path, repoIdentifyFiles) {
 					foundDir = path
 					return fs.SkipAll
 				}
@@ -150,7 +150,7 @@ func FindDirContainingFiles(srcDir string, matchFiles []string, skipDirs ...stri
 	}
 
 	if foundDir == "" {
-		return "", fmt.Errorf("no matched dir found, files: %+v", matchFiles)
+		return "", fmt.Errorf("no matched dir found, files: %+v", repoIdentifyFiles)
 	}
 	return foundDir, nil
 }

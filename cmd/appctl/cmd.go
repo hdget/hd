@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	argAll  bool // 是否操作所有app
-	Command = &cobra.Command{
+	argAll          bool // 是否操作所有app
+	argBinOutputDir string
+	Command         = &cobra.Command{
 		Use: "app",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			initialize()
@@ -21,6 +22,8 @@ var (
 
 func init() {
 	Command.PersistentFlags().BoolVarP(&argAll, "all", "a", false, "--all")
+	// app二进制文件的保存目录
+	Command.PersistentFlags().StringVarP(&argBinOutputDir, "bin-dir", "", "bin", "relative app binary output dir, --bin-dir [dir]")
 
 	Command.AddCommand(subCmdBuildApp)
 	Command.AddCommand(subCmdDeployApp)
