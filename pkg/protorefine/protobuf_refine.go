@@ -59,7 +59,7 @@ func (impl *protoRefineImpl) Refine(arg Argument) (string, error) {
 	}
 
 	if len(golangTypeNames) == 0 {
-		return "", fmt.Errorf("golang protobuf type reference not found")
+		return "", fmt.Errorf("golang protobuf type references not found, you may add import entry '<module>/autogen/pb'")
 	}
 
 	// 去匹配proto文件中和源文件中匹配的类型的声明

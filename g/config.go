@@ -14,6 +14,12 @@ type ProjectConfig struct {
 }
 
 type RepoConfig struct {
+	Name    string         `toml:"name"`
+	Url     string         `toml:"url"`
+	Plugins []PluginConfig `toml:"plugins"`
+}
+
+type PluginConfig struct {
 	Name string `toml:"name"`
 	Url  string `toml:"url"`
 }

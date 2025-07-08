@@ -91,11 +91,11 @@ func (b *appBuilder) build(app, refName string) error {
 		return err
 	}
 
-	// go build
+	// go build app
 	if g.Debug {
 		fmt.Println("===> build step: go build")
 	}
-	if err := b.golangBuild(appSrcDir, app, gitBuildInfo); err != nil {
+	if err := b.golangAppBuild(appSrcDir, app, gitBuildInfo); err != nil {
 		return err
 	}
 
@@ -114,7 +114,7 @@ func (b *appBuilder) getBuildLdflags(app string, info *gitInfo) string {
 	return strings.Join(ldflags, " ")
 }
 
-func (b *appBuilder) golangBuild(appSrcDir, app string, gitBuildInfo *gitInfo) error {
+func (b *appBuilder) golangAppBuild(appSrcDir, app string, gitBuildInfo *gitInfo) error {
 	// 切换到app源代码目录
 	err := os.Chdir(appSrcDir)
 	if err != nil {
@@ -140,10 +140,10 @@ func (b *appBuilder) golangBuild(appSrcDir, app string, gitBuildInfo *gitInfo) e
 	}
 
 	// move binary to binDir
-	if err = os.MkdirAll(b.absBinDir, 0755); err != nil {
-		return errors.Wrapf(err, "make bin dir, binDir: %s", b.absBinDir)
+	if err = os.MkdirAll(b.getBinOutputDir(), 0755); err != nil {
+		return errors.Wrapf(err, "make bin dir, binDir: %s", b.getBinOutputDir())
 	}
-	if err = utils.CopyFile(binFile, filepath.Join(b.absBinDir, binFile)); err != nil {
+	if err = utils.CopyFile(binFile, filepath.Join(b.getBinOutputDir(), binFile)); err != nil {
 		return err
 	}
 

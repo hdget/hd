@@ -30,6 +30,10 @@ var (
 	}
 )
 
+const (
+	protoRepoIdentifier = ".HD_PROTO_REPO" // 用来标识proto仓库所在的位置
+)
+
 func init() {
 	subCmdGenProtobuf.PersistentFlags().StringVarP(&argGenProtobuf.outputPackage, "package", "", "pb", "--package <package>")
 	subCmdGenProtobuf.PersistentFlags().StringVarP(&argGenProtobuf.outputDir, "output-dir", "", "autogen", "relative output dir, --output-dir <sub_dir>")
@@ -50,8 +54,7 @@ func protobufGenerate() error {
 	}
 
 	// 尝试找到proto repository
-	matchFiles := []string{fmt.Sprintf("%s.proto", filepath.Base(rootGolangModule))}
-	protoRepository, err := utils.FindDirContainingFiles(srcDir, matchFiles, filepath.Join(srcDir, argGenProtobuf.outputDir))
+	protoRepository, err := utils.FindDirContainingFiles(srcDir, []string{protoRepoIdentifier}, filepath.Join(srcDir, argGenProtobuf.outputDir))
 	if err != nil {
 		return err
 	}

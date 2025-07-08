@@ -12,8 +12,10 @@ import (
 var (
 	argAppBuild = struct {
 		pbOutputDir     string
+		pluginOutputDir string
 		pbOutputPackage string
 		pbGenGRPC       bool
+		plugins         []string
 	}{}
 
 	subCmdBuildApp = &cobra.Command{
@@ -31,9 +33,16 @@ var (
 )
 
 func init() {
-	subCmdBuildApp.PersistentFlags().StringVarP(&argAppBuild.pbOutputPackage, "package", "", "pb", "--package <package>")
-	subCmdBuildApp.PersistentFlags().StringVarP(&argAppBuild.pbOutputDir, "output-dir", "", "autogen", "relative output dir, --output-dir <sub_dir>")
+	// protobuf编译后的包名
+	subCmdBuildApp.PersistentFlags().StringVarP(&argAppBuild.pbOutputPackage, "pb-package", "", "pb", "--pb-package [package_name]]")
+	// protobuf编译后的目录
+	subCmdBuildApp.PersistentFlags().StringVarP(&argAppBuild.pbOutputDir, "pb-dir", "", "autogen", "relative pb output dir, --pb-dir [dir]")
+	// 是否要输出grpc
 	subCmdBuildApp.PersistentFlags().BoolVarP(&argAppBuild.pbGenGRPC, "grpc", "", false, "--grpc")
+	// 指定编译哪个plugin
+	subCmdBuildApp.PersistentFlags().StringSliceVarP(&argAppBuild.plugins, "plugins", "", nil, "--plugins [plugin1,plugin2...]")
+	// plugin编译输出到哪个目录
+	subCmdBuildApp.PersistentFlags().StringVarP(&argAppBuild.pluginOutputDir, "plugin-dir", "", "plugins", "relative plugin output dir, --plugin-dir [dir]")
 }
 
 func buildAllApp(args []string) {
@@ -49,13 +58,17 @@ func buildAllApp(args []string) {
 	}
 
 	for _, app := range g.Config.Project.Apps {
-		err = appctl.New(baseDir,
+		err = appctl.New(
+			baseDir,
+			appctl.WithBinOutputDir(argBinOutputDir),
+			appctl.WithPluginOutputDir(argAppBuild.pluginOutputDir),
+			appctl.WithPlugins(argAppBuild.plugins),
 			appctl.WithPbOutputDir(argAppBuild.pbOutputDir),
 			appctl.WithPbOutputPackage(argAppBuild.pbOutputPackage),
 			appctl.WithPbGRPC(argAppBuild.pbGenGRPC),
 		).Build(app, ref)
 		if err != nil {
-			utils.Fatal("stop app", err)
+			utils.Fatal("build", err)
 		}
 	}
 }
@@ -83,12 +96,15 @@ func buildApp(args []string) {
 
 	for _, app := range apps {
 		err = appctl.New(baseDir,
+			appctl.WithBinOutputDir(argBinOutputDir),
+			appctl.WithPluginOutputDir(argAppBuild.pluginOutputDir),
+			appctl.WithPlugins(argAppBuild.plugins),
 			appctl.WithPbOutputDir(argAppBuild.pbOutputDir),
 			appctl.WithPbOutputPackage(argAppBuild.pbOutputPackage),
 			appctl.WithPbGRPC(argAppBuild.pbGenGRPC),
 		).Build(app, ref)
 		if err != nil {
-			utils.Fatal("build app", err)
+			utils.Fatal("build", err)
 		}
 	}
 

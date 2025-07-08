@@ -24,6 +24,19 @@ var (
 	}
 )
 
+func init() {
+	// protobuf编译后的包名
+	subCmdDeployApp.PersistentFlags().StringVarP(&argAppBuild.pbOutputPackage, "pb-package", "", "pb", "--pb-package [package_name]]")
+	// protobuf编译后的目录
+	subCmdDeployApp.PersistentFlags().StringVarP(&argAppBuild.pbOutputDir, "pb-dir", "", "autogen", "relative pb output dir, --pb-dir [dir]")
+	// 是否要输出grpc
+	subCmdDeployApp.PersistentFlags().BoolVarP(&argAppBuild.pbGenGRPC, "grpc", "", false, "--grpc")
+	// 指定编译哪个plugin
+	subCmdDeployApp.PersistentFlags().StringSliceVarP(&argAppBuild.plugins, "plugins", "", nil, "--plugins [plugin1,plugin2...]")
+	// plugin编译输出到哪个目录
+	subCmdDeployApp.PersistentFlags().StringVarP(&argAppBuild.pluginOutputDir, "plugin-dir", "", "plugins", "relative plugin output dir, --plugin-dir [dir]")
+}
+
 func deployAllApp(args []string) {
 	if len(args) < 1 {
 		utils.Fatal("Usage: deploy [branch] --all")
@@ -39,27 +52,36 @@ func deployAllApp(args []string) {
 		utils.Fatal("get current dir", err)
 	}
 
-	ctl := appctl.New(baseDir)
-
 	for _, app := range pie.Reverse(g.Config.Project.Apps) {
-		err = ctl.Stop(app)
+		err = appctl.New(baseDir).Stop(app)
 		if err != nil {
 			utils.Fatal("stop app", err)
 		}
 	}
 
 	for _, app := range g.Config.Project.Apps {
-		err = ctl.Build(app, ref)
+		err = appctl.New(
+			baseDir,
+			appctl.WithBinOutputDir(argBinOutputDir),
+			appctl.WithPluginOutputDir(argAppBuild.pluginOutputDir),
+			appctl.WithPlugins(argAppBuild.plugins),
+			appctl.WithPbOutputDir(argAppBuild.pbOutputDir),
+			appctl.WithPbOutputPackage(argAppBuild.pbOutputPackage),
+			appctl.WithPbGRPC(argAppBuild.pbGenGRPC),
+		).Build(app, ref)
 		if err != nil {
 			utils.Fatal("build app", err)
 		}
 
-		err = ctl.Install(app, ref)
+		err = appctl.New(baseDir).Install(app, ref)
 		if err != nil {
 			utils.Fatal("install app", err)
 		}
 
-		err = ctl.Start(app)
+		err = appctl.New(
+			baseDir,
+			appctl.WithBinOutputDir(argBinOutputDir),
+		).Start(app)
 		if err != nil {
 			utils.Fatal("start app", err)
 		}
@@ -91,39 +113,36 @@ func deployApp(args []string) {
 		extraParam = strings.Join(os.Args[5:], " ")
 	}
 
-	ctl := appctl.New(baseDir)
-
 	for _, app := range apps {
-		err = ctl.Stop(app)
+		err = appctl.New(baseDir).Stop(app)
 		if err != nil {
 			utils.Fatal("stop app", err)
 		}
 
-		err = ctl.Build(app, ref)
+		err = appctl.New(
+			baseDir,
+			appctl.WithBinOutputDir(argBinOutputDir),
+			appctl.WithPluginOutputDir(argAppBuild.pluginOutputDir),
+			appctl.WithPlugins(argAppBuild.plugins),
+			appctl.WithPbOutputDir(argAppBuild.pbOutputDir),
+			appctl.WithPbOutputPackage(argAppBuild.pbOutputPackage),
+			appctl.WithPbGRPC(argAppBuild.pbGenGRPC),
+		).Build(app, ref)
 		if err != nil {
 			utils.Fatal("build app", err)
 		}
 
-		err = ctl.Install(app, ref)
+		err = appctl.New(baseDir).Install(app, ref)
 		if err != nil {
 			utils.Fatal("install app", err)
 		}
 
-		err = ctl.Start(app, extraParam)
+		err = appctl.New(
+			baseDir,
+			appctl.WithBinOutputDir(argBinOutputDir),
+		).Start(app, extraParam)
 		if err != nil {
 			utils.Fatal("start app", err)
 		}
 	}
 }
-
-//
-//func runWindowsCommand(dir string) {
-//	decoder := simplifiedchinese.GBK.NewDecoder()
-//
-//	n, err := script.Exec(fmt.Sprintf(`cmd /c dir %s`, filepath.Dir(dir))).WithStdout(transform.NewWriter(os.Stdout, decoder)).Stdout()
-//	if err != nil {
-//		fmt.Println(err)
-//		os.Exit(1)
-//	}
-//	fmt.Println(n)
-//}

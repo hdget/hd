@@ -52,7 +52,10 @@ func restartApp(args []string) {
 			utils.Fatal("stop app", err)
 		}
 
-		err = appctl.New(baseDir).Start(app, extraParam)
+		err = appctl.New(
+			baseDir,
+			appctl.WithBinOutputDir(argBinOutputDir),
+		).Start(app, extraParam)
 		if err != nil {
 			utils.Fatal("start app", err)
 		}

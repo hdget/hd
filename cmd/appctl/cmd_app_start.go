@@ -33,7 +33,10 @@ func startAllApp() {
 	}
 
 	for _, app := range g.Config.Project.Apps {
-		err = appctl.New(baseDir).Start(app)
+		err = appctl.New(
+			baseDir,
+			appctl.WithBinOutputDir(argBinOutputDir),
+		).Start(app)
 		if err != nil {
 			utils.Fatal("start app", err)
 		}
@@ -62,7 +65,10 @@ func startApp(args []string) {
 	}
 
 	for _, app := range apps {
-		err = appctl.New(baseDir).Start(app, extraParam)
+		err = appctl.New(
+			baseDir,
+			appctl.WithBinOutputDir(argBinOutputDir),
+		).Start(app, extraParam)
 		if err != nil {
 			utils.Fatal("start app", err)
 		}
