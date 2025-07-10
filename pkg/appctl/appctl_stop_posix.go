@@ -4,11 +4,9 @@ package appctl
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"os"
 	"syscall"
-	"time"
 )
 
 const (
@@ -26,13 +24,12 @@ func sendStopSignal(strDaprdPid, strAppPid string) error {
 	if process, _ := os.FindProcess(appPid); process != nil {
 		err := process.Signal(syscall.SIGTERM)
 		if err != nil {
-			return errors.Wrapf(err, "send app process terminal signal, pid: %d", appPid)
-		}
-
-		// 等待app stop
-		for i := appQuitCountdown; i > 0; i-- {
-			fmt.Printf("wait app stop: %d seconds\n", i)
-			time.Sleep(1 * time.Second) // 阻塞 1 秒
+			fmt.Printf("send app process terminal signal, pid: %d, err: %v\n", appPid, err)
+		} else { // 等待app stop
+			for i := appQuitCountdown; i > 0; i-- {
+				fmt.Printf("wait app stop: %d seconds\n", i)
+				time.Sleep(1 * time.Second) // 阻塞 1 秒
+			}
 		}
 	}
 
@@ -40,7 +37,7 @@ func sendStopSignal(strDaprdPid, strAppPid string) error {
 	if process, _ := os.FindProcess(daprdPid); process != nil {
 		err := process.Signal(syscall.SIGTERM)
 		if err != nil {
-			return errors.Wrapf(err, "send daprd process terminal signal, pid: %d", daprdPid)
+			fmt.Printf("send daprd process terminal signal, pid: %d, err: %v\n", daprdPid, err)
 		}
 	}
 
