@@ -49,7 +49,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	_, _ = fmt.Fprintf(os.Stdout, "downloading: %s\n", url)
 
 	client := resty.New().
-		SetTimeout(30 * time.Second).
+		SetTimeout(120 * time.Second).
 		SetRetryCount(3).
 		SetRetryWaitTime(5 * time.Second).
 		SetRedirectPolicy(resty.FlexibleRedirectPolicy(5)) // 跟随最多5次重定向

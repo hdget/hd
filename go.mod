@@ -1,9 +1,6 @@
 module github.com/hdget/hd
 
 go 1.23.1
-
-toolchain go1.23.7
-
 require (
 	github.com/BurntSushi/toml v1.5.0
 	github.com/bitfield/script v0.24.1
