@@ -260,6 +260,7 @@ func (p *protoParser) splitWords(input string) []string {
 		// if name is snake case (例如：my_variable_name)
 		words = strings.Split(input, "_")
 	} else {
+		// e,g: SPUCuboid => SPU, Cuboid
 		start := 0
 		for i := 0; i < len(input); i++ {
 			// 遍历至字符串末尾或倒数第二个字符
