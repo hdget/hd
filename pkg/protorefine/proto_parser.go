@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"unicode"
 )
@@ -261,11 +260,31 @@ func (p *protoParser) splitWords(input string) []string {
 		// if name is snake case (例如：my_variable_name)
 		words = strings.Split(input, "_")
 	} else {
-		reg := regexp.MustCompile(`([a-z])([A-Z])`)
-		spaceSeparated := reg.ReplaceAllString(input, `${1} ${2}`)
+		// e,g: SPUCuboid => SPU, Cuboid
+		start := 0
+		for i := 0; i < len(input); i++ {
+			// 遍历至字符串末尾或倒数第二个字符
+			if i == len(input)-1 {
+				words = append(words, input[start:])
+				break
+			}
 
-		// 使用 strings.Fields 分隔成单词
-		words = strings.Fields(spaceSeparated)
+			current := rune(input[i])
+			next := rune(input[i+1])
+
+			// 规则1：当前小写且下一个大写 → 分割点（如 "Cuboid" 后接 "N" → "Cuboid N"）
+			if unicode.IsLower(current) && unicode.IsUpper(next) {
+				words = append(words, input[start:i+1])
+				start = i + 1
+				continue
+			}
+
+			// 规则2：当前大写且下一个非大写 → 分割点（如 "SPU" 后接 "c" → "SPU c"）
+			if i > start && unicode.IsUpper(current) && !unicode.IsUpper(next) {
+				words = append(words, input[start:i])
+				start = i
+			}
+		}
 	}
 	return words
 }
