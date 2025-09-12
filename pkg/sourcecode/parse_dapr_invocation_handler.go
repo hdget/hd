@@ -2,14 +2,15 @@ package sourcecode
 
 import (
 	"fmt"
-	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/common/protobuf"
 	"go/ast"
 	"go/token"
 	"maps"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/elliotchance/pie/v2"
+	"github.com/hdget/common/protobuf"
 )
 
 var (
@@ -31,7 +32,7 @@ var (
 	// 模块初始化的调用签名
 	moduleNewCall = &callSignature{
 		functionChain: "NewInvocationModule",
-		pkg:           "github.com/hdget/sdk/dapr",
+		pkg:           "github.com/hdget/sdk/dapr/module",
 		argCount:      3,
 	}
 
