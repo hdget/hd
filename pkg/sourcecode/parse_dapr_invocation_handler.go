@@ -2,26 +2,27 @@ package sourcecode
 
 import (
 	"fmt"
-	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/common/protobuf"
 	"go/ast"
 	"go/token"
 	"maps"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/elliotchance/pie/v2"
+	"github.com/hdget/common/protobuf"
 )
 
 var (
-	// invocation handler: func((context.Context, *common.InvocationEvent) (any, error)
-	invocationHandlerSignature = &functionSignature{
+	// 调用函数的函数签名：invocation handler: func(biz.Context,[]byte) (any, error)
+	signatureInvocationHandler = &functionSignature{
 		namePattern: regexp.MustCompile(`.*Handler`),
-		params:      []string{"context.Context", "*common.InvocationEvent"},
+		params:      []string{"biz.Context", "[]byte"},
 		results:     []string{"any", "error"},
 	}
 
-	// 模块注册的调用签名
-	//moduleRegisterCall = &callSignature{
+	// 模块注册的调用签名, e,g:
+	// moduleRegisterCall = &callSignature{
 	//	functionChain: "Register",
 	//	argCount:      2,
 	//	argIndex2Signature: map[int]string{
@@ -29,9 +30,9 @@ var (
 	//	},
 	//}
 	// 模块初始化的调用签名
-	moduleNewCall = &callSignature{
+	signatureNewInvocationModule = &callSignature{
 		functionChain: "NewInvocationModule",
-		pkg:           "github.com/hdget/sdk/dapr",
+		pkg:           "github.com/hdget/sdk/dapr/module",
 		argCount:      3,
 	}
 
@@ -116,7 +117,7 @@ func (p *parserImpl) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath s
 
 	// 函数签名匹配
 	// func(ctx context.Context, event *common.InvocationEvent) (*common.Content, any)
-	if astMatchFunction(fn, invocationHandlerSignature) {
+	if astMatchFunction(fn, signatureInvocationHandler) {
 		annotations, comments := p.extractAnnotationsAndComments(fn.Doc)
 
 		pkgRelPath, _ := filepath.Rel(srcDir, filepath.Dir(filePath))
@@ -238,7 +239,7 @@ func (p *parserImpl) parseInvocationHandlerAlias(n *ast.FuncDecl, pkgRelPath str
 	ast.Inspect(n.Body, func(n ast.Node) bool {
 		switch nn := n.(type) {
 		case *ast.CallExpr:
-			if astMatchCall(nn, moduleNewCall, caller2pkgImportPath) && len(nn.Args) == 3 {
+			if astMatchCall(nn, signatureNewInvocationModule, caller2pkgImportPath) && len(nn.Args) == 3 {
 				// 处理map参数（直接内联或通过变量传递）
 				switch param := nn.Args[2].(type) {
 				case *ast.CompositeLit: // 直接内联map
