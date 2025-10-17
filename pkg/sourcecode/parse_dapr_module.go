@@ -51,12 +51,12 @@ func (p *parserImpl) parseDaprModules() ([]*parsedDaprModuleInfo, error) {
 // 判断结构声明中的field类型是否出现在moduleExpr2moduleKind中，如果出现了，说明类似下面的type声明找到了
 //
 //	type v1_example struct {
-//		dapr.InvocationModule
+//		module.InvocationModule
 //	}
 func (p *parserImpl) parseDaprModule(structName string, astStructType *ast.StructType, srcDir, path string) *parsedDaprModuleInfo {
 	// 检查第一个field是否是匿名引入的模块，
 	// e,g: type A struct {
-	//	daprmodule.InvocationModule
+	//	module.InvocationModule
 	//}
 	for _, field := range astStructType.Fields.List {
 		// 匿名字段Names为空

@@ -2,9 +2,6 @@ package sourcecode
 
 import (
 	"fmt"
-	"github.com/hdget/common/protobuf"
-	"github.com/hdget/hd/g"
-	"github.com/pkg/errors"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -13,6 +10,10 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/hdget/common/protobuf"
+	"github.com/hdget/hd/g"
+	"github.com/pkg/errors"
 )
 
 type Parser interface {
@@ -79,6 +80,7 @@ func (p *parserImpl) Parse() (*sourceCodeInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	
 	if g.Debug {
 		fmt.Println("found handlers")
 		for _, m := range daprModules {

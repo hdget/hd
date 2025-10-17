@@ -14,7 +14,7 @@ func Test_sourceCodeHandlerImpl_Handle(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			srcDir := "D://Codes//template//backend//base"
+			srcDir := "D://Codes//witlink//backend//usercenter"
 
 			if err := New(srcDir, WithSkipDirs("autogen")).Handle(); (err != nil) != tt.wantErr {
 				t.Errorf("Handle() error = %v, wantErr %v", err, tt.wantErr)

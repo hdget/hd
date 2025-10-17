@@ -14,15 +14,15 @@ import (
 )
 
 var (
-	// invocation handler: func((context.Context, *common.InvocationEvent) (any, error)
+	// 调用函数的函数签名：invocation handler: func(biz.Context,[]byte) (any, error)
 	invocationHandlerSignature = &functionSignature{
 		namePattern: regexp.MustCompile(`.*Handler`),
-		params:      []string{"context.Context", "*common.InvocationEvent"},
+		params:      []string{"biz.Context", "[]byte"},
 		results:     []string{"any", "error"},
 	}
 
-	// 模块注册的调用签名
-	//moduleRegisterCall = &callSignature{
+	// 模块注册的调用签名, e,g:
+	// moduleRegisterCall = &callSignature{
 	//	functionChain: "Register",
 	//	argCount:      2,
 	//	argIndex2Signature: map[int]string{
@@ -30,7 +30,7 @@ var (
 	//	},
 	//}
 	// 模块初始化的调用签名
-	moduleNewCall = &callSignature{
+	newModuleSignature = &callSignature{
 		functionChain: "NewInvocationModule",
 		pkg:           "github.com/hdget/sdk/dapr/module",
 		argCount:      3,
@@ -239,7 +239,7 @@ func (p *parserImpl) parseInvocationHandlerAlias(n *ast.FuncDecl, pkgRelPath str
 	ast.Inspect(n.Body, func(n ast.Node) bool {
 		switch nn := n.(type) {
 		case *ast.CallExpr:
-			if astMatchCall(nn, moduleNewCall, caller2pkgImportPath) && len(nn.Args) == 3 {
+			if astMatchCall(nn, newModuleSignature, caller2pkgImportPath) && len(nn.Args) == 3 {
 				// 处理map参数（直接内联或通过变量传递）
 				switch param := nn.Args[2].(type) {
 				case *ast.CompositeLit: // 直接内联map
