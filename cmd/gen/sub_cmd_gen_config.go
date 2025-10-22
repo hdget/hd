@@ -2,13 +2,12 @@ package gen
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"text/template"
-
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
+	"os"
+	"path/filepath"
+	"text/template"
 )
 
 var (
