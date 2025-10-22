@@ -2,15 +2,14 @@ package appctl
 
 import (
 	"fmt"
-	"path/filepath"
-	"runtime"
-	"strings"
-
 	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/tools"
 	"github.com/pkg/errors"
+	"path/filepath"
+	"runtime"
+	"strings"
 )
 
 type AppController interface {
