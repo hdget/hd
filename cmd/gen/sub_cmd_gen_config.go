@@ -22,7 +22,7 @@ var (
 
 const (
 	configTemplate = `[project]
-    # project name, will be used as HD_NAMESPACE environment variable
+    # project name, which will use HD_NAMESPACE environment variable
     name = "{{.Project.Name}}"
     # running environment
     env = "{{.Project.Env}}"
@@ -33,7 +33,7 @@ const (
 
 # repos
 #[[repos]]
-#    # ususally it is the same as app name
+#    # usually it is the same as app name
 #    name = "example_repo"
 #    # git repo url
 #    url = "https://github.com/repo/example"

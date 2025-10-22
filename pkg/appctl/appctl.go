@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 type AppController interface {
@@ -30,6 +31,10 @@ type appCtlImpl struct {
 	pluginDir string
 	plugins   []string
 }
+
+const (
+	namespaceAppSeparator = "-"
+)
 
 func New(baseDir string, options ...Option) AppController {
 	impl := &appCtlImpl{
@@ -169,8 +174,13 @@ func (a *appCtlImpl) getExecutable(app string) string {
 }
 
 func (a *appCtlImpl) getAppId(app string) string {
-	if nm, exists := env.GetHdNamespace(); exists {
-		return fmt.Sprintf("%s_%s", nm, app)
+	if namespace, exists := env.GetHdNamespace(); exists {
+		var sb strings.Builder
+		sb.Grow(len(namespace) + len(app) + 1)
+		sb.WriteString(namespace)
+		sb.WriteString(namespaceAppSeparator)
+		sb.WriteString(app)
+		return sb.String()
 	}
 	return app
 }
