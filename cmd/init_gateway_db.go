@@ -2,15 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path"
-	"path/filepath"
-
 	"github.com/hdget/hd/assets"
 	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"os"
+	"path"
+	"path/filepath"
 )
 
 const (
