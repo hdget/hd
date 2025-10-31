@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	dbGatewaySchema = "gateway_schema.db"
-	dbGateway       = "gateway.db"
+	dbGateway = "gateway.db"
 )
 
 var cmdInitGatewayDb = &cobra.Command{
@@ -50,7 +49,7 @@ func initGatewayDb() {
 
 func createEmptyGatewayDb(absDbFile string) error {
 	// go generate运行时实在main那一级的目录
-	data, err := assets.Manager.ReadFile(path.Join("db", dbGatewaySchema))
+	data, err := assets.Manager.ReadFile(path.Join("db", dbGateway))
 	if err != nil {
 		return err
 	}
