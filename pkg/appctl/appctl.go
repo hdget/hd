@@ -51,7 +51,7 @@ func New(baseDir string, options ...Option) AppController {
 
 func (a *appCtlImpl) Start(name string, extraParam ...string) error {
 	fmt.Println()
-	fmt.Printf("=== START name: %s ===\n", name)
+	fmt.Printf("=== START app: %s ===\n", name)
 	fmt.Println()
 
 	// 检查依赖的工具是否安装
@@ -112,7 +112,7 @@ func (a *appCtlImpl) Build(name string, ref string) error {
 			})
 
 			if index == -1 {
-				return fmt.Errorf("plugin: %s not found for name: %s in hd.toml", pluginName, name)
+				return fmt.Errorf("plugin: %s not found for app: %s in hd.toml", pluginName, name)
 			}
 
 			err := newPluginBuilder(a, a.pbOutputDir, a.pbOutputPackage, a.pbGenGRPC).build(appConfig.Plugins[index].Name, appConfig.Plugins[index].Url, ref)
@@ -135,7 +135,7 @@ func (a *appCtlImpl) Build(name string, ref string) error {
 
 	// 编译app
 	fmt.Println()
-	fmt.Printf("=== BUILD name: %s, ref: %s ===\n", name, ref)
+	fmt.Printf("=== BUILD app: %s, ref: %s ===\n", name, ref)
 	fmt.Println()
 	return newAppBuilder(a, a.pbOutputDir, a.pbOutputPackage, a.pbGenGRPC).build(name, ref)
 }

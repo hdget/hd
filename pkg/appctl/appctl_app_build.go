@@ -46,7 +46,7 @@ func (b *appBuilder) build(name, refName string) error {
 
 	appRepoUrl, err := app.GetRepoUrl()
 	if err != nil {
-		return errors.Wrapf(err, "get git appRepoUrl, name: %s", name)
+		return errors.Wrapf(err, "get app git repository url, app: %s", name)
 	}
 
 	// 创建临时目录
