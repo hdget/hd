@@ -12,6 +12,7 @@ import (
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 )
 
 type Apper interface {
@@ -270,7 +271,7 @@ func (impl *appImpl) getDaprArgument(port *port) string {
 	}
 
 	for k, v := range daprArguments {
-		commands = append(commands, fmt.Sprintf("%s %v", k, v))
+		commands = append(commands, k, cast.ToString(v))
 	}
 
 	return strings.Join(commands, " ")
