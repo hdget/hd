@@ -73,6 +73,7 @@ func newApp(name string) (Apper, error) {
 	}
 
 	return &appImpl{
+		name:   name,
 		config: g.Config.Apps[index],
 	}, nil
 }
