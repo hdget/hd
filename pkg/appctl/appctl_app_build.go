@@ -2,6 +2,12 @@ package appctl
 
 import (
 	"fmt"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/bitfield/script"
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
@@ -9,11 +15,6 @@ import (
 	"github.com/hdget/hd/pkg/protorefine"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
-	"os"
-	"path"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 type appBuilder struct {
@@ -24,8 +25,8 @@ type appBuilder struct {
 }
 
 const (
-	gitProtoRepoName  = "proto"
-	gitConfigRepoName = "config"
+	repoProto  = "proto"
+	repoConfig = "config"
 )
 
 func newAppBuilder(appCtl *appCtlImpl, pbOutputDir, pbOutputPackage string, pbGenGRPC bool) *appBuilder {
@@ -37,7 +38,17 @@ func newAppBuilder(appCtl *appCtlImpl, pbOutputDir, pbOutputPackage string, pbGe
 	}
 }
 
-func (b *appBuilder) build(app, refName string) error {
+func (b *appBuilder) build(name, refName string) error {
+	app, err := newApp(name)
+	if err != nil {
+		return errors.Wrapf(err, "new app, app: %s", name)
+	}
+
+	appRepoUrl, err := app.GetRepoUrl()
+	if err != nil {
+		return errors.Wrapf(err, "get git appRepoUrl, name: %s", name)
+	}
+
 	// 创建临时目录
 	tempDir, err := os.MkdirTemp(os.TempDir(), "hd-build-*")
 	if err != nil {
@@ -53,20 +64,15 @@ func (b *appBuilder) build(app, refName string) error {
 		fmt.Println("temporary build dir：", tempDir)
 	}
 
-	appRepoConfig, exist := g.RepoConfigs[app]
-	if !exist {
-		return fmt.Errorf("git repository not found, app: %s", app)
-	}
-
 	// 创建工作目录
-	appSrcDir := filepath.Join(tempDir, app)
+	appSrcDir := filepath.Join(tempDir, name)
 
 	// 拷贝源代码并切换到指定分支并获取git信息
 	if g.Debug {
 		fmt.Println("===> build step: clone source code")
 	}
 	gitOperator := newGit(b.appCtlImpl)
-	err = gitOperator.Clone(appRepoConfig.Url, appSrcDir).Switch(refName)
+	err = gitOperator.Clone(appRepoUrl, appSrcDir).Switch(refName)
 	if err != nil {
 		return err
 	}
@@ -87,15 +93,15 @@ func (b *appBuilder) build(app, refName string) error {
 	if g.Debug {
 		fmt.Println("===> build step: copy sqlboiler config file")
 	}
-	if err = b.copySqlboilerConfigFile(appSrcDir, app, refName); err != nil {
+	if err = b.copySqlboilerConfigFile(appSrcDir, name, refName); err != nil {
 		return err
 	}
 
-	// go build app
+	// go build name
 	if g.Debug {
 		fmt.Println("===> build step: go build")
 	}
-	if err := b.golangAppBuild(appSrcDir, app, gitBuildInfo); err != nil {
+	if err := b.golangAppBuild(appSrcDir, name, gitBuildInfo); err != nil {
 		return err
 	}
 
@@ -163,12 +169,12 @@ func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) err
 	}()
 
 	// clone config repo
-	gitConfigRepo, exists := g.RepoConfigs[gitConfigRepoName]
-	if !exists {
-		return fmt.Errorf("repo not found, name: %s", gitConfigRepoName)
+	configRepo, err := b.getRepositoryConfig(repoConfig)
+	if err != nil {
+		return errors.Wrapf(err, "repository not found, name: %s", repoConfig)
 	}
 
-	if err = newGit(b.appCtlImpl).Clone(gitConfigRepo.Url, tempDir).Switch(refName, "main"); err != nil {
+	if err = newGit(b.appCtlImpl).Clone(configRepo.Url, tempDir).Switch(refName, "main"); err != nil {
 		return err
 	}
 
@@ -182,20 +188,20 @@ func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) err
 }
 
 func (b *appBuilder) generateProtobuf(srcDir, refName string) error {
-	gitProtoRepo, exists := g.RepoConfigs[gitProtoRepoName]
-	if !exists {
-		return fmt.Errorf("repo not found, name: %s", gitProtoRepoName)
+	protoRepo, err := b.getRepositoryConfig(repoProto)
+	if err != nil {
+		return errors.Wrapf(err, "repository not found, name: %s", repoProto)
 	}
 
-	protoRepository := filepath.Join(srcDir, "proto")
+	protoOutputDir := filepath.Join(srcDir, "proto")
 
 	// 拷贝protod repostory
-	if err := newGit(b.appCtlImpl).Clone(gitProtoRepo.Url, protoRepository).Switch(refName, "main"); err != nil {
+	if err = newGit(b.appCtlImpl).Clone(protoRepo.Url, protoOutputDir).Switch(refName, "main"); err != nil {
 		return err
 	}
 
 	// 切换到app源代码目录
-	err := os.Chdir(srcDir)
+	err = os.Chdir(srcDir)
 	if err != nil {
 		return err
 	}
@@ -211,7 +217,7 @@ func (b *appBuilder) generateProtobuf(srcDir, refName string) error {
 	protoDir, err := protorefine.New().Refine(protorefine.Argument{
 		GolangModule:        rootGolangModule,
 		GolangSourceCodeDir: srcDir,
-		ProtoRepository:     protoRepository,
+		ProtoRepository:     protoOutputDir,
 		OutputPackage:       b.pbOutputPackage,
 		OutputDir:           b.pbOutputDir,
 	})

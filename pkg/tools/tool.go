@@ -2,12 +2,15 @@ package tools
 
 import (
 	"fmt"
-	"github.com/bitfield/script"
-	"github.com/hdget/hd/g"
-	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
+
+	"github.com/bitfield/script"
+	"github.com/elliotchance/pie/v2"
+	"github.com/hdget/hd/g"
+	"github.com/pkg/errors"
 )
 
 type Tool interface {
@@ -18,37 +21,21 @@ type Tool interface {
 }
 
 type toolImpl struct {
-	name            string
-	version         string
-	urlWinRelease   string
-	urlLinuxRelease string
+	config *g.ToolConfig
 }
 
-func newTool(name, version, urlLinuxRelease, urlWinRelease string) *toolImpl {
-	t := &toolImpl{
-		name:            name,
-		version:         version,
-		urlLinuxRelease: urlLinuxRelease,
-		urlWinRelease:   urlWinRelease,
+func newTool(defaultConfig *g.ToolConfig) *toolImpl {
+	config := defaultConfig
+	if c, err := getToolConfig(defaultConfig.Name); err == nil {
+		config = c
 	}
-
-	if c, exist := g.ToolConfigs[name]; exist {
-		if c.UrlLinuxRelease != "" {
-			t.urlLinuxRelease = c.UrlLinuxRelease
-		}
-
-		if c.UrlWinRelease != "" {
-			t.urlWinRelease = c.UrlWinRelease
-		}
-		if t.version != "" {
-			t.version = c.Version
-		}
+	return &toolImpl{
+		config: config,
 	}
-	return t
 }
 
 func (impl *toolImpl) GetName() string {
-	return impl.name
+	return impl.config.Name
 }
 
 func (impl *toolImpl) IsInstalled() bool {
@@ -92,7 +79,7 @@ func (impl *toolImpl) GetSystemBinDir() string {
 func (impl *toolImpl) run(cmd string) error {
 	output, err := script.Exec(cmd).String()
 	if err != nil {
-		return errors.Wrapf(err, "%s run command failed, err: %s", impl.name, output)
+		return errors.Wrapf(err, "%s run command failed, err: %s", impl.config.Name, output)
 	}
 	return nil
 }
@@ -123,6 +110,16 @@ func installTool(t Tool) error {
 
 	fmt.Printf("%s install succeed\n", t.GetName())
 	return nil
+}
+
+func getToolConfig(name string) (*g.ToolConfig, error) {
+	index := pie.FindFirstUsing(g.Config.Tools, func(v *g.ToolConfig) bool {
+		return strings.EqualFold(v.Name, name)
+	})
+	if index == -1 {
+		return nil, fmt.Errorf("tool config not found in hd.toml: %s", name)
+	}
+	return g.Config.Tools[index], nil
 }
 
 //func RunDaemon() error {

@@ -3,6 +3,8 @@ package tools
 import (
 	"fmt"
 	"os"
+
+	"github.com/hdget/hd/g"
 )
 
 type consulTool struct {
@@ -12,19 +14,15 @@ type consulTool struct {
 func Consul() Tool {
 	return &consulTool{
 		toolImpl: newTool(
-			"consul",
-			defaultConsulVersion,
-			fmt.Sprintf(defaultUrlConsulUnixRelease, defaultConsulVersion, defaultConsulVersion),
-			fmt.Sprintf(defaultUrlConsulWinRelease, defaultConsulVersion, defaultConsulVersion),
+			&g.ToolConfig{
+				Name:            "consul",
+				Version:         "1.20.5",
+				UrlWinRelease:   "https://releases.hashicorp.com/consul/1.20.5/consul_1.20.5_windows_amd64.zip",
+				UrlLinuxRelease: "https://releases.hashicorp.com/consul/1.20.5/consul_1.20.5_linux_amd64.zip",
+			},
 		),
 	}
 }
-
-const (
-	defaultConsulVersion        = "1.20.5"
-	defaultUrlConsulWinRelease  = "https://releases.hashicorp.com/consul/%s/consul_%s_windows_amd64.zip"
-	defaultUrlConsulUnixRelease = "https://releases.hashicorp.com/consul/%s/consul_%s_linux_amd64.zip"
-)
 
 func (t *consulTool) IsInstalled() bool {
 	return t.success("consul --version")
@@ -35,7 +33,7 @@ func (t *consulTool) LinuxInstall() error {
 }
 
 func (t *consulTool) WindowsInstall() error {
-	tempDir, zipFile, err := AllPlatform().Download(t.urlWinRelease)
+	tempDir, zipFile, err := AllPlatform().Download(t.config.UrlWinRelease)
 	if err != nil {
 		return err
 	}

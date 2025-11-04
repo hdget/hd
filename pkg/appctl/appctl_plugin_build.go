@@ -2,6 +2,12 @@ package appctl
 
 import (
 	"fmt"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/bitfield/script"
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
@@ -9,11 +15,6 @@ import (
 	"github.com/hdget/hd/pkg/protorefine"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
-	"os"
-	"path"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 type pluginBuilder struct {
@@ -116,7 +117,7 @@ func (b *pluginBuilder) doBuild(srcDir, name string, gitBuildInfo *gitInfo) erro
 	if err = utils.CopyFile(binFile, filepath.Join(b.getPluginOutputDir(), binFile)); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -133,20 +134,20 @@ func (b *pluginBuilder) getLdFlags(app string, info *gitInfo) string {
 }
 
 func (b *pluginBuilder) generateProtobuf(srcDir, refName string) error {
-	gitProtoRepo, exists := g.RepoConfigs[gitProtoRepoName]
-	if !exists {
-		return fmt.Errorf("repo not found, name: %s", gitProtoRepoName)
+	protoRepo, err := b.getRepositoryConfig(repoProto)
+	if err != nil {
+		return errors.Wrapf(err, "repository not found, name: %s", repoProto)
 	}
 
-	protoRepository := filepath.Join(srcDir, "proto")
+	protoOutputDir := filepath.Join(srcDir, "proto")
 
 	// 拷贝proto repository
-	if err := newGit(b.appCtlImpl).Clone(gitProtoRepo.Url, protoRepository).Switch(refName, "main"); err != nil {
+	if err := newGit(b.appCtlImpl).Clone(protoRepo.Url, protoOutputDir).Switch(refName, "main"); err != nil {
 		return err
 	}
 
 	// 切换到app源代码目录
-	err := os.Chdir(srcDir)
+	err = os.Chdir(srcDir)
 	if err != nil {
 		return err
 	}
@@ -162,7 +163,7 @@ func (b *pluginBuilder) generateProtobuf(srcDir, refName string) error {
 	protoDir, err := protorefine.New().Refine(protorefine.Argument{
 		GolangModule:        rootGolangModule,
 		GolangSourceCodeDir: srcDir,
-		ProtoRepository:     protoRepository,
+		ProtoRepository:     protoOutputDir,
 		OutputPackage:       b.pbOutputPackage,
 		OutputDir:           b.pbOutputDir,
 	})

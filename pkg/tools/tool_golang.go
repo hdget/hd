@@ -3,6 +3,8 @@ package tools
 import (
 	"fmt"
 	"path/filepath"
+
+	"github.com/hdget/hd/g"
 )
 
 type golangTool struct {
@@ -12,13 +14,17 @@ type golangTool struct {
 func Golang() Tool {
 	return &golangTool{
 		toolImpl: &toolImpl{
-			name: "go",
+			&g.ToolConfig{
+				Name:            "go",
+				Version:         "1.25.3",
+				UrlWinRelease:   "https://golang.google.cn/dl/go1.25.3.windows-amd64.zip",
+				UrlLinuxRelease: "https://golang.google.cn/dl/go1.25.3.linux-amd64.tar.gz",
+			},
 		},
 	}
 }
 
 const (
-	urlLinuxGolangBinary  = "https://golang.google.cn/dl/go%s.linux-amd64.tar.gz"
 	cmdLinuxInstallGolang = `
 wget %s && \
 rm -rf /usr/local/go && \
@@ -31,8 +37,7 @@ func (t *golangTool) IsInstalled() bool {
 }
 
 func (t *golangTool) LinuxInstall() error {
-	url := fmt.Sprintf(urlLinuxGolangBinary, t.version)
-	cmd := fmt.Sprintf(cmdLinuxInstallGolang, url, filepath.Base(url))
+	cmd := fmt.Sprintf(cmdLinuxInstallGolang, t.config.UrlLinuxRelease, filepath.Base(t.config.UrlLinuxRelease))
 	return t.run(cmd)
 }
 

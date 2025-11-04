@@ -2,7 +2,10 @@ package tools
 
 import (
 	"fmt"
+
 	"github.com/bitfield/script"
+	"github.com/hdget/hd/g"
+
 	"os"
 )
 
@@ -10,17 +13,16 @@ type protocTool struct {
 	*toolImpl
 }
 
-const (
-	urlProtoc = "https://github.com/protocolbuffers/protobuf/releases/download/v%s/%s"
-)
-
 func Protoc() Tool {
-	version := "30.2"
-	winFile := fmt.Sprintf("protoc-%s-win64.zip", version)
-	linuxFile := fmt.Sprintf("protoc-%s-linux-x86_64.zip", version)
-
 	return &protocTool{
-		toolImpl: newTool("protoc", version, fmt.Sprintf(urlProtoc, version, linuxFile), fmt.Sprintf(urlProtoc, version, winFile)),
+		toolImpl: newTool(
+			&g.ToolConfig{
+				Name:            "protoc",
+				Version:         "30.2",
+				UrlWinRelease:   "https://github.com/protocolbuffers/protobuf/releases/download/v30.2/protoc-30.2-win64.zip",
+				UrlLinuxRelease: "https://github.com/protocolbuffers/protobuf/releases/download/v30.2/protoc-30.2-linux-x86_64.zip",
+			},
+		),
 	}
 }
 
@@ -30,7 +32,7 @@ func (t *protocTool) IsInstalled() bool {
 }
 
 func (t *protocTool) LinuxInstall() error {
-	tempDir, zipFile, err := AllPlatform().Download(t.urlLinuxRelease)
+	tempDir, zipFile, err := AllPlatform().Download(t.config.UrlLinuxRelease)
 	if err != nil {
 		return err
 	}
@@ -55,7 +57,7 @@ func (t *protocTool) LinuxInstall() error {
 }
 
 func (t *protocTool) WindowsInstall() error {
-	tempDir, zipFile, err := AllPlatform().Download(t.urlWinRelease)
+	tempDir, zipFile, err := AllPlatform().Download(t.config.UrlWinRelease)
 	if err != nil {
 		return err
 	}

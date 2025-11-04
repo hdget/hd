@@ -2,13 +2,28 @@ package gen
 
 import (
 	"fmt"
-	"github.com/hdget/hd/g"
-	"github.com/hdget/hd/pkg/utils"
-	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
+
+	"github.com/hdget/hd/g"
+	"github.com/hdget/hd/pkg/utils"
+	"github.com/spf13/cast"
+	"github.com/spf13/cobra"
 )
+
+type configApp struct {
+	Name         string
+	ExternalPort int
+}
+
+type configInput struct {
+	Project  string
+	Env      string
+	RepoHost string
+	Apps     []configApp
+}
 
 var (
 	subCmdGenConfig = &cobra.Command{
@@ -22,21 +37,43 @@ var (
 
 const (
 	configTemplate = `[project]
-    # project name, which will use HD_NAMESPACE environment variable
-    name = "{{.Project.Name}}"
+    # project name, override HD_NAMESPACE environment variable
+    name = "{{.Project}}"
     # running environment
-    env = "{{.Project.Env}}"
-    # gateway app listen port
-    gateway_port = {{.Project.GatewayPort}}
-    # app lists with order when using '--all' flag
-    apps = [{{range $index, $app := .Project.Apps}}{{if $index}},{{end}}"{{ $app }}"{{end}}]
+    env = "{{.Env}}"
+    # when use --all argument, app start in order, app stop execute reversely
+    apps = [{{range $index, $item := .Apps}}{{if $index}},{{end}}"{{ $item.Name }}"{{end}}]
 
-# repos
-#[[repos]]
-#    # usually it is the same as app name
-#    name = "example_repo"
-#    # git repo url
-#    url = "https://github.com/repo/example"
+#[[apps]]
+#   # app name
+#   name = "example-app"
+#   # git repo url
+#   repo = "https://{{.RepoHost}}/example-app.git"
+#	# if external port is set, then app is exposed
+#	# external_port = 1000
+#	# app plugins 
+#	[[apps.plugins]]
+#       name = "example-plugin"
+#       url = "https://{{.RepoHost}}/{{.Project}}/plugin/example-plugin.git"
+{{range $index, $item := .Apps}}
+[[apps]]
+    name = "{{ .Name }}"
+    repo = "https://{{$.RepoHost}}/{{$.Project}}/backend/{{ .Name }}.git"
+	{{- if gt .ExternalPort 0}}
+	external_port = {{ .ExternalPort }}
+	{{- end}}
+{{end}}
+[[repos]]
+    # config repository
+    name = "config"
+    # repository url
+    url = "https://{{.RepoHost}}/{{.Project}}/common/config.git"
+
+[[repos]]
+    # proto repository
+    name = "proto"
+    # repository url
+    url = "https://{{.RepoHost}}/{{.Project}}/common/proto.git"
 
 # 3rd party tools
 #[[tools]]
@@ -56,14 +93,30 @@ func genConfig() {
 
 	project := utils.GetInput("Please input project name", possibleProject)
 	env := utils.GetInput("Please input running environment", "test")
+	appInput := utils.GetInput("Please input app names", "core,gateway:1000,usercenter")
+	repoHost := utils.GetInput("Please input repository host", "github.com")
 
-	exampleConfig := &g.RootConfig{
-		Project: g.ProjectConfig{
-			Name:        project,
-			Env:         env,
-			GatewayPort: g.DefaultGatewayPort,
-			Apps:        []string{},
-		},
+	appList := make([]configApp, 0)
+	apps := strings.Split(appInput, ",")
+	for _, appStr := range apps {
+		parts := strings.Split(appStr, ":")
+		switch len(parts) {
+		case 1:
+			appList = append(appList, configApp{
+				Name: parts[0],
+			})
+		case 2:
+			appList = append(appList, configApp{
+				Name:         parts[0],
+				ExternalPort: cast.ToInt(parts[1]),
+			})
+		}
+	}
+	inputs := &configInput{
+		Project:  project,
+		Env:      env,
+		RepoHost: repoHost,
+		Apps:     appList,
 	}
 
 	tpl, err := template.New("toml").Parse(configTemplate)
@@ -84,7 +137,7 @@ func genConfig() {
 		_ = f.Close()
 	}()
 
-	err = tpl.Execute(f, exampleConfig)
+	err = tpl.Execute(f, inputs)
 	if err != nil {
 		utils.Fatal("error execute template", err)
 	}

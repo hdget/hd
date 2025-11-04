@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"runtime/debug"
+
 	"github.com/hdget/hd/cmd/appctl"
 	"github.com/hdget/hd/cmd/cluster"
 	"github.com/hdget/hd/cmd/gen"
@@ -9,8 +12,6 @@ import (
 	"github.com/hdget/hd/g"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"os"
-	"runtime/debug"
 )
 
 var (
@@ -43,7 +44,6 @@ func init() {
 	rootCmd.AddCommand(appctl.Command)
 	rootCmd.AddCommand(sourcecode.Command)
 	rootCmd.AddCommand(cluster.Command)
-	rootCmd.AddCommand(cmdInitGatewayDb)
 }
 
 func Execute() {
