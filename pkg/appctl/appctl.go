@@ -97,7 +97,7 @@ func (a *appCtlImpl) Build(name string, ref string) error {
 	// 获取app配置
 	appConfig, err := a.getAppConfig(name)
 	if err != nil {
-		return fmt.Errorf("app config not found in hd.toml: %s", name)
+		return fmt.Errorf("app config not found in hd.toml, app: %s", name)
 	}
 
 	// 如果指定了plugin,则只编译指定的plugin
@@ -191,7 +191,7 @@ func (a *appCtlImpl) getRepositoryConfig(name string) (*g.RepositoryConfig, erro
 		return strings.EqualFold(v.Name, name)
 	})
 	if index == -1 {
-		return nil, fmt.Errorf("dependent config not found in hd.toml: %s", name)
+		return nil, fmt.Errorf("dependent config not found in hd.toml, app: %s", name)
 	}
 	return &g.Config.Repos[index], nil
 }
