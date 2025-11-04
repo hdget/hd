@@ -2,14 +2,15 @@ package appctl
 
 import (
 	"fmt"
+	"path/filepath"
+	"runtime"
+	"strings"
+
 	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/tools"
 	"github.com/pkg/errors"
-	"path/filepath"
-	"runtime"
-	"strings"
 )
 
 type AppController interface {
@@ -48,9 +49,9 @@ func New(baseDir string, options ...Option) AppController {
 	return impl
 }
 
-func (a *appCtlImpl) Start(app string, extraParam ...string) error {
+func (a *appCtlImpl) Start(name string, extraParam ...string) error {
 	fmt.Println()
-	fmt.Printf("=== START app: %s ===\n", app)
+	fmt.Printf("=== START app: %s ===\n", name)
 	fmt.Println()
 
 	// 检查依赖的工具是否安装
@@ -71,7 +72,7 @@ func (a *appCtlImpl) Start(app string, extraParam ...string) error {
 		startParam = extraParam[0]
 	}
 
-	return instance.start(app, startParam)
+	return instance.start(name, startParam)
 }
 
 func (a *appCtlImpl) Install(app string, ref string) error {
@@ -82,7 +83,7 @@ func (a *appCtlImpl) Install(app string, ref string) error {
 	return newAppInstaller(a).install(app, ref)
 }
 
-func (a *appCtlImpl) Build(app string, ref string) error {
+func (a *appCtlImpl) Build(name string, ref string) error {
 	// 检查依赖的工具是否安装
 	if err := tools.Check(
 		tools.Protoc(),
@@ -94,9 +95,9 @@ func (a *appCtlImpl) Build(app string, ref string) error {
 	}
 
 	// 获取app配置
-	appRepoConfig, exist := g.RepoConfigs[app]
-	if !exist {
-		return fmt.Errorf("app repo config not found in hd.toml: %s", app)
+	appConfig, err := a.getAppConfig(name)
+	if err != nil {
+		return fmt.Errorf("app config not found in hd.toml, app: %s", name)
 	}
 
 	// 如果指定了plugin,则只编译指定的plugin
@@ -106,15 +107,15 @@ func (a *appCtlImpl) Build(app string, ref string) error {
 			fmt.Printf("=== BUILD plugin: %s, ref: %s ===\n", pluginName, ref)
 			fmt.Println()
 
-			index := pie.FindFirstUsing(appRepoConfig.Plugins, func(v g.PluginConfig) bool {
+			index := pie.FindFirstUsing(appConfig.Plugins, func(v g.PluginConfig) bool {
 				return v.Name == pluginName
 			})
 
 			if index == -1 {
-				return fmt.Errorf("plugin: %s not found for app: %s in hd.toml", pluginName, app)
+				return fmt.Errorf("plugin: %s not found for app: %s in hd.toml", pluginName, name)
 			}
 
-			err := newPluginBuilder(a, a.pbOutputDir, a.pbOutputPackage, a.pbGenGRPC).build(appRepoConfig.Plugins[index].Name, appRepoConfig.Plugins[index].Url, ref)
+			err := newPluginBuilder(a, a.pbOutputDir, a.pbOutputPackage, a.pbGenGRPC).build(appConfig.Plugins[index].Name, appConfig.Plugins[index].Url, ref)
 			if err != nil {
 				return errors.Wrap(err, "build plugin")
 			}
@@ -123,7 +124,7 @@ func (a *appCtlImpl) Build(app string, ref string) error {
 	}
 
 	// 如果未指定plugin, 如果该app下有关联的plugin配置，则编译所有plugins
-	for _, pluginConfig := range appRepoConfig.Plugins {
+	for _, pluginConfig := range appConfig.Plugins {
 		fmt.Println()
 		fmt.Printf("=== BUILD plugin: %s, ref: %s ===\n", pluginConfig.Name, ref)
 		fmt.Println()
@@ -134,9 +135,9 @@ func (a *appCtlImpl) Build(app string, ref string) error {
 
 	// 编译app
 	fmt.Println()
-	fmt.Printf("=== BUILD app: %s, ref: %s ===\n", app, ref)
+	fmt.Printf("=== BUILD app: %s, ref: %s ===\n", name, ref)
 	fmt.Println()
-	return newAppBuilder(a, a.pbOutputDir, a.pbOutputPackage, a.pbGenGRPC).build(app, ref)
+	return newAppBuilder(a, a.pbOutputDir, a.pbOutputPackage, a.pbGenGRPC).build(name, ref)
 }
 
 func (a *appCtlImpl) Stop(app string) error {
@@ -183,4 +184,24 @@ func (a *appCtlImpl) getAppId(app string) string {
 		return sb.String()
 	}
 	return app
+}
+
+func (a *appCtlImpl) getRepositoryConfig(name string) (*g.RepositoryConfig, error) {
+	index := pie.FindFirstUsing(g.Config.Repos, func(v g.RepositoryConfig) bool {
+		return strings.EqualFold(v.Name, name)
+	})
+	if index == -1 {
+		return nil, fmt.Errorf("dependent config not found in hd.toml, app: %s", name)
+	}
+	return &g.Config.Repos[index], nil
+}
+
+func (a *appCtlImpl) getAppConfig(name string) (*g.AppConfig, error) {
+	index := pie.FindFirstUsing(g.Config.Apps, func(v g.AppConfig) bool {
+		return strings.EqualFold(v.Name, name)
+	})
+	if index == -1 {
+		return nil, fmt.Errorf("app config not found in hd.toml: %s", name)
+	}
+	return &g.Config.Apps[index], nil
 }

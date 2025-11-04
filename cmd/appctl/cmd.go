@@ -2,6 +2,7 @@ package appctl
 
 import (
 	"fmt"
+
 	"github.com/BurntSushi/toml"
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
@@ -36,14 +37,6 @@ func initialize() {
 	// 读取配置
 	if _, err := toml.DecodeFile(g.ConfigFile, &g.Config); err != nil {
 		utils.Fatal(fmt.Sprintf("read config file, file: %s", g.ConfigFile), err)
-	}
-
-	for _, r := range g.Config.Repos {
-		g.RepoConfigs[r.Name] = r
-	}
-
-	for _, t := range g.Config.Tools {
-		g.ToolConfigs[t.Name] = t
 	}
 
 	// 初始化环境变量

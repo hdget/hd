@@ -1,5 +1,7 @@
 package tools
 
+import "github.com/hdget/hd/g"
+
 type sqlboilerTool struct {
 	*toolImpl
 }
@@ -7,7 +9,10 @@ type sqlboilerTool struct {
 func Sqlboiler() Tool {
 	return &sqlboilerTool{
 		toolImpl: &toolImpl{
-			name: "sqlboiler",
+			&g.ToolConfig{
+				Name:    "sqlboiler",
+				Version: "4.19.5",
+			},
 		},
 	}
 }

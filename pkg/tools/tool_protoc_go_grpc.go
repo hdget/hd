@@ -1,5 +1,7 @@
 package tools
 
+import "github.com/hdget/hd/g"
+
 type protocGoGRPCTool struct {
 	*toolImpl
 }
@@ -7,7 +9,9 @@ type protocGoGRPCTool struct {
 func ProtocGoGRPC() Tool {
 	return &protocGoGRPCTool{
 		toolImpl: &toolImpl{
-			name: "protoc-gen-go",
+			&g.ToolConfig{
+				Name: "protoc-gen-go-grpc",
+			},
 		},
 	}
 }

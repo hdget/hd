@@ -2,12 +2,12 @@ package appctl
 
 import (
 	"fmt"
-	"github.com/hdget/hd/g"
+	"os"
+	"path/filepath"
+
 	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
-	"os"
-	"path/filepath"
 )
 
 type appInstallerImpl struct {
@@ -26,6 +26,11 @@ func (impl *appInstallerImpl) install(app, ref string) error {
 		return err
 	}
 
+	configRepo, err := impl.getRepositoryConfig(repoConfig)
+	if err != nil {
+		return errors.Wrapf(err, "repository not found, name: %s", repoConfig)
+	}
+
 	// 创建临时目录
 	tempDir, err := os.MkdirTemp(os.TempDir(), "hd-install-*")
 	if err != nil {
@@ -37,12 +42,7 @@ func (impl *appInstallerImpl) install(app, ref string) error {
 		}
 	}()
 
-	gitConfigRepo, exists := g.RepoConfigs[gitConfigRepoName]
-	if !exists {
-		return fmt.Errorf("repo not found, name: %s", gitConfigRepoName)
-	}
-
-	if err = newGit(impl.appCtlImpl).Clone(gitConfigRepo.Url, tempDir).Switch(ref, "main"); err != nil {
+	if err = newGit(impl.appCtlImpl).Clone(configRepo.Url, tempDir).Switch(ref, "main"); err != nil {
 		return err
 	}
 

@@ -2,27 +2,25 @@ package tools
 
 import (
 	"fmt"
-	"github.com/bitfield/script"
 	"os"
+
+	"github.com/bitfield/script"
+	"github.com/hdget/hd/g"
 )
 
 type daprTool struct {
 	*toolImpl
 }
 
-const (
-	defaultDaprVersion         = "1.15.3"
-	defaultUrlDaprLinuxRelease = "https://github.com/dapr/installer-bundle/releases/download/v%s/daprbundle_linux_amd64.tar.gz"
-	defaultUrlDaprWinRelease   = "https://github.com/dapr/installer-bundle/releases/download/v%s/daprbundle_windows_amd64.zip"
-)
-
 func Dapr() Tool {
 	return &daprTool{
 		toolImpl: newTool(
-			"dapr",
-			defaultDaprVersion,
-			fmt.Sprintf(defaultUrlDaprLinuxRelease, defaultDaprVersion),
-			fmt.Sprintf(defaultUrlDaprWinRelease, defaultDaprVersion),
+			&g.ToolConfig{
+				Name:            "dapr",
+				Version:         "1.15.3",
+				UrlWinRelease:   "https://github.com/dapr/installer-bundle/releases/download/v1.15.3/daprbundle_windows_amd64.zip",
+				UrlLinuxRelease: "https://github.com/dapr/installer-bundle/releases/download/v1.15.3/daprbundle_linux_amd64.tar.gz",
+			},
 		),
 	}
 }
@@ -33,7 +31,7 @@ func (t *daprTool) IsInstalled() bool {
 }
 
 func (t *daprTool) LinuxInstall() error {
-	tempDir, zipFile, err := AllPlatform().Download(t.urlLinuxRelease)
+	tempDir, zipFile, err := AllPlatform().Download(t.config.UrlLinuxRelease)
 	if err != nil {
 		return err
 	}
@@ -52,7 +50,7 @@ func (t *daprTool) LinuxInstall() error {
 }
 
 func (t *daprTool) WindowsInstall() error {
-	tempDir, zipFile, err := AllPlatform().Download(t.urlWinRelease)
+	tempDir, zipFile, err := AllPlatform().Download(t.config.UrlWinRelease)
 	if err != nil {
 		return err
 	}

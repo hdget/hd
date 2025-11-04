@@ -1,5 +1,7 @@
 package tools
 
+import "github.com/hdget/hd/g"
+
 type protocGoTool struct {
 	*toolImpl
 }
@@ -7,7 +9,9 @@ type protocGoTool struct {
 func ProtocGo() Tool {
 	return &protocGoTool{
 		toolImpl: &toolImpl{
-			name: "protoc-gen-go",
+			&g.ToolConfig{
+				Name: "protoc-gen-go",
+			},
 		},
 	}
 }
