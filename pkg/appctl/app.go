@@ -157,7 +157,7 @@ func (impl *appImpl) allocatePort() (*port, error) {
 	return &port{
 		appPort:      ports[0],
 		externalPort: externalPort, // 对外提供访问的端口，一般是HTTP
-		randomPorts:  ports[1:],
+		randomPorts:  ports,
 	}, nil
 }
 
