@@ -113,13 +113,13 @@ func installTool(t Tool) error {
 }
 
 func getToolConfig(name string) (*g.ToolConfig, error) {
-	index := pie.FindFirstUsing(g.Config.Tools, func(v *g.ToolConfig) bool {
+	index := pie.FindFirstUsing(g.Config.Tools, func(v g.ToolConfig) bool {
 		return strings.EqualFold(v.Name, name)
 	})
 	if index == -1 {
 		return nil, fmt.Errorf("tool config not found in hd.toml: %s", name)
 	}
-	return g.Config.Tools[index], nil
+	return &g.Config.Tools[index], nil
 }
 
 //func RunDaemon() error {

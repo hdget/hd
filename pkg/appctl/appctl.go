@@ -187,21 +187,21 @@ func (a *appCtlImpl) getAppId(app string) string {
 }
 
 func (a *appCtlImpl) getRepositoryConfig(name string) (*g.RepositoryConfig, error) {
-	index := pie.FindFirstUsing(g.Config.Repos, func(v *g.RepositoryConfig) bool {
+	index := pie.FindFirstUsing(g.Config.Repos, func(v g.RepositoryConfig) bool {
 		return strings.EqualFold(v.Name, name)
 	})
 	if index == -1 {
 		return nil, fmt.Errorf("dependent config not found in hd.toml: %s", name)
 	}
-	return g.Config.Repos[index], nil
+	return &g.Config.Repos[index], nil
 }
 
 func (a *appCtlImpl) getAppConfig(name string) (*g.AppConfig, error) {
-	index := pie.FindFirstUsing(g.Config.Apps, func(v *g.AppConfig) bool {
+	index := pie.FindFirstUsing(g.Config.Apps, func(v g.AppConfig) bool {
 		return strings.EqualFold(v.Name, name)
 	})
 	if index == -1 {
 		return nil, fmt.Errorf("app config not found in hd.toml: %s", name)
 	}
-	return g.Config.Apps[index], nil
+	return &g.Config.Apps[index], nil
 }

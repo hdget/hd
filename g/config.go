@@ -1,11 +1,11 @@
 package g
 
 type HdConfig struct {
-	Project *ProjectConfig      `toml:"project"`
-	Apps    []*AppConfig        `toml:"apps"` // 应用启动顺序
-	Repos   []*RepositoryConfig `toml:"repos"`
-	Tools   []*ToolConfig       `toml:"tools"`
-	Dapr    *DaprConfig         `toml:"dapr"`
+	Project ProjectConfig      `toml:"project"`
+	Apps    []AppConfig        `toml:"apps"` // 应用启动顺序
+	Repos   []RepositoryConfig `toml:"repos"`
+	Tools   []ToolConfig       `toml:"tools"`
+	Dapr    DaprConfig         `toml:"dapr"`
 }
 
 type ProjectConfig struct {

@@ -25,7 +25,7 @@ type Apper interface {
 
 type appImpl struct {
 	name   string
-	config *g.AppConfig
+	config g.AppConfig
 }
 
 type port struct {
@@ -64,7 +64,7 @@ var (
 )
 
 func newApp(name string) (Apper, error) {
-	index := pie.FindFirstUsing(g.Config.Apps, func(v *g.AppConfig) bool {
+	index := pie.FindFirstUsing(g.Config.Apps, func(v g.AppConfig) bool {
 		return strings.EqualFold(v.Name, name)
 	})
 	if index == -1 {
