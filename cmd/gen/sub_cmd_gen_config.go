@@ -59,9 +59,9 @@ const (
 [[apps]]
     name = "{{ .Name }}"
     repo = "https://{{$.RepoHost}}/{{$.Project}}/backend/{{ .Name }}.git"
-	{{- if gt .ExternalPort 0}}
-	external_port = {{ .ExternalPort }}
-	{{- end}}
+    {{- if gt .ExternalPort 0}}
+    external_port = {{ .ExternalPort }}
+    {{- end}}
 {{end}}
 [[repos]]
     # config repository
