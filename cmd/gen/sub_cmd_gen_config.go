@@ -112,12 +112,6 @@ func genConfig() {
 			})
 		}
 	}
-	inputs := &configInput{
-		Project:  project,
-		Env:      env,
-		RepoHost: repoHost,
-		Apps:     appList,
-	}
 
 	tpl, err := template.New("toml").Parse(configTemplate)
 	if err != nil {
@@ -137,7 +131,12 @@ func genConfig() {
 		_ = f.Close()
 	}()
 
-	err = tpl.Execute(f, inputs)
+	err = tpl.Execute(f, &configInput{
+		Project:  project,
+		Env:      env,
+		RepoHost: repoHost,
+		Apps:     appList,
+	})
 	if err != nil {
 		utils.Fatal("error execute template", err)
 	}
