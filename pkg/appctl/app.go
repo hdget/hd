@@ -234,7 +234,7 @@ func (impl *appImpl) getDaprArgument(port *port) string {
 
 	// IMPORTANT: app-port必须是第一个
 	for i, p := range port.randomPorts {
-		commands = append(commands, fmt.Sprintf("--%s %d", daprPorts[i], p))
+		commands = append(commands, daprPorts[i], cast.ToString(p))
 	}
 
 	daprArguments["--app-id"] = impl.GetId()
