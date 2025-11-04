@@ -270,7 +270,7 @@ func (impl *appImpl) getDaprArgument(port *port) string {
 	}
 
 	for k, v := range daprArguments {
-		commands = append(commands, fmt.Sprintf("%s %d", k, v))
+		commands = append(commands, fmt.Sprintf("%s %v", k, v))
 	}
 
 	return strings.Join(commands, " ")
