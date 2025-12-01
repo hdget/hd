@@ -3,11 +3,6 @@ package tools
 import (
 	"archive/zip"
 	"fmt"
-	"github.com/bitfield/script"
-	"github.com/go-resty/resty/v2"
-	"github.com/hdget/hd/pkg/utils"
-	"github.com/pkg/errors"
-	"github.com/schollz/progressbar/v3"
 	"go/build"
 	"io"
 	"os"
@@ -15,6 +10,12 @@ import (
 	"runtime"
 	"strconv"
 	"time"
+
+	"github.com/bitfield/script"
+	"github.com/go-resty/resty/v2"
+	"github.com/hdget/hd/pkg/utils"
+	"github.com/pkg/errors"
+	"github.com/schollz/progressbar/v3"
 )
 
 type platformAll struct {
@@ -49,7 +50,7 @@ func (platformAll) Download(url string) (string, string, error) {
 	_, _ = fmt.Fprintf(os.Stdout, "downloading: %s\n", url)
 
 	client := resty.New().
-		SetTimeout(120 * time.Second).
+		SetTimeout(300 * time.Second).
 		SetRetryCount(3).
 		SetRetryWaitTime(5 * time.Second).
 		SetRedirectPolicy(resty.FlexibleRedirectPolicy(5)) // 跟随最多5次重定向
