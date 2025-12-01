@@ -3,12 +3,14 @@ package tools
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
 
 	"github.com/bitfield/script"
 	"github.com/elliotchance/pie/v2"
+	"github.com/hdget/hd/assets"
 	"github.com/hdget/hd/g"
 	"github.com/pkg/errors"
 )
@@ -23,6 +25,10 @@ type Tool interface {
 type toolImpl struct {
 	config *g.ToolConfig
 }
+
+const (
+	linuxDistribution = "redhat"
+)
 
 func newTool(defaultConfig *g.ToolConfig) *toolImpl {
 	config := defaultConfig
@@ -86,6 +92,24 @@ func (impl *toolImpl) run(cmd string) error {
 
 func (impl *toolImpl) success(cmd string) bool {
 	return script.Exec(cmd).Wait() == nil
+}
+
+func (impl *toolImpl) copyFile(relPath string) error {
+	// 当前只支持redhat兼容发行版
+	srcPath := path.Join(linuxDistribution, relPath)
+
+	data, err := assets.Store.ReadFile(srcPath)
+	if err != nil {
+		return errors.Wrapf(err, "failed to read: %s", srcPath)
+	}
+
+	destPath := filepath.Join("/", relPath)
+	err = os.WriteFile(destPath, data, 0644)
+	if err != nil {
+		return errors.Wrapf(err, "failed to write: %s", destPath)
+	}
+
+	return nil
 }
 
 func installTool(t Tool) error {

@@ -4,5 +4,5 @@ import (
 	"embed"
 )
 
-//go:embed repo/*
-var Manager embed.FS
+//go:embed redhat/*
+var Store embed.FS
