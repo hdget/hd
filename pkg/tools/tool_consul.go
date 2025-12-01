@@ -29,7 +29,12 @@ func (t *consulTool) IsInstalled() bool {
 }
 
 func (t *consulTool) LinuxInstall() error {
-	return t.run(`/bin/cp -f ${FILES_DIR}/repo/hashicorp.repo /etc/yum.repos.d/ && yum install -y consul`)
+	err := t.copyFile("etc/yum.repos.d/hashicorp.repo")
+	if err != nil {
+		return err
+	}
+
+	return t.run(`yum install -y consul`)
 }
 
 func (t *consulTool) WindowsInstall() error {
