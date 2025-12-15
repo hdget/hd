@@ -2,11 +2,12 @@ package sourcecode
 
 import (
 	"fmt"
-	"github.com/elliotchance/pie/v2"
 	"go/ast"
 	"go/token"
 	"regexp"
 	"strings"
+
+	"github.com/elliotchance/pie/v2"
 )
 
 type callSignature struct {
@@ -245,16 +246,27 @@ func astParseFunctionCallChain(n *ast.CallExpr) []string {
 func astGetPackageImportPaths(f *ast.File) map[string]string {
 	importMap := make(map[string]string)
 	for _, imp := range f.Imports {
-		pkgName := ""
+		pkgNames := make([]string, 0)
 		if imp.Name != nil {
-			pkgName = imp.Name.Name // 处理别名导入，如 `import alias "math/rand"`
+			pkgNames = []string{imp.Name.Name} // 处理别名导入，如 `import alias "math/rand"`
 		} else {
 			// 提取完整路径（去掉引号）
 			pkgPath := strings.Trim(imp.Path.Value, `"`)
+
 			// 获取包名（路径的最后一部分）
-			pkgName = pkgPath[strings.LastIndex(pkgPath, "/")+1:]
+			lastPart := pkgPath[strings.LastIndex(pkgPath, "/")+1:]
+			// HOTFIX: 有时候定义包名会只使用横杠后的部分，例如: lib-dapr只会用dapr
+			pkgNames = append(pkgNames, lastPart)
+
+			possiblePkgName := lastPart[strings.LastIndex(lastPart, "-")+1:]
+			if possiblePkgName != lastPart {
+				pkgNames = append(pkgNames, possiblePkgName)
+			}
 		}
-		importMap[pkgName] = strings.Trim(imp.Path.Value, `"`)
+
+		for _, pkgName := range pkgNames {
+			importMap[pkgName] = strings.Trim(imp.Path.Value, `"`)
+		}
 	}
 	return importMap
 }

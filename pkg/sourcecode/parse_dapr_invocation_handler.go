@@ -32,7 +32,7 @@ var (
 	// 模块初始化的调用签名
 	signatureNewInvocationModule = &callSignature{
 		functionChain: "NewInvocationModule",
-		pkg:           "github.com/hdget/sdk/dapr/module",
+		pkg:           "github.com/hdget/lib-dapr/module",
 		argCount:      3,
 	}
 
