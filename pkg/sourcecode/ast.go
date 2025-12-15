@@ -252,13 +252,15 @@ func astGetPackageImportPaths(f *ast.File) map[string]string {
 		} else {
 			// 提取完整路径（去掉引号）
 			pkgPath := strings.Trim(imp.Path.Value, `"`)
+
 			// 获取包名（路径的最后一部分）
 			lastPart := pkgPath[strings.LastIndex(pkgPath, "/")+1:]
 			// HOTFIX: 有时候定义包名会只使用横杠后的部分，例如: lib-dapr只会用dapr
 			pkgNames = append(pkgNames, lastPart)
+
 			possiblePkgName := lastPart[strings.LastIndex(lastPart, "-")+1:]
 			if possiblePkgName != lastPart {
-				pkgNames = append(pkgNames, lastPart)
+				pkgNames = append(pkgNames, possiblePkgName)
 			}
 		}
 
