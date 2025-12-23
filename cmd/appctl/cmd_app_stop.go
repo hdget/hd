@@ -1,12 +1,14 @@
 package appctl
 
 import (
+	"os"
+	"strings"
+
+	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/appctl"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
-	"os"
-	"strings"
 )
 
 var (
@@ -29,8 +31,14 @@ func stopAllApp() {
 		utils.Fatal("get current dir", err)
 	}
 
-	for _, app := range g.Config.Project.Apps {
-		err = appctl.New(baseDir).Stop(app)
+	appNames := pie.Map(g.Config.Apps, func(v g.AppConfig) string {
+		return v.Name
+	})
+
+	reversedAppNames := pie.Reverse(appNames)
+
+	for _, appName := range reversedAppNames {
+		err = appctl.New(baseDir).Stop(appName)
 		if err != nil {
 			utils.Fatal("stop app", err)
 		}

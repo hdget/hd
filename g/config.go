@@ -9,9 +9,8 @@ type HdConfig struct {
 }
 
 type ProjectConfig struct {
-	Name string   `toml:"name"`
-	Env  string   `toml:"env"`
-	Apps []string `toml:"apps"`
+	Name string `toml:"name"`
+	Env  string `toml:"env"`
 }
 
 type AppConfig struct {

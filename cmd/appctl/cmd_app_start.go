@@ -1,12 +1,13 @@
 package appctl
 
 import (
+	"os"
+	"strings"
+
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/appctl"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
-	"os"
-	"strings"
 )
 
 var (
@@ -32,11 +33,11 @@ func startAllApp() {
 		utils.Fatal("get current dir", err)
 	}
 
-	for _, app := range g.Config.Project.Apps {
+	for _, app := range g.Config.Apps {
 		err = appctl.New(
 			baseDir,
 			appctl.WithBinOutputDir(argBinOutputDir),
-		).Start(app)
+		).Start(app.Name)
 		if err != nil {
 			utils.Fatal("start app", err)
 		}
