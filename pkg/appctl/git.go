@@ -2,6 +2,10 @@ package appctl
 
 import (
 	"fmt"
+	"os"
+	"sync"
+	"time"
+
 	"github.com/bitfield/script"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -11,9 +15,6 @@ import (
 	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
-	"os"
-	"sync"
-	"time"
 )
 
 type gitImpl struct {
@@ -51,7 +52,7 @@ func (impl *gitImpl) Clone(url, destDir string) *gitImpl {
 	}
 
 	var err error
-	impl.repo, err = git.PlainClone(destDir, false, &git.CloneOptions{
+	impl.repo, err = git.PlainClone(destDir, true, &git.CloneOptions{
 		URL:      url,
 		Progress: os.Stdout,
 		Auth:     impl.getAuth(),
