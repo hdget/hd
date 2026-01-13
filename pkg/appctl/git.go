@@ -52,7 +52,7 @@ func (impl *gitImpl) Clone(url, destDir string) *gitImpl {
 	}
 
 	var err error
-	impl.repo, err = git.PlainClone(destDir, true, &git.CloneOptions{
+	impl.repo, err = git.PlainClone(destDir, false, &git.CloneOptions{
 		URL:      url,
 		Progress: os.Stdout,
 		Auth:     impl.getAuth(),
