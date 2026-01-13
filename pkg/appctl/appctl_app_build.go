@@ -54,11 +54,11 @@ func (b *appBuilder) build(name, refName string) error {
 	if err != nil {
 		return errors.Wrap(err, "create temporary build dir")
 	}
-	defer func() {
-		if e := os.RemoveAll(tempDir); e != nil {
-			fmt.Printf("delete temporary build dir %v, dir: %s", e, tempDir)
-		}
-	}()
+	//defer func() {
+	//	if e := os.RemoveAll(tempDir); e != nil {
+	//		fmt.Printf("delete temporary build dir %v, dir: %s", e, tempDir)
+	//	}
+	//}()
 
 	if g.Debug {
 		fmt.Println("temporary build dir：", tempDir)
