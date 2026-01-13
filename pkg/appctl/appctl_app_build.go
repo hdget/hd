@@ -162,11 +162,11 @@ func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) err
 	if err != nil {
 		return errors.Wrap(err, "create temporary config dir")
 	}
-	defer func() {
-		if e := os.RemoveAll(tempDir); e != nil {
-			fmt.Printf("delete temporary config dir: %v", e)
-		}
-	}()
+	//defer func() {
+	//	if e := os.RemoveAll(tempDir); e != nil {
+	//		fmt.Printf("delete temporary config dir: %v", e)
+	//	}
+	//}()
 
 	// clone config repo
 	configRepo, err := b.getRepositoryConfig(repoConfig)

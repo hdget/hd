@@ -36,11 +36,11 @@ func (impl *appInstallerImpl) install(app, ref string) error {
 	if err != nil {
 		return errors.Wrap(err, "create temporary install dir")
 	}
-	defer func() {
-		if e := os.RemoveAll(tempDir); e != nil {
-			fmt.Printf("delete temporary install dir: %v, dir: %s", e, tempDir)
-		}
-	}()
+	//defer func() {
+	//	if e := os.RemoveAll(tempDir); e != nil {
+	//		fmt.Printf("delete temporary install dir: %v, dir: %s", e, tempDir)
+	//	}
+	//}()
 
 	if err = newGit(impl.appCtlImpl).Clone(configRepo.Url, tempDir).Switch(ref, "main"); err != nil {
 		return err
