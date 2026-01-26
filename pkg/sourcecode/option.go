@@ -1,6 +1,6 @@
 package sourcecode
 
-type Option func(*sourceCodeHandlerImpl)
+type Option func(*HandlerImpl)
 
 // // WithEntrySignature 定义服务调用函数签名， 方便定位哪个文件需要patch来添加模块所在包的导入路径
 //
@@ -20,7 +20,7 @@ type Option func(*sourceCodeHandlerImpl)
 //				return errors.New("empty import path or function chain")
 //			}
 //
-//			m.signature = &callSignature{
+//			m.signature = &CallSignature{
 //				caller: importPath,
 //				functionChain: functionChain,
 //			}
@@ -28,13 +28,13 @@ type Option func(*sourceCodeHandlerImpl)
 //		}
 //	}
 func WithSkipDirs(dirs ...string) Option {
-	return func(m *sourceCodeHandlerImpl) {
-		m.skipDirs = append(m.skipDirs, dirs...)
+	return func(m *HandlerImpl) {
+		m.SkipDirs = append(m.SkipDirs, dirs...)
 	}
 }
 
 func WithAssetPath(assetsPath string) Option {
-	return func(m *sourceCodeHandlerImpl) {
-		m.assetsPath = assetsPath
+	return func(m *HandlerImpl) {
+		m.AssetsPath = assetsPath
 	}
 }

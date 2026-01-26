@@ -1,15 +1,18 @@
 package sourcecode
 
 import (
+	"os"
+
 	"github.com/hdget/hd/pkg/sourcecode"
+	"github.com/hdget/hd/pkg/sourcecode/dapr"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var (
 	argPatchSkipDirs       []string // inspect时需要跳过的目录
 	argAssetsPath          string
+	argHandler             string
 	subCmdHandleSourceCode = &cobra.Command{
 		Use:   "handle",
 		Short: "handle source code",
@@ -20,8 +23,9 @@ var (
 )
 
 func init() {
-	subCmdHandleSourceCode.PersistentFlags().StringVarP(&argAssetsPath, "assets-path", "", "assets", "--assets-path assets")
-	subCmdHandleSourceCode.PersistentFlags().StringSliceVarP(&argPatchSkipDirs, "skip", "", []string{"autogen"}, "--entry [import_path.func]")
+	subCmdHandleSourceCode.PersistentFlags().StringVarP(&argAssetsPath, "assets", "a", "assets", "--assets assets")
+	subCmdHandleSourceCode.PersistentFlags().StringSliceVarP(&argPatchSkipDirs, "skip", "s", []string{"autogen"}, "--entry [import_path.func]")
+	subCmdHandleSourceCode.PersistentFlags().StringVarP(&argHandler, "handler", "h", "dapr", "--handler dapr")
 }
 
 func handleSourceCode() {
@@ -30,10 +34,15 @@ func handleSourceCode() {
 		utils.Fatal("get source code dir", err)
 	}
 
-	err = sourcecode.New(srcDir,
-		sourcecode.WithSkipDirs(argPatchSkipDirs...),
-		sourcecode.WithAssetPath(argAssetsPath),
-	).Handle()
+	switch argHandler {
+	case "dapr":
+		err = dapr.New(srcDir,
+			sourcecode.WithSkipDirs(argPatchSkipDirs...),
+			sourcecode.WithAssetPath(argAssetsPath),
+		).Handle()
+	case "webservice":
+	}
+
 	if err != nil {
 		utils.Fatal("handle source code", err)
 	}

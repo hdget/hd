@@ -1,8 +1,11 @@
-package sourcecode
+package dapr
 
 import (
 	"fmt"
 	"go/ast"
+
+	astUtils "github.com/hdget/utils/ast"
+
 	"go/token"
 	"maps"
 	"path/filepath"
@@ -15,10 +18,10 @@ import (
 
 var (
 	// 调用函数的函数签名：invocation handler: func(biz.Context,[]byte) (any, error)
-	signatureInvocationHandler = &functionSignature{
-		namePattern: regexp.MustCompile(`.*Handler`),
-		params:      []string{"biz.Context", "[]byte"},
-		results:     []string{"any", "error"},
+	functionSignatureInvocationHandler = &astUtils.FunctionSignature{
+		NamePattern: regexp.MustCompile(`.*Handler`),
+		Params:      []string{"biz.Context", "[]byte"},
+		Results:     []string{"any", "error"},
 	}
 
 	// 模块注册的调用签名, e,g:
@@ -30,10 +33,10 @@ var (
 	//	},
 	//}
 	// 模块初始化的调用签名
-	signatureNewInvocationModule = &callSignature{
-		functionChain: "NewInvocationModule",
-		pkg:           "github.com/hdget/lib-dapr/module",
-		argCount:      3,
+	callSignatureNewInvocationModule = &astUtils.CallSignature{
+		FunctionChain: "NewInvocationModule",
+		Package:       "github.com/hdget/lib-dapr/module",
+		ArgCount:      3,
 	}
 
 	hdAnnotationRegex  = regexp.MustCompile(`@hd\.(\S+)(?:\s+(.*))?`)
@@ -41,14 +44,14 @@ var (
 )
 
 // parseDaprInvocationHandlers 从第一次解析的结果中去获取DaprInvocationModule中所有handler的路由注解
-func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*parsedDaprModuleInfo) ([]*protobuf.DaprHandler, error) {
+func (p *scParser) parseDaprInvocationHandlers(moduleInfos []*daprModule) ([]*protobuf.DaprHandler, error) {
 	results := make([]*protobuf.DaprHandler, 0)
 
-	invocationModuleInfos := pie.Filter(moduleInfos, func(m *parsedDaprModuleInfo) bool {
+	invocationModuleInfos := pie.Filter(moduleInfos, func(m *daprModule) bool {
 		return m.kind == protobuf.DaprModuleKind_DaprModuleKindInvocation
 	})
 
-	allInvocationPkgRelPaths := pie.Unique(pie.Map(invocationModuleInfos, func(m *parsedDaprModuleInfo) string {
+	allInvocationPkgRelPaths := pie.Unique(pie.Map(invocationModuleInfos, func(m *daprModule) string {
 		return m.pkgRelPath
 	}))
 
@@ -61,13 +64,13 @@ func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*parsedDaprModule
 			pkgVarTypes := make(map[string]string)
 			pkgVarDecls := make(map[string]*ast.ValueSpec)
 			for _, f := range astPkg.Files {
-				maps.Copy(pkgVarTypes, astGetVarTypes(f))
-				maps.Copy(pkgVarDecls, astGetVarDeclsFromFile(f))
+				maps.Copy(pkgVarTypes, astUtils.GetVarTypes(f))
+				maps.Copy(pkgVarDecls, astUtils.GetVarDeclsFromFile(f))
 			}
 
 			for _, f := range astPkg.Files {
 				// 新建一个记录导入别名与包名映射关系的字典
-				caller2pkgImportPath := astGetPackageImportPaths(f)
+				caller2pkgImportPath := astUtils.GetPackageImportPaths(f)
 
 				ast.Inspect(f, func(node ast.Node) bool {
 					switch n := node.(type) {
@@ -108,8 +111,8 @@ func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*parsedDaprModule
 }
 
 // parseInvocationHandler 解析Dapr所有invocation handlers
-func (p *parserImpl) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath string, registeredHandlerPath2handlerAlias map[string]string) *protobuf.DaprHandler {
-	receiverTypeName := astGetReceiverTypeName(fn, true)
+func (p *scParser) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath string, registeredHandlerPath2handlerAlias map[string]string) *protobuf.DaprHandler {
+	receiverTypeName := astUtils.GetReceiverTypeName(fn, true)
 	// receiverTypeName为空表示为普通函数，忽略
 	if receiverTypeName == "" {
 		return nil
@@ -117,7 +120,7 @@ func (p *parserImpl) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath s
 
 	// 函数签名匹配
 	// func(ctx context.Context, event *common.InvocationEvent) (*common.Content, any)
-	if astMatchFunction(fn, signatureInvocationHandler) {
+	if astUtils.MatchFunction(fn, functionSignatureInvocationHandler) {
 		annotations, comments := p.extractAnnotationsAndComments(fn.Doc)
 
 		pkgRelPath, _ := filepath.Rel(srcDir, filepath.Dir(filePath))
@@ -140,7 +143,7 @@ func (p *parserImpl) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath s
 	return nil
 }
 
-func (p *parserImpl) extractAnnotationsAndComments(doc *ast.CommentGroup) (map[string]string, []string) {
+func (p *scParser) extractAnnotationsAndComments(doc *ast.CommentGroup) (map[string]string, []string) {
 	if doc == nil || len(doc.List) == 0 {
 		return nil, nil
 	}
@@ -186,7 +189,7 @@ func (p *parserImpl) extractAnnotationsAndComments(doc *ast.CommentGroup) (map[s
 }
 
 // extractHandlerAlias 提取map中的键值对，并替换变量名为类型名
-func (p *parserImpl) extractHandlerAlias(mapLit *ast.CompositeLit, pkgRelPath string, fnVarTypes, pkgVarTypes map[string]string) map[string]string {
+func (p *scParser) extractHandlerAlias(mapLit *ast.CompositeLit, pkgRelPath string, fnVarTypes, pkgVarTypes map[string]string) map[string]string {
 	results := make(map[string]string)
 	for _, elt := range mapLit.Elts {
 		kv, ok := elt.(*ast.KeyValueExpr)
@@ -230,16 +233,16 @@ func (p *parserImpl) extractHandlerAlias(mapLit *ast.CompositeLit, pkgRelPath st
 // parseInvocationHandlerAlias 在init函数中解析daprModule.Register函数，获取handlerAlias
 //
 // 返回： service/invocation.v2_xxx.handler => alias
-func (p *parserImpl) parseInvocationHandlerAlias(n *ast.FuncDecl, pkgRelPath string, caller2pkgImportPath, pkgVarTypes map[string]string, pkgVarDecls map[string]*ast.ValueSpec) map[string]string {
+func (p *scParser) parseInvocationHandlerAlias(n *ast.FuncDecl, pkgRelPath string, caller2pkgImportPath, pkgVarTypes map[string]string, pkgVarDecls map[string]*ast.ValueSpec) map[string]string {
 	var handler2alias map[string]string
 
-	fnVarDecls := astGetVarDeclsFromFunc(n.Body)
-	fnVarTypes := astGetVarTypes(n.Body)
+	fnVarDecls := astUtils.GetVarDeclsFromFunc(n.Body)
+	fnVarTypes := astUtils.GetVarTypes(n.Body)
 
 	ast.Inspect(n.Body, func(n ast.Node) bool {
 		switch nn := n.(type) {
 		case *ast.CallExpr:
-			if astMatchCall(nn, signatureNewInvocationModule, caller2pkgImportPath) && len(nn.Args) == 3 {
+			if astUtils.MatchCall(nn, callSignatureNewInvocationModule, caller2pkgImportPath) && len(nn.Args) == 3 {
 				// 处理map参数（直接内联或通过变量传递）
 				switch param := nn.Args[2].(type) {
 				case *ast.CompositeLit: // 直接内联map

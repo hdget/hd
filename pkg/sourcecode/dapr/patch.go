@@ -1,9 +1,8 @@
-package sourcecode
+package dapr
 
 import (
 	"bytes"
 	"fmt"
-	"github.com/pkg/errors"
 	"go/ast"
 	"go/parser"
 	"go/printer"
@@ -12,15 +11,17 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // patch 匿名导入invocationModule和eventModule的路径到服务运行入口文件
 // MonkeyPatch 修改源代码的方式匿名导入pkg, sourceFile是相对于basePath的相对路径
-func (impl *sourceCodeHandlerImpl) patch(scInfo *sourceCodeInfo) error {
+func (h *daprSourceCodeHandler) patch(scInfo *souceCodeInfo) error {
 	fmt.Println(">>> patch source code")
 
 	// 获取项目模块名
-	projectModuleName, err := impl.getProjectModuleName()
+	projectModuleName, err := h.getProjectModuleName()
 	if err != nil {
 		return err
 	}
@@ -28,9 +29,9 @@ func (impl *sourceCodeHandlerImpl) patch(scInfo *sourceCodeInfo) error {
 	// 将源代码解析为抽象语法树（AST）
 	fset := token.NewFileSet()
 	// IMPORTANT: 这里要保证注释不被丢失
-	astFile, err := parser.ParseFile(fset, scInfo.serverEntryFilePath, nil, parser.ParseComments)
+	astFile, err := parser.ParseFile(fset, scInfo.patchFile, nil, parser.ParseComments)
 	if err != nil {
-		return errors.Wrapf(err, "golang ast parseMetaData file, path: %s", scInfo.serverEntryFilePath)
+		return errors.Wrapf(err, "golang ast parseMetaData file, path: %s", scInfo.patchFile)
 	}
 
 	// 记录所有已经导入的包
@@ -41,7 +42,7 @@ func (impl *sourceCodeHandlerImpl) patch(scInfo *sourceCodeInfo) error {
 
 	// 创建新的import节点匿名插入到import声明列表
 	newImported := make([]string, 0)
-	for _, m := range scInfo.daprModules {
+	for _, m := range scInfo.modules {
 		// IMPORTANT: spec.Path.Value是带了双引号的
 		impPath := "\"" + path.Join(projectModuleName, m.pkgRelPath) + "\""
 
@@ -86,7 +87,7 @@ func (impl *sourceCodeHandlerImpl) patch(scInfo *sourceCodeInfo) error {
 	}
 
 	// 打开文件
-	file, err := os.OpenFile(scInfo.serverEntryFilePath, os.O_RDWR|os.O_TRUNC, 0666)
+	file, err := os.OpenFile(scInfo.patchFile, os.O_RDWR|os.O_TRUNC, 0666)
 	if err != nil {
 		return err
 	}
@@ -114,17 +115,7 @@ func (impl *sourceCodeHandlerImpl) patch(scInfo *sourceCodeInfo) error {
 	return nil
 }
 
-//func (h *addModuleImportPathsHandler) print(newAdded []string) {
-//	table := tablewriter.NewWriter(os.Stdout)
-//	table.SetHeader([]string{"NO", "IMPORT PACKAGE"})
-//	table.SetRowLine(true)
-//	for i, impPath := range newAdded {
-//		table.Append([]string{cast.ToString(i + 1), impPath})
-//	}
-//	table.Render() // Send output
-//}
-
-func (impl *sourceCodeHandlerImpl) getProjectModuleName() (string, error) {
+func (impl *daprSourceCodeHandler) getProjectModuleName() (string, error) {
 	// 获取根模块名
 	cmdOutput, err := exec.Command("go", "list", "-m").CombinedOutput()
 	if err != nil {

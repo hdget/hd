@@ -1,4 +1,4 @@
-package sourcecode
+package dapr
 
 import (
 	"fmt"
@@ -7,9 +7,10 @@ import (
 	"regexp"
 
 	"github.com/hdget/common/protobuf"
+	astUtils "github.com/hdget/utils/ast"
 )
 
-type parsedDaprModuleInfo struct {
+type daprModule struct {
 	kind       protobuf.DaprModuleKind
 	name       string
 	pkgRelPath string
@@ -26,15 +27,15 @@ var (
 )
 
 // parseDaprModules 所有DaprModule信息
-func (p *parserImpl) parseDaprModules() ([]*parsedDaprModuleInfo, error) {
-	results := make([]*parsedDaprModuleInfo, 0)
+func (p *scParser) parseDaprModules() ([]*daprModule, error) {
+	results := make([]*daprModule, 0)
 
 	for _, astPkg := range p.pkgRelPath2astPkg {
 		for fPath, f := range astPkg.Files {
 			ast.Inspect(f, func(node ast.Node) bool {
 				switch n := node.(type) {
 				case *ast.GenDecl: // import, constant, type or variable declaration
-					if stName, st, found := astGetStructInfo(n); found {
+					if stName, st, found := astUtils.GetStructInfo(n); found {
 						if m := p.parseDaprModule(stName, st, p.srcDir, fPath); m != nil {
 							results = append(results, m)
 						}
@@ -50,10 +51,10 @@ func (p *parserImpl) parseDaprModules() ([]*parsedDaprModuleInfo, error) {
 // parseDaprModule 检查是否有Dapr模块
 // 判断结构声明中的field类型是否出现在moduleExpr2moduleKind中，如果出现了，说明类似下面的type声明找到了
 //
-//	type v1_example struct {
+//	type exampleModule struct {
 //		module.InvocationModule
 //	}
-func (p *parserImpl) parseDaprModule(structName string, astStructType *ast.StructType, srcDir, path string) *parsedDaprModuleInfo {
+func (p *scParser) parseDaprModule(structName string, astStructType *ast.StructType, srcDir, path string) *daprModule {
 	// 检查第一个field是否是匿名引入的模块，
 	// e,g: type A struct {
 	//	module.InvocationModule
@@ -70,7 +71,7 @@ func (p *parserImpl) parseDaprModule(structName string, astStructType *ast.Struc
 			moduleName := matches[1]
 			if moduleKind, exists := moduleExpr2moduleKind[moduleName]; exists && moduleKind != protobuf.DaprModuleKind_DaprModuleKindUnknown {
 				relPath, _ := filepath.Rel(srcDir, filepath.Dir(path))
-				return &parsedDaprModuleInfo{
+				return &daprModule{
 					kind:       moduleKind,
 					name:       structName,
 					pkgRelPath: filepath.ToSlash(relPath),
