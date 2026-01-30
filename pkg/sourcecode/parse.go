@@ -11,8 +11,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/hdget/common/protobuf"
 	"github.com/hdget/hd/g"
+	"github.com/hdget/sdk/common/protobuf"
 	"github.com/pkg/errors"
 )
 
@@ -80,7 +80,7 @@ func (p *parserImpl) Parse() (*sourceCodeInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if g.Debug {
 		fmt.Println("found handlers")
 		for _, m := range daprModules {

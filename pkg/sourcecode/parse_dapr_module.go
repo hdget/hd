@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/hdget/common/protobuf"
+	"github.com/hdget/sdk/common/protobuf"
 )
 
 type parsedDaprModuleInfo struct {
