@@ -5,7 +5,7 @@ import "go/ast"
 var (
 	serverEntryCall = &callSignature{
 		functionChain: "NewGrpcServer",
-		pkg:           "github.com/hdget/lib-dapr",
+		pkg:           "github.com/hdget/sdk/libs/dapr",
 		argCount:      -1, // 不检查argCount
 	}
 )
