@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/common/protobuf"
+	"github.com/hdget/sdk/common/protobuf"
 )
 
 var (
