@@ -1,13 +1,14 @@
 package appctl
 
 import (
+	"os"
+	"strings"
+
 	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/appctl"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
-	"os"
-	"strings"
 )
 
 var (
@@ -15,7 +16,7 @@ var (
 		Use:   "deploy [app1,app2...] [branch]",
 		Short: "deploy app",
 		Run: func(cmd *cobra.Command, args []string) {
-			if argAll {
+			if arg.all {
 				deployAllApp(args)
 			} else {
 				deployApp(args)
@@ -23,19 +24,6 @@ var (
 		},
 	}
 )
-
-func init() {
-	// protobuf编译后的包名
-	subCmdDeployApp.PersistentFlags().StringVarP(&argAppBuild.pbOutputPackage, "pb-package", "", "pb", "--pb-package [package_name]]")
-	// protobuf编译后的目录
-	subCmdDeployApp.PersistentFlags().StringVarP(&argAppBuild.pbOutputDir, "pb-dir", "", "autogen", "relative pb output dir, --pb-dir [dir]")
-	// 是否要输出grpc
-	subCmdDeployApp.PersistentFlags().BoolVarP(&argAppBuild.pbGenGRPC, "grpc", "", false, "--grpc")
-	// 指定编译哪个plugin
-	subCmdDeployApp.PersistentFlags().StringSliceVarP(&argAppBuild.plugins, "plugins", "", nil, "--plugins [plugin1,plugin2...]")
-	// plugin编译输出到哪个目录
-	subCmdDeployApp.PersistentFlags().StringVarP(&argAppBuild.pluginOutputDir, "plugin-dir", "", "plugins", "relative plugin output dir, --plugin-dir [dir]")
-}
 
 func deployAllApp(args []string) {
 	if len(args) < 1 {
@@ -62,12 +50,9 @@ func deployAllApp(args []string) {
 	for _, app := range g.Config.Project.Apps {
 		err = appctl.New(
 			baseDir,
-			appctl.WithBinOutputDir(argBinOutputDir),
-			appctl.WithPluginOutputDir(argAppBuild.pluginOutputDir),
-			appctl.WithPlugins(argAppBuild.plugins),
-			appctl.WithPbOutputDir(argAppBuild.pbOutputDir),
-			appctl.WithPbOutputPackage(argAppBuild.pbOutputPackage),
-			appctl.WithPbGRPC(argAppBuild.pbGenGRPC),
+			appctl.WithBinDir(arg.binDir),
+			appctl.WithPlugins(arg.plugins),
+			appctl.WithPluginDir(arg.pluginDir),
 		).Build(app, ref)
 		if err != nil {
 			utils.Fatal("build app", err)
@@ -80,7 +65,7 @@ func deployAllApp(args []string) {
 
 		err = appctl.New(
 			baseDir,
-			appctl.WithBinOutputDir(argBinOutputDir),
+			appctl.WithBinDir(arg.binDir),
 		).Start(app)
 		if err != nil {
 			utils.Fatal("start app", err)
@@ -121,12 +106,9 @@ func deployApp(args []string) {
 
 		err = appctl.New(
 			baseDir,
-			appctl.WithBinOutputDir(argBinOutputDir),
-			appctl.WithPluginOutputDir(argAppBuild.pluginOutputDir),
-			appctl.WithPlugins(argAppBuild.plugins),
-			appctl.WithPbOutputDir(argAppBuild.pbOutputDir),
-			appctl.WithPbOutputPackage(argAppBuild.pbOutputPackage),
-			appctl.WithPbGRPC(argAppBuild.pbGenGRPC),
+			appctl.WithBinDir(arg.binDir),
+			appctl.WithPlugins(arg.plugins),
+			appctl.WithPluginDir(arg.pluginDir),
 		).Build(app, ref)
 		if err != nil {
 			utils.Fatal("build app", err)
@@ -139,7 +121,7 @@ func deployApp(args []string) {
 
 		err = appctl.New(
 			baseDir,
-			appctl.WithBinOutputDir(argBinOutputDir),
+			appctl.WithBinDir(arg.binDir),
 		).Start(app, extraParam)
 		if err != nil {
 			utils.Fatal("start app", err)

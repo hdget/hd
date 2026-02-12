@@ -15,11 +15,20 @@ type ProjectConfig struct {
 }
 
 type AppConfig struct {
-	Name         string         `toml:"name"`
-	ExternalPort int            `toml:"external_port"`
-	Repo         string         `toml:"repo"`
-	Protocol     string         `toml:"protocol"`
-	Plugins      []PluginConfig `toml:"plugins"`
+	Name         string          `toml:"name"`
+	ExternalPort int             `toml:"external_port"`
+	Repo         string          `toml:"repo"`
+	Protocol     string          `toml:"protocol"`
+	Build        *AppBuildConfig `toml:"build"`
+	Plugins      []*PluginConfig `toml:"plugins"`
+}
+
+type AppBuildConfig struct {
+	PbDir        string `toml:"pb_dir"`        // protobuf编译后保存的的目录
+	PbPackage    string `toml:"pb_package"`    // protobuf编译后生成的包名
+	UseGRPC      bool   `toml:"use_grpc"`      // 是否使用了GRPC, 需要编译GRPC代码
+	UseProtobuf  bool   `toml:"use_protobuf"`  // 是否使用了protobuf， 需要编译protobuf文件
+	UseSQLBoiler bool   `toml:"use_sqlboiler"` // 是否使用了sqlboiler， 需要自动生成sqlboiler代码
 }
 
 type RepositoryConfig struct {
@@ -29,7 +38,7 @@ type RepositoryConfig struct {
 
 type PluginConfig struct {
 	Name string `toml:"name"`
-	Url  string `toml:"url"`
+	Repo string `toml:"repo"`
 }
 
 type ToolConfig struct {

@@ -1,12 +1,13 @@
 package appctl
 
 import (
+	"os"
+	"strings"
+
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/appctl"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
-	"os"
-	"strings"
 )
 
 var (
@@ -17,7 +18,7 @@ var (
 			UnknownFlags: true,
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			if argAll {
+			if arg.all {
 				startAllApp()
 			} else {
 				startApp(args)
@@ -35,7 +36,7 @@ func startAllApp() {
 	for _, app := range g.Config.Project.Apps {
 		err = appctl.New(
 			baseDir,
-			appctl.WithBinOutputDir(argBinOutputDir),
+			appctl.WithBinDir(arg.binDir),
 		).Start(app)
 		if err != nil {
 			utils.Fatal("start app", err)
@@ -67,7 +68,7 @@ func startApp(args []string) {
 	for _, app := range apps {
 		err = appctl.New(
 			baseDir,
-			appctl.WithBinOutputDir(argBinOutputDir),
+			appctl.WithBinDir(arg.binDir),
 		).Start(app, extraParam)
 		if err != nil {
 			utils.Fatal("start app", err)

@@ -13,15 +13,18 @@ import (
 	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/protocompile"
 	"github.com/hdget/hd/pkg/protorefine"
+	"github.com/hdget/hd/pkg/tools"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
 )
 
 type appBuilder struct {
 	*appCtlImpl
-	pbOutputDir     string
-	pbOutputPackage string
-	pbGenGRPC       bool
+	appConfig *g.AppConfig
+	//pbOutputDir     string
+	//pbOutputPackage string
+	//pbGenGRPC       bool
+	//genPb           bool
 }
 
 const (
@@ -29,12 +32,10 @@ const (
 	repoConfig = "config"
 )
 
-func newAppBuilder(appCtl *appCtlImpl, pbOutputDir, pbOutputPackage string, pbGenGRPC bool) *appBuilder {
+func newAppBuilder(appCtl *appCtlImpl, appConfig *g.AppConfig) *appBuilder {
 	return &appBuilder{
-		appCtlImpl:      appCtl,
-		pbOutputDir:     pbOutputDir,
-		pbOutputPackage: pbOutputPackage,
-		pbGenGRPC:       pbGenGRPC,
+		appCtlImpl: appCtl,
+		appConfig:  appConfig,
 	}
 }
 
@@ -82,26 +83,47 @@ func (b *appBuilder) build(name, refName string) error {
 	}
 
 	// 编译Protobuf
-	if g.Debug {
-		fmt.Println("===> build step: generate protobuf")
-	}
-	if err := b.generateProtobuf(appSrcDir, refName); err != nil {
-		return err
+	if b.appConfig.Build.UseProtobuf {
+		if g.Debug {
+			fmt.Println("===> build step: generate protobuf")
+		}
+
+		if err = tools.Check(
+			tools.Protoc(),
+			tools.ProtocGo(),
+			tools.ProtocGoGRPC(),
+			tools.Sqlboiler(),
+		); err != nil {
+			return err
+		}
+
+		if err = b.generateProtobuf(appSrcDir, refName); err != nil {
+			return err
+		}
 	}
 
 	// 拷贝sqlboiler.toml
-	if g.Debug {
-		fmt.Println("===> build step: copy sqlboiler config file")
-	}
-	if err = b.copySqlboilerConfigFile(appSrcDir, name, refName); err != nil {
-		return err
+	if b.appConfig.Build.UseSQLBoiler {
+		if g.Debug {
+			fmt.Println("===> build step: copy sqlboiler config file")
+		}
+
+		if err = tools.Check(
+			tools.Sqlboiler(),
+		); err != nil {
+			return err
+		}
+
+		if err = b.copySqlboilerConfigFile(appSrcDir, name, refName); err != nil {
+			return err
+		}
 	}
 
 	// go build name
 	if g.Debug {
 		fmt.Println("===> build step: go build")
 	}
-	if err := b.golangAppBuild(appSrcDir, name, gitBuildInfo); err != nil {
+	if err = b.golangAppBuild(appSrcDir, name, gitBuildInfo); err != nil {
 		return err
 	}
 
@@ -218,15 +240,17 @@ func (b *appBuilder) generateProtobuf(srcDir, refName string) error {
 		GolangModule:        rootGolangModule,
 		GolangSourceCodeDir: srcDir,
 		ProtoRepository:     protoOutputDir,
-		OutputPackage:       b.pbOutputPackage,
-		OutputDir:           b.pbOutputDir,
+		OutputPackage:       b.appConfig.Build.PbPackage,
+		OutputDir:           b.appConfig.Build.PbDir,
 	})
 	if err != nil {
 		return err
 	}
 
 	// 第二步：编译protobuf
-	err = protocompile.New(protocompile.WithGRPC(b.pbGenGRPC)).Compile(protoDir, filepath.Join(srcDir, b.pbOutputDir), b.pbOutputPackage)
+	err = protocompile.New(
+		protocompile.WithGRPC(b.appConfig.Build.UseGRPC),
+	).Compile(protoDir, filepath.Join(srcDir, b.appConfig.Build.PbDir), b.appConfig.Build.PbPackage)
 	if err != nil {
 		return err
 	}

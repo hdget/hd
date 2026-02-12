@@ -1,12 +1,13 @@
 package appctl
 
 import (
+	"os"
+	"strings"
+
 	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/appctl"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
-	"os"
-	"strings"
 )
 
 var (
@@ -14,7 +15,7 @@ var (
 		Use:   "stop [app1,app2...]",
 		Short: "stop app",
 		Run: func(cmd *cobra.Command, args []string) {
-			if argAll {
+			if arg.all {
 				stopAllApp()
 			} else {
 				stopApp(args)
