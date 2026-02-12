@@ -38,7 +38,7 @@ type port struct {
 const (
 	defaultDaprPortStart = 55000
 	defaultDaprPortEnd   = 59999
-	//cmdExternalAppStart  = "%s run --app-address 127.0.0.1:%d --web-address :%d"
+	//cmdExternalAppStart  = "%s run --app-address 127.0.0.1:%d --external-address :%d"
 	//cmdInternalAppStart  = "%s run --app-address 127.0.0.1:%d"
 	cmdRunDapr = "dapr run"
 	cmdRunApp  = "%s run"
@@ -214,7 +214,7 @@ func (impl *appImpl) getAppRunCommand(binDir, extraParam string, port *port) str
 	argMap := make(map[string]string)
 	argMap["--app-address"] = fmt.Sprintf("127.0.0.1:%d", port.appPort)
 	if impl.config.ExternalPort > 0 {
-		argMap["--web-address"] = fmt.Sprintf(":%d", port.externalPort)
+		argMap["--external-address"] = fmt.Sprintf(":%d", port.externalPort)
 	}
 
 	for key, value := range argMap {
