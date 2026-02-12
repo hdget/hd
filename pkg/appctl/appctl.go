@@ -202,8 +202,8 @@ func (a *appCtlImpl) getAppConfig(name string) (*g.AppConfig, error) {
 
 func getDefaultBuildConfig() *g.AppBuildConfig {
 	return &g.AppBuildConfig{
-		PbDir:        "pb",
-		PbPackage:    "autogen",
+		PbDir:        "autogen",
+		PbPackage:    "pb",
 		UseGRPC:      false,
 		UseProtobuf:  true,
 		UseSQLBoiler: true,
