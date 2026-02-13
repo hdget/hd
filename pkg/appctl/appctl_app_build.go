@@ -28,8 +28,8 @@ type appBuilder struct {
 }
 
 const (
-	repoProto  = "proto"
-	repoConfig = "config"
+	defaultProtoRepo  = "proto"
+	defaultConfigRepo = "config"
 )
 
 func newAppBuilder(appCtl *appCtlImpl, appConfig *g.AppConfig) *appBuilder {
@@ -191,12 +191,12 @@ func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) err
 	}()
 
 	// clone config repo
-	configRepo, err := b.getRepositoryConfig(repoConfig)
+	configRepoConf, err := b.getRepositoryConfig(b.appConfig.ConfigRepo)
 	if err != nil {
-		return errors.Wrapf(err, "repository not found, name: %s", repoConfig)
+		return errors.Wrapf(err, "repository not found, name: %s", b.appConfig.ConfigRepo)
 	}
 
-	if err = newGit(b.appCtlImpl).Clone(configRepo.Url, tempDir).Switch(refName, "main"); err != nil {
+	if err = newGit(b.appCtlImpl).Clone(configRepoConf.Url, tempDir).Switch(refName, "main"); err != nil {
 		return err
 	}
 
@@ -210,15 +210,15 @@ func (b *appBuilder) copySqlboilerConfigFile(appSrcDir, app, refName string) err
 }
 
 func (b *appBuilder) generateProtobuf(srcDir, refName string) error {
-	protoRepo, err := b.getRepositoryConfig(repoProto)
+	protoRepoConf, err := b.getRepositoryConfig(b.appConfig.ProtoRepo)
 	if err != nil {
-		return errors.Wrapf(err, "repository not found, name: %s", repoProto)
+		return errors.Wrapf(err, "proto repository not found, name: %s", b.appConfig.ProtoRepo)
 	}
 
 	protoOutputDir := filepath.Join(srcDir, "proto")
 
 	// 拷贝protod repostory
-	if err = newGit(b.appCtlImpl).Clone(protoRepo.Url, protoOutputDir).Switch(refName, "main"); err != nil {
+	if err = newGit(b.appCtlImpl).Clone(protoRepoConf.Url, protoOutputDir).Switch(refName, "main"); err != nil {
 		return err
 	}
 

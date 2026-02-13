@@ -22,14 +22,9 @@ type AppController interface {
 }
 
 type appCtlImpl struct {
-	baseDir   string
-	binDir    string
-	pluginDir string
-	//// pb options
-	//pbOutputDir     string
-	//pbOutputPackage string
-	//pbGenGRPC       bool
-	// plugin options
+	baseDir     string
+	binDir      string
+	pluginDir   string
 	pluginNames []string
 }
 
@@ -75,12 +70,18 @@ func (a *appCtlImpl) Start(name string, extraParam ...string) error {
 	return instance.start(name, startParam)
 }
 
-func (a *appCtlImpl) Install(app string, ref string) error {
+func (a *appCtlImpl) Install(name string, ref string) error {
 	fmt.Println()
-	fmt.Printf("=== INSTALL app: %s ===\n", app)
+	fmt.Printf("=== INSTALL name: %s ===\n", name)
 	fmt.Println()
 
-	return newAppInstaller(a).install(app, ref)
+	// 获取app配置
+	appConfig, err := a.getAppConfig(name)
+	if err != nil {
+		return fmt.Errorf("app config not found in hd.toml, name: %s", name)
+	}
+
+	return newAppInstaller(a, appConfig).install(name, ref)
 }
 
 func (a *appCtlImpl) Build(name string, ref string) error {
@@ -97,12 +98,12 @@ func (a *appCtlImpl) Build(name string, ref string) error {
 			fmt.Printf("=== BUILD plugin: %s, ref: %s ===\n", pluginName, ref)
 			fmt.Println()
 
-			pluginConfig, err := getPluginConfig(appConfig.Plugins, pluginName)
+			pluginConf, err := getPluginConfig(appConfig.Plugins, pluginName)
 			if err != nil {
 				return errors.Wrap(err, "get plugin config")
 			}
 
-			if err = newPluginBuilder(a, appConfig).build(pluginConfig, ref); err != nil {
+			if err = newPluginBuilder(a, appConfig).build(pluginConf, ref); err != nil {
 				return errors.Wrap(err, "build plugin")
 			}
 		}
@@ -177,7 +178,7 @@ func (a *appCtlImpl) getRepositoryConfig(name string) (*g.RepositoryConfig, erro
 		return strings.EqualFold(v.Name, name)
 	})
 	if index == -1 {
-		return nil, fmt.Errorf("dependent config not found in hd.toml, app: %s", name)
+		return nil, fmt.Errorf("config repository not found in hd.toml, app: %s", name)
 	}
 	return &g.Config.Repos[index], nil
 }
@@ -195,6 +196,14 @@ func (a *appCtlImpl) getAppConfig(name string) (*g.AppConfig, error) {
 	// 处理BuildOption
 	if found.Build == nil {
 		found.Build = getDefaultBuildConfig()
+	}
+
+	if found.ConfigRepo == "" {
+		found.ConfigRepo = defaultConfigRepo
+	}
+
+	if found.ProtoRepo == "" {
+		found.ProtoRepo = defaultProtoRepo
 	}
 
 	return found, nil

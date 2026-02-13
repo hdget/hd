@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
@@ -12,11 +13,13 @@ import (
 
 type appInstallerImpl struct {
 	*appCtlImpl
+	appConfig *g.AppConfig
 }
 
-func newAppInstaller(appCtl *appCtlImpl) *appInstallerImpl {
+func newAppInstaller(appCtl *appCtlImpl, appConfig *g.AppConfig) *appInstallerImpl {
 	return &appInstallerImpl{
 		appCtlImpl: appCtl,
+		appConfig:  appConfig,
 	}
 }
 
@@ -26,9 +29,9 @@ func (impl *appInstallerImpl) install(app, ref string) error {
 		return err
 	}
 
-	configRepo, err := impl.getRepositoryConfig(repoConfig)
+	configRepoConf, err := impl.getRepositoryConfig(impl.appConfig.ConfigRepo)
 	if err != nil {
-		return errors.Wrapf(err, "repository not found, name: %s", repoConfig)
+		return errors.Wrapf(err, "repository not found, name: %s", defaultConfigRepo)
 	}
 
 	// 创建临时目录
@@ -42,7 +45,7 @@ func (impl *appInstallerImpl) install(app, ref string) error {
 		}
 	}()
 
-	if err = newGit(impl.appCtlImpl).Clone(configRepo.Url, tempDir).Switch(ref, "main"); err != nil {
+	if err = newGit(impl.appCtlImpl).Clone(configRepoConf.Url, tempDir).Switch(ref, "main"); err != nil {
 		return err
 	}
 

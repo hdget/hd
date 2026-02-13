@@ -19,6 +19,8 @@ type AppConfig struct {
 	ExternalPort int             `toml:"external_port"`
 	Repo         string          `toml:"repo"`
 	Protocol     string          `toml:"protocol"`
+	ConfigRepo   string          `toml:"config_repo"`
+	ProtoRepo    string          `toml:"proto_repo"`
 	Build        *AppBuildConfig `toml:"build"`
 	Plugins      []*PluginConfig `toml:"plugins"`
 }

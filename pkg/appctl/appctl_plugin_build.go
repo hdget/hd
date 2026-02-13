@@ -132,15 +132,15 @@ func (b *pluginBuilder) getLdFlags(app string, info *gitInfo) string {
 }
 
 func (b *pluginBuilder) generateProtobuf(srcDir, refName string) error {
-	protoRepo, err := b.getRepositoryConfig(repoProto)
+	protoRepoConf, err := b.getRepositoryConfig(b.appConfig.ProtoRepo)
 	if err != nil {
-		return errors.Wrapf(err, "repository not found, name: %s", repoProto)
+		return errors.Wrapf(err, "proto repository not found, name: %s", b.appConfig.ProtoRepo)
 	}
 
 	protoOutputDir := filepath.Join(srcDir, "proto")
 
 	// 拷贝proto repository
-	if err := newGit(b.appCtlImpl).Clone(protoRepo.Url, protoOutputDir).Switch(refName, "main"); err != nil {
+	if err := newGit(b.appCtlImpl).Clone(protoRepoConf.Url, protoOutputDir).Switch(refName, "main"); err != nil {
 		return err
 	}
 
