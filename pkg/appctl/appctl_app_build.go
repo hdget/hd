@@ -21,10 +21,6 @@ import (
 type appBuilder struct {
 	*appCtlImpl
 	appConfig *g.AppConfig
-	//pbOutputDir     string
-	//pbOutputPackage string
-	//pbGenGRPC       bool
-	//genPb           bool
 }
 
 const (
