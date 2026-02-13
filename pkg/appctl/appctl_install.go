@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hdget/hd/g"
 	"github.com/hdget/hd/pkg/env"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/pkg/errors"
@@ -12,11 +13,13 @@ import (
 
 type appInstallerImpl struct {
 	*appCtlImpl
+	appConfig *g.AppConfig
 }
 
-func newAppInstaller(appCtl *appCtlImpl) *appInstallerImpl {
+func newAppInstaller(appCtl *appCtlImpl, appConfig *g.AppConfig) *appInstallerImpl {
 	return &appInstallerImpl{
 		appCtlImpl: appCtl,
+		appConfig:  appConfig,
 	}
 }
 
@@ -26,9 +29,9 @@ func (impl *appInstallerImpl) install(app, ref string) error {
 		return err
 	}
 
-	configRepo, err := impl.getRepositoryConfig(repoConfig)
+	configRepoConf, err := impl.getRepositoryConfig(impl.appConfig.ConfigRepo)
 	if err != nil {
-		return errors.Wrapf(err, "repository not found, name: %s", repoConfig)
+		return errors.Wrapf(err, "repository not found, name: %s", defaultConfigRepo)
 	}
 
 	// 创建临时目录
@@ -42,17 +45,32 @@ func (impl *appInstallerImpl) install(app, ref string) error {
 		}
 	}()
 
-	if err = newGit(impl.appCtlImpl).Clone(configRepo.Url, tempDir).Switch(ref, "main"); err != nil {
+	if err = newGit(impl.appCtlImpl).Clone(configRepoConf.Url, tempDir).Switch(ref, "main"); err != nil {
 		return err
 	}
 
-	for srcPath, destPath := range map[string]string{
-		filepath.Join(tempDir, "app", app, fmt.Sprintf("%s.%s.toml", app, env)): filepath.Join(impl.baseDir, "config", "app", app),
-		filepath.Join(tempDir, "dapr", env, "*"):                                filepath.Join(impl.baseDir, "config", "dapr"),
-	} {
-		if err = utils.CopyWithWildcard(srcPath, destPath); err != nil {
-			return errors.Wrapf(err, "copy dir, src: %s, dest: %s", srcPath, destPath)
+	// 拷贝应用配置
+	srcFiles := filepath.Join(tempDir, "app", app, fmt.Sprintf("%s.%s.toml", app, env))
+	destDir := filepath.Join(impl.baseDir, "config", "app", app)
+	if err = utils.CopyWithWildcard(srcFiles, destDir); err != nil {
+		return errors.Wrapf(err, "copy dir, src: %s, dest: %s", srcFiles, destDir)
+	}
+
+	// 如果存在dapr配置，则拷贝dapr配置
+	daprConfigDir := filepath.Join(tempDir, "dapr", env)
+	if _, err = os.Stat(daprConfigDir); err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		} else {
+			return nil
 		}
 	}
+
+	srcFiles = filepath.Join(daprConfigDir, "*")
+	destDir = filepath.Join(impl.baseDir, "config", "dapr")
+	if err = utils.CopyWithWildcard(srcFiles, destDir); err != nil {
+		return errors.Wrapf(err, "copy dir, src: %s, dest: %s", srcFiles, destDir)
+	}
+
 	return nil
 }

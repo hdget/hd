@@ -2,11 +2,12 @@ package appctl
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/hdget/hd/pkg/appctl"
 	"github.com/hdget/hd/pkg/utils"
 	"github.com/spf13/cobra"
-	"os"
-	"strings"
 )
 
 var (
@@ -14,7 +15,7 @@ var (
 		Use:   "restart [app1,app2...]",
 		Short: "restart app",
 		Run: func(cmd *cobra.Command, args []string) {
-			if argAll {
+			if arg.all {
 				fmt.Println("restart all app not supported")
 				os.Exit(0)
 			}
@@ -54,7 +55,7 @@ func restartApp(args []string) {
 
 		err = appctl.New(
 			baseDir,
-			appctl.WithBinOutputDir(argBinOutputDir),
+			appctl.WithBinDir(arg.binDir),
 		).Start(app, extraParam)
 		if err != nil {
 			utils.Fatal("start app", err)

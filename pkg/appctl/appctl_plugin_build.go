@@ -19,21 +19,17 @@ import (
 
 type pluginBuilder struct {
 	*appCtlImpl
-	pbOutputDir     string
-	pbOutputPackage string
-	pbGenGRPC       bool
+	appConfig *g.AppConfig
 }
 
-func newPluginBuilder(appCtl *appCtlImpl, pbOutputDir, pbOutputPackage string, pbGenGRPC bool) *pluginBuilder {
+func newPluginBuilder(appCtl *appCtlImpl, appConfig *g.AppConfig) *pluginBuilder {
 	return &pluginBuilder{
-		appCtlImpl:      appCtl,
-		pbOutputDir:     pbOutputDir,
-		pbOutputPackage: pbOutputPackage,
-		pbGenGRPC:       pbGenGRPC,
+		appCtlImpl: appCtl,
+		appConfig:  appConfig,
 	}
 }
 
-func (b *pluginBuilder) build(name, repoUrl, refName string) error {
+func (b *pluginBuilder) build(pluginConfig *g.PluginConfig, refName string) error {
 	// 创建临时目录
 	tempDir, err := os.MkdirTemp(os.TempDir(), "hd-plugin-build-*")
 	if err != nil {
@@ -50,14 +46,14 @@ func (b *pluginBuilder) build(name, repoUrl, refName string) error {
 	}
 
 	// 创建工作目录
-	pluginSrcDir := filepath.Join(tempDir, name)
+	pluginSrcDir := filepath.Join(tempDir, pluginConfig.Name)
 
 	// 拷贝源代码并切换到指定分支并获取git信息
 	if g.Debug {
 		fmt.Println("===> plugin build step: clone source code")
 	}
 	gitOperator := newGit(b.appCtlImpl)
-	err = gitOperator.Clone(repoUrl, pluginSrcDir).Switch(refName)
+	err = gitOperator.Clone(pluginConfig.Repo, pluginSrcDir).Switch(refName)
 	if err != nil {
 		return err
 	}
@@ -67,18 +63,20 @@ func (b *pluginBuilder) build(name, repoUrl, refName string) error {
 	}
 
 	// 编译Protobuf
-	if g.Debug {
-		fmt.Println("===> plugin build step: generate protobuf")
-	}
-	if err := b.generateProtobuf(pluginSrcDir, refName); err != nil {
-		return err
+	if b.appConfig.Build.UseProtobuf {
+		if g.Debug {
+			fmt.Println("===> plugin build step: generate protobuf")
+		}
+		if err = b.generateProtobuf(pluginSrcDir, refName); err != nil {
+			return err
+		}
 	}
 
 	// go build app
 	if g.Debug {
 		fmt.Println("===> plugin build step: go build")
 	}
-	if err := b.doBuild(pluginSrcDir, name, gitBuildInfo); err != nil {
+	if err = b.doBuild(pluginSrcDir, pluginConfig.Name, gitBuildInfo); err != nil {
 		return err
 	}
 
@@ -134,15 +132,15 @@ func (b *pluginBuilder) getLdFlags(app string, info *gitInfo) string {
 }
 
 func (b *pluginBuilder) generateProtobuf(srcDir, refName string) error {
-	protoRepo, err := b.getRepositoryConfig(repoProto)
+	protoRepoConf, err := b.getRepositoryConfig(b.appConfig.ProtoRepo)
 	if err != nil {
-		return errors.Wrapf(err, "repository not found, name: %s", repoProto)
+		return errors.Wrapf(err, "proto repository not found, name: %s", b.appConfig.ProtoRepo)
 	}
 
 	protoOutputDir := filepath.Join(srcDir, "proto")
 
 	// 拷贝proto repository
-	if err := newGit(b.appCtlImpl).Clone(protoRepo.Url, protoOutputDir).Switch(refName, "main"); err != nil {
+	if err := newGit(b.appCtlImpl).Clone(protoRepoConf.Url, protoOutputDir).Switch(refName, "main"); err != nil {
 		return err
 	}
 
@@ -164,15 +162,17 @@ func (b *pluginBuilder) generateProtobuf(srcDir, refName string) error {
 		GolangModule:        rootGolangModule,
 		GolangSourceCodeDir: srcDir,
 		ProtoRepository:     protoOutputDir,
-		OutputPackage:       b.pbOutputPackage,
-		OutputDir:           b.pbOutputDir,
+		OutputPackage:       b.appConfig.Build.PbPackage,
+		OutputDir:           b.appConfig.Build.PbDir,
 	})
 	if err != nil {
 		return err
 	}
 
 	// 第二步：编译protobuf
-	err = protocompile.New(protocompile.WithGRPC(b.pbGenGRPC)).Compile(protoDir, filepath.Join(srcDir, b.pbOutputDir), b.pbOutputPackage)
+	err = protocompile.New(
+		protocompile.WithGRPC(b.appConfig.Build.UseGRPC),
+	).Compile(protoDir, filepath.Join(srcDir, b.appConfig.Build.PbDir), b.appConfig.Build.PbPackage)
 	if err != nil {
 		return err
 	}

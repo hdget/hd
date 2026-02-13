@@ -22,15 +22,10 @@ type AppController interface {
 }
 
 type appCtlImpl struct {
-	baseDir string
-	binDir  string
-	// pb options
-	pbOutputDir     string
-	pbOutputPackage string
-	pbGenGRPC       bool
-	// plugin options
-	pluginDir string
-	plugins   []string
+	baseDir     string
+	binDir      string
+	pluginDir   string
+	pluginNames []string
 }
 
 const (
@@ -75,25 +70,21 @@ func (a *appCtlImpl) Start(name string, extraParam ...string) error {
 	return instance.start(name, startParam)
 }
 
-func (a *appCtlImpl) Install(app string, ref string) error {
+func (a *appCtlImpl) Install(name string, ref string) error {
 	fmt.Println()
-	fmt.Printf("=== INSTALL app: %s ===\n", app)
+	fmt.Printf("=== INSTALL app: %s ===\n", name)
 	fmt.Println()
 
-	return newAppInstaller(a).install(app, ref)
+	// 获取app配置
+	appConfig, err := a.getAppConfig(name)
+	if err != nil {
+		return fmt.Errorf("app config not found in hd.toml, name: %s", name)
+	}
+
+	return newAppInstaller(a, appConfig).install(name, ref)
 }
 
 func (a *appCtlImpl) Build(name string, ref string) error {
-	// 检查依赖的工具是否安装
-	if err := tools.Check(
-		tools.Protoc(),
-		tools.ProtocGo(),
-		tools.ProtocGoGRPC(),
-		tools.Sqlboiler(),
-	); err != nil {
-		return err
-	}
-
 	// 获取app配置
 	appConfig, err := a.getAppConfig(name)
 	if err != nil {
@@ -101,22 +92,18 @@ func (a *appCtlImpl) Build(name string, ref string) error {
 	}
 
 	// 如果指定了plugin,则只编译指定的plugin
-	if len(a.plugins) > 0 {
-		for _, pluginName := range a.plugins {
+	if len(a.pluginNames) > 0 {
+		for _, pluginName := range a.pluginNames {
 			fmt.Println()
 			fmt.Printf("=== BUILD plugin: %s, ref: %s ===\n", pluginName, ref)
 			fmt.Println()
 
-			index := pie.FindFirstUsing(appConfig.Plugins, func(v g.PluginConfig) bool {
-				return v.Name == pluginName
-			})
-
-			if index == -1 {
-				return fmt.Errorf("plugin: %s not found for app: %s in hd.toml", pluginName, name)
+			pluginConf, err := getPluginConfig(appConfig.Plugins, pluginName)
+			if err != nil {
+				return errors.Wrap(err, "get plugin config")
 			}
 
-			err := newPluginBuilder(a, a.pbOutputDir, a.pbOutputPackage, a.pbGenGRPC).build(appConfig.Plugins[index].Name, appConfig.Plugins[index].Url, ref)
-			if err != nil {
+			if err = newPluginBuilder(a, appConfig).build(pluginConf, ref); err != nil {
 				return errors.Wrap(err, "build plugin")
 			}
 		}
@@ -128,7 +115,7 @@ func (a *appCtlImpl) Build(name string, ref string) error {
 		fmt.Println()
 		fmt.Printf("=== BUILD plugin: %s, ref: %s ===\n", pluginConfig.Name, ref)
 		fmt.Println()
-		if err := newPluginBuilder(a, a.pbOutputDir, a.pbOutputPackage, a.pbGenGRPC).build(pluginConfig.Name, pluginConfig.Url, ref); err != nil {
+		if err := newPluginBuilder(a, appConfig).build(pluginConfig, ref); err != nil {
 			return errors.Wrap(err, "build plugin")
 		}
 	}
@@ -137,7 +124,7 @@ func (a *appCtlImpl) Build(name string, ref string) error {
 	fmt.Println()
 	fmt.Printf("=== BUILD app: %s, ref: %s ===\n", name, ref)
 	fmt.Println()
-	return newAppBuilder(a, a.pbOutputDir, a.pbOutputPackage, a.pbGenGRPC).build(name, ref)
+	return newAppBuilder(a, appConfig).build(name, ref)
 }
 
 func (a *appCtlImpl) Stop(app string) error {
@@ -191,7 +178,7 @@ func (a *appCtlImpl) getRepositoryConfig(name string) (*g.RepositoryConfig, erro
 		return strings.EqualFold(v.Name, name)
 	})
 	if index == -1 {
-		return nil, fmt.Errorf("dependent config not found in hd.toml, app: %s", name)
+		return nil, fmt.Errorf("config repository not found in hd.toml, app: %s", name)
 	}
 	return &g.Config.Repos[index], nil
 }
@@ -203,5 +190,43 @@ func (a *appCtlImpl) getAppConfig(name string) (*g.AppConfig, error) {
 	if index == -1 {
 		return nil, fmt.Errorf("app config not found in hd.toml: %s", name)
 	}
-	return &g.Config.Apps[index], nil
+
+	found := &g.Config.Apps[index]
+
+	// 处理BuildOption
+	if found.Build == nil {
+		found.Build = getDefaultBuildConfig()
+	}
+
+	if found.ConfigRepo == "" {
+		found.ConfigRepo = defaultConfigRepo
+	}
+
+	if found.ProtoRepo == "" {
+		found.ProtoRepo = defaultProtoRepo
+	}
+
+	return found, nil
+}
+
+func getDefaultBuildConfig() *g.AppBuildConfig {
+	return &g.AppBuildConfig{
+		PbDir:        "autogen",
+		PbPackage:    "pb",
+		UseGRPC:      false,
+		UseProtobuf:  true,
+		UseSQLBoiler: true,
+	}
+}
+
+func getPluginConfig(pluginConfigs []*g.PluginConfig, pluginName string) (*g.PluginConfig, error) {
+	index := pie.FindFirstUsing(pluginConfigs, func(v *g.PluginConfig) bool {
+		return v.Name == pluginName
+	})
+
+	if index == -1 {
+		return nil, fmt.Errorf("plugin: %s not found for app: %s in hd.toml", pluginName, pluginName)
+	}
+
+	return pluginConfigs[index], nil
 }
