@@ -72,7 +72,7 @@ func (a *appCtlImpl) Start(name string, extraParam ...string) error {
 
 func (a *appCtlImpl) Install(name string, ref string) error {
 	fmt.Println()
-	fmt.Printf("=== INSTALL name: %s ===\n", name)
+	fmt.Printf("=== INSTALL app: %s ===\n", name)
 	fmt.Println()
 
 	// 获取app配置
