@@ -49,13 +49,23 @@ func (impl *appInstallerImpl) install(app, ref string) error {
 		return err
 	}
 
-	for srcPath, destPath := range map[string]string{
-		filepath.Join(tempDir, "app", app, fmt.Sprintf("%s.%s.toml", app, env)): filepath.Join(impl.baseDir, "config", "app", app),
-		filepath.Join(tempDir, "dapr", env, "*"):                                filepath.Join(impl.baseDir, "config", "dapr"),
-	} {
-		if err = utils.CopyWithWildcard(srcPath, destPath); err != nil {
-			return errors.Wrapf(err, "copy dir, src: %s, dest: %s", srcPath, destPath)
-		}
+	// 拷贝应用配置
+	srcFiles := filepath.Join(tempDir, "app", app, fmt.Sprintf("%s.%s.toml", app, env))
+	destDir := filepath.Join(impl.baseDir, "config", "app", app)
+	if err = utils.CopyWithWildcard(srcFiles, destDir); err != nil {
+		return errors.Wrapf(err, "copy dir, src: %s, dest: %s", srcFiles, destDir)
 	}
+
+	// 如果存在dapr配置，则拷贝dapr配置
+	if _, err = os.Stat(filepath.Join(tempDir, "dapr")); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	srcFiles = filepath.Join(tempDir, "dapr", env, "*")
+	destDir = filepath.Join(impl.baseDir, "config", "dapr")
+	if err = utils.CopyWithWildcard(srcFiles, destDir); err != nil {
+		return errors.Wrapf(err, "copy dir, src: %s, dest: %s", srcFiles, destDir)
+	}
+
 	return nil
 }
