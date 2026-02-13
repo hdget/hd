@@ -57,15 +57,20 @@ func (impl *appInstallerImpl) install(app, ref string) error {
 	}
 
 	// 如果存在dapr配置，则拷贝dapr配置
-	info, err := os.Stat(filepath.Join(tempDir, "dapr", env))
-	if err != nil && !os.IsNotExist(err) {
-		fmt.Println("xxxxxxxxxxxxxxxx, other error")
-		return err
+	daprConfigDir := filepath.Join(tempDir, "dapr", env)
+	info, err := os.Stat(daprConfigDir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			fmt.Println("xxxxxxxxxxxxxxxx, other error")
+			return err
+		} else {
+			return nil
+		}
 	}
 
-	fmt.Println("xxxxxxxxxxxxxxxx copy dapr", info.IsDir())
+	fmt.Println("xxxxxxxxxxxxxxxx copy dapr", info)
 
-	srcFiles = filepath.Join(tempDir, "dapr", env, "*")
+	srcFiles = filepath.Join(daprConfigDir, "*")
 	destDir = filepath.Join(impl.baseDir, "config", "dapr")
 	if err = utils.CopyWithWildcard(srcFiles, destDir); err != nil {
 		return errors.Wrapf(err, "copy dir, src: %s, dest: %s", srcFiles, destDir)
