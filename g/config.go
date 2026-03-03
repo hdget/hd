@@ -16,7 +16,9 @@ type ProjectConfig struct {
 
 type AppConfig struct {
 	Name         string          `toml:"name"`
-	ExternalPort int             `toml:"external_port"`
+	AppPort      int             `toml:"app_port"`
+	AppExposed   bool            `toml:"app_exposed"`
+	ExternalPort int             `toml:"external_port"` // 外部端口
 	Repo         string          `toml:"repo"`
 	Protocol     string          `toml:"protocol"`
 	ConfigRepo   string          `toml:"config_repo"`
