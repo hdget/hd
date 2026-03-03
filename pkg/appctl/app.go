@@ -276,6 +276,7 @@ func (impl *appImpl) getDaprArgument(port *port) string {
 		daprArguments["--placement_host_address"] = g.Config.Dapr.PlacementHostAddress
 	}
 
+	daprArguments["--enable-app-health-check"] = ""
 	if g.Config.Dapr.AppHealthProbeInterval > 0 {
 		daprArguments["--app_health_probe_interval"] = g.Config.Dapr.AppHealthProbeInterval
 	}
@@ -283,8 +284,6 @@ func (impl *appImpl) getDaprArgument(port *port) string {
 	if g.Config.Dapr.DisableAppHealthCheck {
 		delete(daprArguments, "--enable-app-health-check")
 		delete(daprArguments, "--app_health_probe_interval")
-	} else if g.Config.Dapr.AppHealthProbeInterval > 0 {
-		daprArguments["--app_health_probe_interval"] = g.Config.Dapr.AppHealthProbeInterval
 	}
 
 	for k, v := range daprArguments {
