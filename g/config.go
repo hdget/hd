@@ -22,12 +22,12 @@ type AppConfig struct {
 	Protocol     string          `toml:"protocol"`
 	ConfigRepo   string          `toml:"config_repo"`
 	ProtoRepo    string          `toml:"proto_repo"`
-	Build        *AppBuildConfig `toml:"build"`
+	Build        *BuildConfig    `toml:"build"`
 	Plugins      []*PluginConfig `toml:"plugins"`
 	Dapr         DaprConfig      `toml:"dapr"`
 }
 
-type AppBuildConfig struct {
+type BuildConfig struct {
 	PbDir        string `toml:"pb_dir"`        // protobuf编译后保存的的目录
 	PbPackage    string `toml:"pb_package"`    // protobuf编译后生成的包名
 	UseGRPC      bool   `toml:"use_grpc"`      // 是否使用了GRPC, 需要编译GRPC代码
