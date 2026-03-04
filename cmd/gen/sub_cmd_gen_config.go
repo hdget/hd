@@ -49,16 +49,19 @@ const (
 #   name = "example-app"
 #   # git repo url
 #   repo = "https://{{.RepoHost}}/example-app.git"
-#	# if external port is set, then app is exposed
-#	# external_port = 1000
+#	# if app_exposed is set, then app is exposed
+#   # app_exposed = true
 #   # app build option
-#   [[apps.build]]
-#       use_pb = false
-#       use_grpc = false
-#       bin_dir = "bin"
-#       plugin_dir = "plugins"
+#   [apps.build]
 #       pb_dir = "autogen/pb"
-#   
+#       pb_package = "pb"
+#       use_grpc = false
+#       use_protobuf = true
+#       use_sqlboiler = true
+#
+#   [apps.dapr]
+#       app_protocal = "http"
+#
 #	# app plugins 
 #	[[apps.plugins]]
 #       name = "example-plugin"
