@@ -78,15 +78,15 @@ func newApp(name string) (Apper, error) {
 }
 
 func (impl *appImpl) GetStartCommand(binDir, extraParam string) (string, error) {
-	p, err := impl.allocatePort()
+	allocatedPort, err := impl.allocatePort()
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "get allocatedPort")
 	}
 
 	commands := []string{
-		impl.getDaprArgument(p),
+		impl.getDaprArgument(allocatedPort),
 		"--",
-		impl.getAppRunCommand(binDir, extraParam, p),
+		impl.getAppRunCommand(binDir, extraParam, allocatedPort),
 	}
 
 	return strings.Join(commands, " "), nil
