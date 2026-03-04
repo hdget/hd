@@ -5,7 +5,6 @@ type HdConfig struct {
 	Apps    []AppConfig        `toml:"apps"` // 应用启动顺序
 	Repos   []RepositoryConfig `toml:"repos"`
 	Tools   []ToolConfig       `toml:"tools"`
-	Dapr    DaprConfig         `toml:"dapr"`
 }
 
 type ProjectConfig struct {
@@ -25,6 +24,7 @@ type AppConfig struct {
 	ProtoRepo    string          `toml:"proto_repo"`
 	Build        *AppBuildConfig `toml:"build"`
 	Plugins      []*PluginConfig `toml:"plugins"`
+	Dapr         DaprConfig      `toml:"dapr"`
 }
 
 type AppBuildConfig struct {

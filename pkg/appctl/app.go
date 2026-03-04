@@ -134,13 +134,13 @@ func (impl *appImpl) GetHealthChecker() func() bool {
 
 func (impl *appImpl) allocatePort() (*port, error) {
 	daprPortStart := defaultDaprPortStart
-	if g.Config.Dapr.PortStart != 0 {
-		daprPortStart = g.Config.Dapr.PortStart
+	if impl.config.Dapr.PortStart != 0 {
+		daprPortStart = impl.config.Dapr.PortStart
 	}
 
 	daprPortEnd := defaultDaprPortEnd
-	if g.Config.Dapr.PortEnd != 0 {
-		daprPortEnd = g.Config.Dapr.PortEnd
+	if impl.config.Dapr.PortEnd != 0 {
+		daprPortEnd = impl.config.Dapr.PortEnd
 	}
 
 	portNum := len(daprPorts)
@@ -256,32 +256,32 @@ func (impl *appImpl) getDaprArgument(port *port) string {
 
 	daprArguments["--app-id"] = impl.GetId()
 
-	if g.Config.Dapr.AppProtocol != "" {
-		daprArguments["--app-protocol"] = g.Config.Dapr.AppProtocol
+	if impl.config.Dapr.AppProtocol != "" {
+		daprArguments["--app-protocol"] = impl.config.Dapr.AppProtocol
 	}
 
-	if g.Config.Dapr.ConfigPath != "" {
-		daprArguments["--config_path"] = g.Config.Dapr.ConfigPath
+	if impl.config.Dapr.ConfigPath != "" {
+		daprArguments["--config_path"] = impl.config.Dapr.ConfigPath
 	}
 
-	if g.Config.Dapr.ResourcePath != "" {
-		daprArguments["--resource_path"] = g.Config.Dapr.ResourcePath
+	if impl.config.Dapr.ResourcePath != "" {
+		daprArguments["--resource_path"] = impl.config.Dapr.ResourcePath
 	}
 
-	if g.Config.Dapr.SchedulerHostAddress != "" {
-		daprArguments["--scheduler_host_address"] = g.Config.Dapr.SchedulerHostAddress
+	if impl.config.Dapr.SchedulerHostAddress != "" {
+		daprArguments["--scheduler_host_address"] = impl.config.Dapr.SchedulerHostAddress
 	}
 
-	if g.Config.Dapr.PlacementHostAddress != "" {
-		daprArguments["--placement_host_address"] = g.Config.Dapr.PlacementHostAddress
+	if impl.config.Dapr.PlacementHostAddress != "" {
+		daprArguments["--placement_host_address"] = impl.config.Dapr.PlacementHostAddress
 	}
 
 	daprArguments["--enable-app-health-check"] = ""
-	if g.Config.Dapr.AppHealthProbeInterval > 0 {
-		daprArguments["--app_health_probe_interval"] = g.Config.Dapr.AppHealthProbeInterval
+	if impl.config.Dapr.AppHealthProbeInterval > 0 {
+		daprArguments["--app_health_probe_interval"] = impl.config.Dapr.AppHealthProbeInterval
 	}
 
-	if g.Config.Dapr.DisableAppHealthCheck {
+	if impl.config.Dapr.DisableAppHealthCheck {
 		delete(daprArguments, "--enable-app-health-check")
 		delete(daprArguments, "--app_health_probe_interval")
 	}
