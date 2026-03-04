@@ -46,7 +46,6 @@ const (
 
 var (
 	daprPorts = []string{
-		"--app-port",
 		"--dapr-grpc-port",
 		"--dapr-http-port",
 		"--dapr-internal-grpc-port",
@@ -135,29 +134,39 @@ func (impl *appImpl) GetHealthChecker() func() bool {
 
 func (impl *appImpl) allocatePort() (*port, error) {
 	daprPortStart := defaultDaprPortStart
-	if g.Config.Dapr.PortStart != 0 {
-		daprPortStart = g.Config.Dapr.PortStart
+	if impl.config.Dapr.PortStart != 0 {
+		daprPortStart = impl.config.Dapr.PortStart
 	}
 
 	daprPortEnd := defaultDaprPortEnd
-	if g.Config.Dapr.PortEnd != 0 {
-		daprPortEnd = g.Config.Dapr.PortEnd
+	if impl.config.Dapr.PortEnd != 0 {
+		daprPortEnd = impl.config.Dapr.PortEnd
 	}
 
-	var externalPort int
-	if impl.config.ExternalPort > 0 {
-		externalPort = impl.config.ExternalPort
+	portNum := len(daprPorts)
+	if impl.config.AppPort == 0 {
+		portNum += 1 // 未指定appPort,则需要额外获取一个随机端口
 	}
 
-	ports, err := impl.findAvailablePorts(len(daprPorts), daprPortStart, daprPortEnd)
+	availablePorts, err := impl.findAvailablePorts(portNum, daprPortStart, daprPortEnd)
 	if err != nil {
 		return nil, errors.Wrap(err, "find system available ports")
 	}
 
+	var appPort int
+	var randomPorts []int
+	if impl.config.AppPort == 0 {
+		appPort = availablePorts[0]
+		randomPorts = availablePorts[1:]
+	} else {
+		appPort = impl.config.AppPort
+		randomPorts = availablePorts
+	}
+
 	return &port{
-		appPort:      ports[0],
-		externalPort: externalPort, // 对外提供访问的端口，一般是HTTP
-		randomPorts:  ports,
+		appPort:      appPort,
+		externalPort: impl.config.ExternalPort,
+		randomPorts:  randomPorts,
 	}, nil
 }
 
@@ -212,9 +221,15 @@ func (impl *appImpl) getAppRunCommand(binDir, extraParam string, port *port) str
 	}
 
 	argMap := make(map[string]string)
-	argMap["--app-address"] = fmt.Sprintf("127.0.0.1:%d", port.appPort)
-	if impl.config.ExternalPort > 0 {
-		argMap["--external-address"] = fmt.Sprintf(":%d", port.externalPort)
+
+	if impl.config.AppExposed {
+		argMap["--app-address"] = fmt.Sprintf(":%d", port.appPort)
+	} else {
+		argMap["--app-address"] = fmt.Sprintf("127.0.0.1:%d", port.appPort)
+	}
+
+	if port.externalPort > 0 {
+		argMap["--external-address"] = fmt.Sprintf(":%d", impl.config.ExternalPort)
 	}
 
 	for key, value := range argMap {
@@ -233,42 +248,37 @@ func (impl *appImpl) getDaprArgument(port *port) string {
 		cmdRunDapr,
 	}
 
-	// IMPORTANT: app-port必须是第一个
+	daprArguments["--app-port"] = impl.config.AppPort
+
 	for i, p := range port.randomPorts {
 		commands = append(commands, daprPorts[i], cast.ToString(p))
 	}
 
 	daprArguments["--app-id"] = impl.GetId()
 
-	if g.Config.Dapr.AppProtocol != "" {
-		daprArguments["--app-protocol"] = g.Config.Dapr.AppProtocol
+	if impl.config.Dapr.AppProtocol != "" {
+		daprArguments["--app-protocol"] = impl.config.Dapr.AppProtocol
 	}
 
-	if g.Config.Dapr.ConfigPath != "" {
-		daprArguments["--config_path"] = g.Config.Dapr.ConfigPath
+	if impl.config.Dapr.ConfigPath != "" {
+		daprArguments["--config_path"] = impl.config.Dapr.ConfigPath
 	}
 
-	if g.Config.Dapr.ResourcePath != "" {
-		daprArguments["--resource_path"] = g.Config.Dapr.ResourcePath
+	if impl.config.Dapr.ResourcePath != "" {
+		daprArguments["--resource_path"] = impl.config.Dapr.ResourcePath
 	}
 
-	if g.Config.Dapr.SchedulerHostAddress != "" {
-		daprArguments["--scheduler_host_address"] = g.Config.Dapr.SchedulerHostAddress
+	if impl.config.Dapr.SchedulerHostAddress != "" {
+		daprArguments["--scheduler_host_address"] = impl.config.Dapr.SchedulerHostAddress
 	}
 
-	if g.Config.Dapr.PlacementHostAddress != "" {
-		daprArguments["--placement_host_address"] = g.Config.Dapr.PlacementHostAddress
+	if impl.config.Dapr.PlacementHostAddress != "" {
+		daprArguments["--placement_host_address"] = impl.config.Dapr.PlacementHostAddress
 	}
 
-	if g.Config.Dapr.AppHealthProbeInterval > 0 {
-		daprArguments["--app_health_probe_interval"] = g.Config.Dapr.AppHealthProbeInterval
-	}
-
-	if g.Config.Dapr.DisableAppHealthCheck {
+	if impl.config.Dapr.DisableAppHealthCheck {
 		delete(daprArguments, "--enable-app-health-check")
 		delete(daprArguments, "--app_health_probe_interval")
-	} else if g.Config.Dapr.AppHealthProbeInterval > 0 {
-		daprArguments["--app_health_probe_interval"] = g.Config.Dapr.AppHealthProbeInterval
 	}
 
 	for k, v := range daprArguments {

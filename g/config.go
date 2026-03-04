@@ -5,7 +5,6 @@ type HdConfig struct {
 	Apps    []AppConfig        `toml:"apps"` // 应用启动顺序
 	Repos   []RepositoryConfig `toml:"repos"`
 	Tools   []ToolConfig       `toml:"tools"`
-	Dapr    DaprConfig         `toml:"dapr"`
 }
 
 type ProjectConfig struct {
@@ -16,16 +15,19 @@ type ProjectConfig struct {
 
 type AppConfig struct {
 	Name         string          `toml:"name"`
-	ExternalPort int             `toml:"external_port"`
+	AppPort      int             `toml:"app_port"`
+	AppExposed   bool            `toml:"app_exposed"`
+	ExternalPort int             `toml:"external_port"` // 外部端口
 	Repo         string          `toml:"repo"`
 	Protocol     string          `toml:"protocol"`
 	ConfigRepo   string          `toml:"config_repo"`
 	ProtoRepo    string          `toml:"proto_repo"`
-	Build        *AppBuildConfig `toml:"build"`
+	Build        *BuildConfig    `toml:"build"`
 	Plugins      []*PluginConfig `toml:"plugins"`
+	Dapr         DaprConfig      `toml:"dapr"`
 }
 
-type AppBuildConfig struct {
+type BuildConfig struct {
 	PbDir        string `toml:"pb_dir"`        // protobuf编译后保存的的目录
 	PbPackage    string `toml:"pb_package"`    // protobuf编译后生成的包名
 	UseGRPC      bool   `toml:"use_grpc"`      // 是否使用了GRPC, 需要编译GRPC代码

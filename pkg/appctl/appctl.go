@@ -209,8 +209,8 @@ func (a *appCtlImpl) getAppConfig(name string) (*g.AppConfig, error) {
 	return found, nil
 }
 
-func getDefaultBuildConfig() *g.AppBuildConfig {
-	return &g.AppBuildConfig{
+func getDefaultBuildConfig() *g.BuildConfig {
+	return &g.BuildConfig{
 		PbDir:        "autogen",
 		PbPackage:    "pb",
 		UseGRPC:      false,
