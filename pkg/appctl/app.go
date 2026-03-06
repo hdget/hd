@@ -229,7 +229,7 @@ func (impl *appImpl) getAppRunCommand(binDir, extraParam string, port *port) str
 	}
 
 	if port.externalPort > 0 {
-		argMap["--external-address"] = fmt.Sprintf(":%d", impl.config.ExternalPort)
+		argMap["--external-address"] = fmt.Sprintf(":%d", port.externalPort)
 	}
 
 	for key, value := range argMap {
@@ -248,7 +248,7 @@ func (impl *appImpl) getDaprArgument(port *port) string {
 		cmdRunDapr,
 	}
 
-	daprArguments["--app-port"] = impl.config.AppPort
+	daprArguments["--app-port"] = port.appPort
 
 	for i, p := range port.randomPorts {
 		commands = append(commands, daprPorts[i], cast.ToString(p))
