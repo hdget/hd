@@ -212,6 +212,7 @@ func getBuildConfig(buildConfig *g.BuildConfig) *g.BuildConfig {
 		PbDir:        "autogen",
 		PbPackage:    "pb",
 		UseGRPC:      false,
+		UseProtobuf:  true,
 		UseSQLBoiler: true,
 	}
 
@@ -229,6 +230,10 @@ func getBuildConfig(buildConfig *g.BuildConfig) *g.BuildConfig {
 
 	if buildConfig.UseGRPC {
 		result.UseGRPC = true
+	}
+
+	if !buildConfig.UseProtobuf {
+		result.UseProtobuf = false
 	}
 
 	if !buildConfig.UseSQLBoiler {

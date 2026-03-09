@@ -63,11 +63,13 @@ func (b *pluginBuilder) build(pluginConfig *g.PluginConfig, refName string) erro
 	}
 
 	// 编译Protobuf
-	if g.Debug {
-		fmt.Println("===> plugin build step: generate protobuf")
-	}
-	if err = b.generateProtobuf(pluginSrcDir, refName); err != nil {
-		return err
+	if b.appConfig.Build.UseProtobuf {
+		if g.Debug {
+			fmt.Println("===> plugin build step: generate protobuf")
+		}
+		if err = b.generateProtobuf(pluginSrcDir, refName); err != nil {
+			return err
+		}
 	}
 
 	// go build app
