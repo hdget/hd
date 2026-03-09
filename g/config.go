@@ -28,11 +28,11 @@ type AppConfig struct {
 }
 
 type BuildConfig struct {
-	PbDir        string `toml:"pb_dir"`        // protobuf编译后保存的的目录
-	PbPackage    string `toml:"pb_package"`    // protobuf编译后生成的包名
-	UseGRPC      bool   `toml:"use_grpc"`      // 是否使用了GRPC, 需要编译GRPC代码
-	UseProtobuf  bool   `toml:"use_protobuf"`  // 是否使用了protobuf， 需要编译protobuf文件
-	UseSQLBoiler bool   `toml:"use_sqlboiler"` // 是否使用了sqlboiler， 需要自动生成sqlboiler代码
+	PbDir       string `toml:"pb_dir"`       // protobuf编译后保存的的目录
+	PbPackage   string `toml:"pb_package"`   // protobuf编译后生成的包名
+	UseGRPC     bool   `toml:"use_grpc"`     // 是否使用了GRPC, 需要编译GRPC代码
+	NoProtobuf  bool   `toml:"no_protobuf"`  // 是否使用了protobuf
+	NoSQLBoiler bool   `toml:"no_sqlboiler"` // 是否使用了sqlboiler
 }
 
 type RepositoryConfig struct {

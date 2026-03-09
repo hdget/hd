@@ -194,9 +194,7 @@ func (a *appCtlImpl) getAppConfig(name string) (*g.AppConfig, error) {
 	found := &g.Config.Apps[index]
 
 	// 处理BuildOption
-	if found.Build == nil {
-		found.Build = getDefaultBuildConfig()
-	}
+	found.Build = getBuildConfig(found.Build)
 
 	if found.ConfigRepo == "" {
 		found.ConfigRepo = defaultConfigRepo
@@ -209,14 +207,40 @@ func (a *appCtlImpl) getAppConfig(name string) (*g.AppConfig, error) {
 	return found, nil
 }
 
-func getDefaultBuildConfig() *g.BuildConfig {
-	return &g.BuildConfig{
-		PbDir:        "autogen",
-		PbPackage:    "pb",
-		UseGRPC:      false,
-		UseProtobuf:  true,
-		UseSQLBoiler: true,
+func getBuildConfig(buildConfig *g.BuildConfig) *g.BuildConfig {
+	result := &g.BuildConfig{
+		PbDir:       "autogen",
+		PbPackage:   "pb",
+		UseGRPC:     false,
+		NoProtobuf:  false,
+		NoSQLBoiler: false,
 	}
+
+	if buildConfig == nil {
+		return result
+	}
+
+	if buildConfig.PbDir != "" {
+		result.PbDir = buildConfig.PbDir
+	}
+
+	if buildConfig.PbPackage != "" {
+		result.PbPackage = buildConfig.PbPackage
+	}
+
+	if buildConfig.UseGRPC {
+		result.UseGRPC = true
+	}
+
+	if buildConfig.NoProtobuf {
+		result.NoProtobuf = true
+	}
+
+	if buildConfig.NoSQLBoiler {
+		result.NoSQLBoiler = true
+	}
+
+	return result
 }
 
 func getPluginConfig(pluginConfigs []*g.PluginConfig, pluginName string) (*g.PluginConfig, error) {
