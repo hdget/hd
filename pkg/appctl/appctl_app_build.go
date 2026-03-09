@@ -79,23 +79,21 @@ func (b *appBuilder) build(name, refName string) error {
 	}
 
 	// 编译Protobuf
-	if b.appConfig.Build.UseProtobuf {
-		if g.Debug {
-			fmt.Println("===> build step: generate protobuf")
-		}
+	if g.Debug {
+		fmt.Println("===> build step: generate protobuf")
+	}
 
-		if err = tools.Check(
-			tools.Protoc(),
-			tools.ProtocGo(),
-			tools.ProtocGoGRPC(),
-			tools.Sqlboiler(),
-		); err != nil {
-			return err
-		}
+	if err = tools.Check(
+		tools.Protoc(),
+		tools.ProtocGo(),
+		tools.ProtocGoGRPC(),
+		tools.Sqlboiler(),
+	); err != nil {
+		return err
+	}
 
-		if err = b.generateProtobuf(appSrcDir, refName); err != nil {
-			return err
-		}
+	if err = b.generateProtobuf(appSrcDir, refName); err != nil {
+		return err
 	}
 
 	// 拷贝sqlboiler.toml
