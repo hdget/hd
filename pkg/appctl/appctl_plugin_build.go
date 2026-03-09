@@ -63,7 +63,7 @@ func (b *pluginBuilder) build(pluginConfig *g.PluginConfig, refName string) erro
 	}
 
 	// 编译Protobuf
-	if b.appConfig.Build.UseProtobuf {
+	if !b.appConfig.Build.NoProtobuf {
 		if g.Debug {
 			fmt.Println("===> plugin build step: generate protobuf")
 		}

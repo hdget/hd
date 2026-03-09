@@ -79,7 +79,7 @@ func (b *appBuilder) build(name, refName string) error {
 	}
 
 	// 编译Protobuf
-	if b.appConfig.Build.UseProtobuf {
+	if !b.appConfig.Build.NoProtobuf {
 		if g.Debug {
 			fmt.Println("===> build step: generate protobuf")
 		}
@@ -99,7 +99,7 @@ func (b *appBuilder) build(name, refName string) error {
 	}
 
 	// 拷贝sqlboiler.toml
-	if b.appConfig.Build.UseSQLBoiler {
+	if !b.appConfig.Build.NoSQLBoiler {
 		if g.Debug {
 			fmt.Println("===> build step: copy sqlboiler config file")
 		}

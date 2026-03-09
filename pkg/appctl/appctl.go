@@ -209,11 +209,11 @@ func (a *appCtlImpl) getAppConfig(name string) (*g.AppConfig, error) {
 
 func getBuildConfig(buildConfig *g.BuildConfig) *g.BuildConfig {
 	result := &g.BuildConfig{
-		PbDir:        "autogen",
-		PbPackage:    "pb",
-		UseGRPC:      false,
-		UseProtobuf:  true,
-		UseSQLBoiler: true,
+		PbDir:       "autogen",
+		PbPackage:   "pb",
+		UseGRPC:     false,
+		NoProtobuf:  false,
+		NoSQLBoiler: false,
 	}
 
 	if buildConfig == nil {
@@ -232,12 +232,12 @@ func getBuildConfig(buildConfig *g.BuildConfig) *g.BuildConfig {
 		result.UseGRPC = true
 	}
 
-	if !buildConfig.UseProtobuf {
-		result.UseProtobuf = false
+	if buildConfig.NoProtobuf {
+		result.NoProtobuf = true
 	}
 
-	if !buildConfig.UseSQLBoiler {
-		result.UseSQLBoiler = false
+	if buildConfig.NoSQLBoiler {
+		result.NoSQLBoiler = true
 	}
 
 	return result
