@@ -14,10 +14,10 @@ import (
 )
 
 var (
-	// 调用函数的函数签名：invocation handler: func(biz.Context,[]byte) (any, error)
+	// 调用函数的函数签名：invocation handler: func(context.Context,[]byte) (any, error)
 	signatureInvocationHandler = &functionSignature{
 		namePattern: regexp.MustCompile(`.*Handler`),
-		params:      []string{"biz.Context", "[]byte"},
+		params:      []string{"context.Context", "[]byte"},
 		results:     []string{"any", "error"},
 	}
 
