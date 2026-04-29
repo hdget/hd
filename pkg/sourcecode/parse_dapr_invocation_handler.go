@@ -17,8 +17,14 @@ var (
 	// 调用函数的函数签名：invocation handler: func(context.Context,[]byte) (any, error)
 	signatureInvocationHandler = &functionSignature{
 		namePattern: regexp.MustCompile(`.*Handler`),
-		params:      []string{"context.Context", "[]byte"},
-		results:     []string{"any", "error"},
+		params: []typeSignature{
+			{pkgPath: "context", typeName: "Context"},
+			{pkgPath: "", typeName: "[]byte"},
+		},
+		results: []typeSignature{
+			{pkgPath: "", typeName: "any"},
+			{pkgPath: "", typeName: "error"},
+		},
 	}
 
 	// 模块注册的调用签名, e,g:
@@ -90,10 +96,11 @@ func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*parsedDaprModule
 	for _, pkgRelPath := range allInvocationPkgRelPaths {
 		if astPkg := p.pkgRelPath2astPkg[pkgRelPath]; astPkg != nil {
 			for fPath, f := range astPkg.Files {
+				imports := astGetPackageImportPaths(f)
 				ast.Inspect(f, func(node ast.Node) bool {
 					switch n := node.(type) {
 					case *ast.FuncDecl:
-						if h := p.parseInvocationHandler(n, p.srcDir, fPath, registeredHandlerPath2handlerAlias); h != nil {
+						if h := p.parseInvocationHandler(n, p.srcDir, fPath, registeredHandlerPath2handlerAlias, imports); h != nil {
 							results = append(results, h)
 						}
 					}
@@ -108,7 +115,7 @@ func (p *parserImpl) parseDaprInvocationHandlers(moduleInfos []*parsedDaprModule
 }
 
 // parseInvocationHandler 解析Dapr所有invocation handlers
-func (p *parserImpl) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath string, registeredHandlerPath2handlerAlias map[string]string) *protobuf.DaprHandler {
+func (p *parserImpl) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath string, registeredHandlerPath2handlerAlias map[string]string, imports map[string]string) *protobuf.DaprHandler {
 	receiverTypeName := astGetReceiverTypeName(fn, true)
 	// receiverTypeName为空表示为普通函数，忽略
 	if receiverTypeName == "" {
@@ -117,7 +124,7 @@ func (p *parserImpl) parseInvocationHandler(fn *ast.FuncDecl, srcDir, filePath s
 
 	// 函数签名匹配
 	// func(ctx context.Context, event *common.InvocationEvent) (*common.Content, any)
-	if astMatchFunction(fn, signatureInvocationHandler) {
+	if astMatchFunction(fn, signatureInvocationHandler, imports) {
 		annotations, comments := p.extractAnnotationsAndComments(fn.Doc)
 
 		pkgRelPath, _ := filepath.Rel(srcDir, filepath.Dir(filePath))

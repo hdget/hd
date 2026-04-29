@@ -17,10 +17,15 @@ type callSignature struct {
 	argIndex2Signature map[int]string // 可选, nil不去检查
 }
 
+type typeSignature struct {
+	pkgPath  string // 实际包路径，如 "context"，内置类型为空
+	typeName string // 类型名，如 "Context"
+}
+
 type functionSignature struct {
 	namePattern *regexp.Regexp
-	params      []string
-	results     []string
+	params      []typeSignature
+	results     []typeSignature
 }
 
 func astMatchCall(n *ast.CallExpr, sig *callSignature, imports map[string]string) bool {
@@ -119,7 +124,7 @@ func astResolveVarType(expr ast.Expr) string {
 	return ""
 }
 
-func astMatchFunction(fn *ast.FuncDecl, sig *functionSignature) bool {
+func astMatchFunction(fn *ast.FuncDecl, sig *functionSignature, imports map[string]string) bool {
 	// 检查参数数量
 	if fn.Type.Params == nil || len(fn.Type.Params.List) != len(sig.params) || fn.Type.Results == nil || len(fn.Type.Results.List) != len(sig.results) {
 		return false
@@ -133,18 +138,49 @@ func astMatchFunction(fn *ast.FuncDecl, sig *functionSignature) bool {
 
 	// 检查参数
 	for i, param := range fn.Type.Params.List {
-		if paramTypeName := astGetExprTypeName(param.Type); paramTypeName != sig.params[i] {
+		if !matchTypeSignature(param.Type, sig.params[i], imports) {
 			return false
 		}
 	}
 
+	// 检查返回值
 	for i, result := range fn.Type.Results.List {
-		if resultTypeName := astGetExprTypeName(result.Type); resultTypeName != sig.results[i] {
+		if !matchTypeSignature(result.Type, sig.results[i], imports) {
 			return false
 		}
 	}
 
 	return true
+}
+
+// matchTypeSignature 匹配类型签名，支持包别名
+func matchTypeSignature(expr ast.Expr, expected typeSignature, imports map[string]string) bool {
+	exprTypeName := astGetExprTypeName(expr)
+
+	// 精确匹配: exprTypeName == "pkgPath.typeName"
+	if exprTypeName == expected.pkgPath+"."+expected.typeName {
+		return true
+	}
+
+	// 内置类型匹配: pkgPath 为空，exprTypeName 本身就是类型名
+	if expected.pkgPath == "" && exprTypeName == expected.typeName {
+		return true
+	}
+
+	// 别名匹配: exprTypeName 格式为 "alias.typeName"，需要通过 imports 解析实际包路径
+	if !strings.Contains(exprTypeName, ".") {
+		return false
+	}
+
+	parts := strings.SplitN(exprTypeName, ".", 2)
+	alias := parts[0]
+	typeName := parts[1]
+	actualPkgPath := imports[alias]
+	// 标准库：路径就是包名本身
+	if actualPkgPath == "" {
+		actualPkgPath = alias
+	}
+	return typeName == expected.typeName && actualPkgPath == expected.pkgPath
 }
 
 // astGetReceiverTypeName 获取函数的receiver类型, 如果ignorePointer为true, 则去除前面的*号
