@@ -9,7 +9,7 @@ require (
 	github.com/elliotchance/pie/v2 v2.9.1
 	github.com/go-git/go-git/v5 v5.14.0
 	github.com/go-resty/resty/v2 v2.16.5
-	github.com/hdget/sdk/common v0.0.5
+	github.com/hdget/sdk/common v0.1.0
 	github.com/jhump/protoreflect v1.17.0
 	github.com/joho/godotenv v1.5.1
 	github.com/pkg/errors v0.9.1
